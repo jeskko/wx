@@ -214,13 +214,15 @@ function metarSymbol(m: Metar): Sym | null {
   return o == null ? null : o <= 1 ? 'clear' : o <= 5 ? 'partly' : 'cloudy';
 }
 
+// suncalc 2.x returns altitude/azimuth in degrees (azimuth from north), not radians.
+
 /** True if the sun is below the horizon (-0.833°) at time & place. */
 export function isNight(date: Date, lat: number, lon: number): boolean {
-  return getPosition(date, lat, lon).altitude < (-0.833 * Math.PI) / 180;
+  return getPosition(date, lat, lon).altitude < -0.833;
 }
 
 export function sunAltitudeDeg(date: Date, lat: number, lon: number): number {
-  return (getPosition(date, lat, lon).altitude * 180) / Math.PI;
+  return getPosition(date, lat, lon).altitude;
 }
 
 /** Forecast step closest to (at or before) the given time. */

@@ -53,6 +53,7 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: true, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },
+  { id: 'sky', enabled: true, duration: 14 },
   { id: 'map-scandinavia', enabled: true, duration: 12 },
   { id: 'map-europe', enabled: true, duration: 12 },
   { id: 'map-namerica', enabled: true, duration: 12 },

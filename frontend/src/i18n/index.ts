@@ -34,6 +34,7 @@ const fi = {
   'slide.map-africa': 'Afrikka',
   'slide.map-oceania': 'Australia ja Oseania',
   'slide.capital': 'Maailman pääkaupungit',
+  'slide.sky': 'Taivaalla tänä yönä',
 
   temperature: 'Lämpötila',
   feelsLike: 'Tuntuu kuin',
@@ -140,6 +141,7 @@ const en: Record<Key, string> = {
   'slide.map-africa': 'Africa',
   'slide.map-oceania': 'Australia & Oceania',
   'slide.capital': 'World Capitals',
+  'slide.sky': "Tonight's Sky",
 
   temperature: 'Temperature',
   feelsLike: 'Feels like',

@@ -12,6 +12,8 @@ import type { SlideDef } from './types';
 import type { Key } from '../i18n';
 
 import Almanac, { type AlmanacData } from '../slides/Almanac.svelte';
+import Sky, { type SkyData, type SkyStar } from '../slides/Sky.svelte';
+import { activeShowers, horizontal, LINES, STARS, starEq, tonight, visibleTonight } from '../lib/sky';
 import Aurora, { type AuroraData } from '../slides/Aurora.svelte';
 import Aviation from '../slides/Aviation.svelte';
 import Chart from '../slides/Chart.svelte';
@@ -365,6 +367,42 @@ const almanac: SlideDef<AlmanacData> = {
   },
 };
 
+const sky: SlideDef<SkyData> = {
+  id: 'sky',
+  title: 'slide.sky',
+  scope: 'global',
+  component: Sky,
+  async prepare({ lang, now }) {
+    const win = tonight(now);
+    const objects = visibleTonight(win);
+    const all: (SkyStar & { en: string })[] = STARS.map((st) => {
+      const h = horizontal(starEq(st), win.at);
+      return { name: lang === 'fi' ? st[0] : st[1], en: st[1], alt: h.alt, az: h.az, mag: st[4] };
+    });
+    // in a light (summer) night only the brightest stars show through the twilight
+    const stars = all.filter((st) => st.alt > 0 && (win.dark || st.mag < 1));
+    const byEn = new Map(all.map((st) => [st.en, st]));
+    const lines = LINES.map((c) => ({
+      name: c[lang],
+      segs: c.path
+        .flatMap((path) => path.slice(1).map((b, i) => [byEn.get(path[i])!, byEn.get(b)!] as [SkyStar, SkyStar]))
+        .filter(([a, b]) => a && b && a.alt > 0 && b.alt > 0),
+    })).filter((c) => c.segs.length && win.dark);
+    const mi = getMoonIllumination(win.at);
+    return {
+      at: win.at,
+      dark: win.dark,
+      minSun: win.minSun,
+      objects,
+      stars,
+      lines,
+      moonPhase: mi.phase,
+      moonFraction: mi.fraction,
+      showers: activeShowers(win.at).map((x) => ({ name: x[lang], peak: x.peak, atPeak: x.atPeak })),
+    };
+  },
+};
+
 const credits: SlideDef<{ tracks: import('./audio').Track[] }> = {
   id: 'credits',
   title: 'slide.credits',
@@ -682,7 +720,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

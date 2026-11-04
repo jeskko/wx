@@ -75,7 +75,7 @@ export function outlook(a: AuroraFile, lat: number, lon: number, steps: Step[] |
   // darkness: sun below -10° at some point tonight
   let dark = false;
   for (let t = start.getTime(); t <= end.getTime(); t += 3600_000) {
-    if ((getPosition(new Date(t), lat, lon).altitude * 180) / Math.PI < -10) {
+    if (getPosition(new Date(t), lat, lon).altitude < -10) {  // suncalc 2: degrees
       dark = true;
       break;
     }
