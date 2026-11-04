@@ -88,7 +88,17 @@ export class MusicPlayer {
     this.tracks = tracks;
     this.stream = streamUrl;
     this.setVolume(volume);
-    if (changed) this.audio.removeAttribute('src');
+    if (!changed) return;
+    // new selection: forget the old shuffle and, if music is on, switch right away
+    this.queue = [];
+    this.audio.pause();
+    if (this.wanted && this.available) {
+      this.load();
+      void this.attempt();
+    } else {
+      this.audio.removeAttribute('src');
+      if (this.wanted) this.set('unavailable');
+    }
   }
 
   get available(): boolean {
