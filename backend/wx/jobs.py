@@ -10,7 +10,8 @@ Output layout (all JSON, relative to DATA_DIR):
   radar/fi/index.json    radar frame list (+ radar/fi/<time>.png, last hour, 5-min steps)
   radar/local/<place>/   500 m radar windows (250 km) around each Finnish place
   nowcast/<place>.json   MET Norway radar nowcast, 5-min precipitation for the next 90 min
-  grid/fi.json           24 h of wind/cloud/precip/temperature on a map-space grid
+  grid/fi.json           24 h of wind/cloud/precip/temperature on a 50 km map-space grid
+  fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
   roads/fi.json          road condition forecasts per road section (+ road weather stations)
   sea/fi.json            wave buoys + sea level / water temperature (FMI)
   lightning/fi.json      lightning strikes in the last hour (FMI)
@@ -20,14 +21,14 @@ Output layout (all JSON, relative to DATA_DIR):
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, fmi, grid, metno, radar, swpc
+from .sources import aviation, cap, digitraffic, fields, fmi, grid, metno, radar, swpc
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -206,6 +207,49 @@ def job_grid() -> dict:
     return {"nodes": data["nx"] * data["ny"], "times": len(data["times"])}
 
 
+def job_fields() -> dict:
+    """Re-bake only when a new model run is out (HARMONIE runs every 3 h)."""
+    import json
+
+    extent = "fi"
+    rel = f"fields/{extent}"
+    folder = settings.DATA_DIR / rel
+    origin = fields.latest_origin()
+    idx = folder / "index.json"
+    if idx.exists():
+        try:
+            old = json.loads(idx.read_text())
+            fresh_enough = datetime.now(timezone.utc) - datetime.fromisoformat(old["updated"].replace("Z", "+00:00")) < timedelta(hours=4)
+            if old.get("origin") == iso(origin) and fresh_enough:
+                return {"skipped": "same run", "origin": iso(origin)}
+        except (ValueError, KeyError):
+            pass
+    start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    meta, frames = fields.rasters(fields.download(origin, start, 24, extent), extent)
+    if len(frames) < 6:
+        raise RuntimeError(f"only {len(frames)} frames")
+    names = []
+    for t, png in frames:
+        name = t.strftime("%Y%m%dT%HZ") + ".png"
+        write_bytes(f"{rel}/{name}", png)
+        names.append(name)
+    for f in folder.glob("*.png"):
+        if f.name not in names:
+            f.unlink(missing_ok=True)
+    write_json(
+        f"{rel}/index.json",
+        {
+            "updated": iso(utcnow()),
+            "source": "fmi-harmonie",
+            "origin": iso(origin),
+            **meta,
+            "times": [iso(t) for t, _ in frames],
+            "files": names,
+        },
+    )
+    return {"frames": len(frames), "origin": iso(origin), "bytes": sum(len(p) for _, p in frames)}
+
+
 def job_roads() -> dict:
     secs = digitraffic.sections("fi")
     try:
@@ -279,6 +323,7 @@ JOBS: list[Job] = [
     Job("forecast", 60 * 60, job_forecast),
     Job("radar", 5 * 60, job_radar),
     Job("grid", 60 * 60, job_grid),
+    Job("fields", 30 * 60, job_fields),
     Job("roads", 15 * 60, job_roads),
     Job("nowcast", 10 * 60, job_nowcast),
     Job("sea", 30 * 60, job_sea),

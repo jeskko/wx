@@ -36,6 +36,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | lightning | 5 min | `lightning/fi.json`: FMI lightning strikes of the last hour |
 | airquality | 30 min | `airquality/fi.json`: FMI hourly air quality index + PM2.5/PM10/NO2/O3 per station |
 | grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
+| fields | 30 min (re-bakes only on a new model run, every 3 h) | `fields/fi/index.json` + hourly PNGs: HARMONIE cloud/precipitation/temperature at 5 km from FMI's download service (NetCDF, read with `wx/netcdf3.py`), packed in RGB |
 | (runner) | each run | `health.json`: freshness and errors per job |
 
 The timer ticks every 5 min; each job runs when its own interval has elapsed. After a

@@ -5,6 +5,7 @@
 import type { AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
 import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
+import type { FieldsIndex } from '../map/raster';
 import type { RadarIndex } from '../slides/RadarMap.svelte';
 import type { RoadsFile } from '../slides/RoadMap.svelte';
 
@@ -69,6 +70,7 @@ export const api = {
   aurora: () => load<AuroraFile>('aurora.json', 600),
   radar: () => load<RadarIndex>('radar/fi/index.json', 120),
   grid: () => load<GridFile>('grid/fi.json', 1800),
+  fields: () => load<FieldsIndex>('fields/fi/index.json', 1800),
   roads: () => load<RoadsFile>('roads/fi.json', 600),
   nowcast: (id: string) => load<NowcastFile>(`nowcast/${id}.json`, 300),
   sea: () => load<SeaFile>('sea/fi.json', 900),

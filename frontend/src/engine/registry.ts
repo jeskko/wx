@@ -32,6 +32,7 @@ import Sea, { type SeaData, type SeaWind } from '../slides/Sea.svelte';
 import AirQuality, { type AirQualityData, type AqRow } from '../slides/AirQuality.svelte';
 import { loadBasemap } from '../map/basemap';
 import { Grid, type GridFile } from '../map/grid';
+import { loadFields } from '../map/raster';
 import type { MapLabel } from '../map/MapView.svelte';
 import { tempRgb } from '../map/render';
 import { temp as fmtTemp } from '../lib/format';
@@ -361,8 +362,18 @@ let gridCache: { updated: string; grid: Grid } | null = null;
 async function loadGrid(): Promise<Grid | null> {
   const f = await soft<GridFile>(api.grid());
   if (!f) return null;
-  if (gridCache?.updated !== f.updated) gridCache = { updated: f.updated, grid: new Grid(f) };
+  if (gridCache?.updated !== f.updated) gridCache = { updated: f.updated, grid: Grid.fromFile(f) };
   return gridCache.grid;
+}
+
+/** 5 km HARMONIE rasters for cloud/precip/temperature maps; falls back to the 50 km grid. */
+async function loadFineGrid(now: Date): Promise<Grid | null> {
+  const idx = await soft(api.fields());
+  if (idx && now.getTime() - Date.parse(idx.updated) < 8 * 3600_000) {
+    const g = await soft(loadFields(idx, now.getTime()), 12000);
+    if (g) return g;
+  }
+  return loadGrid();
 }
 
 function preload(url: string): Promise<void> {
@@ -417,8 +428,8 @@ const cloudMap: SlideDef<CloudData> = {
   title: 'slide.cloudmap',
   scope: 'global',
   component: CloudMap,
-  async prepare({ lang }) {
-    const [base, grid, labels] = await Promise.all([loadBasemap('fi'), loadGrid(), labelsFor(FI_LABELS, lang)]);
+  async prepare({ lang, now }) {
+    const [base, grid, labels] = await Promise.all([loadBasemap('fi'), loadFineGrid(now), labelsFor(FI_LABELS, lang)]);
     return grid && grid.times.length > 6 ? { base, grid, labels } : null;
   },
 };
@@ -432,7 +443,7 @@ const tempMap: SlideDef<TempMapData> = {
   scope: 'global',
   component: TempMap,
   async prepare({ lang }) {
-    const [base, grid, pf, obs] = await Promise.all([loadBasemap('fi'), loadGrid(), soft(api.places()), soft(api.obs())]);
+    const [base, grid, pf, obs] = await Promise.all([loadBasemap('fi'), loadFineGrid(new Date()), soft(api.places()), soft(api.obs())]);
     if (!pf || !obs) return null;
     const fresh = obs.stations.filter((s) => s.t != null && Date.now() - Date.parse(s.time) < 90 * 60_000);
     if (!fresh.length) return null;

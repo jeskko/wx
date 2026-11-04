@@ -32,7 +32,7 @@ describe('Grid', () => {
     encoding: { t: { type: 'int8', scale: 0.5 } }, fields: { t: [b64] },
   };
   it('bilinear samples', () => {
-    const g = new Grid(f);
+    const g = Grid.fromFile(f);
     expect(g.sample('t', 0, 0, 0)).toBe(0);
     expect(g.sample('t', 0, 1000, 1000)).toBe(3);
     expect(g.sample('t', 0, 500, 500)).toBe(1.5);

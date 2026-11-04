@@ -14,6 +14,18 @@ export interface GridFile {
 
 export type FieldName = 'u' | 'v' | 'cloud' | 'pr' | 't';
 
+export interface GridMeta {
+  /** map position (metres) of the first (south-west) node, and of the last node */
+  extent: [number, number, number, number];
+  step: number;
+  nx: number;
+  ny: number;
+  times: string[];
+}
+
+/** Returns a field's values at a time index: row-major, south row first, length nx*ny. */
+export type FieldDecoder = (name: FieldName, ti: number) => Float32Array;
+
 export class Grid {
   readonly nx: number;
   readonly ny: number;
@@ -22,12 +34,31 @@ export class Grid {
   readonly step: number;
   private cache = new Map<string, Float32Array>();
 
-  constructor(private f: GridFile) {
-    this.nx = f.nx;
-    this.ny = f.ny;
-    this.extent = f.extent;
-    this.step = f.step;
-    this.times = f.times.map((t) => Date.parse(t));
+  constructor(
+    meta: GridMeta,
+    private decode: FieldDecoder,
+    /** fields this grid carries */
+    readonly has: FieldName[] = ['u', 'v', 'cloud', 'pr', 't'],
+  ) {
+    this.nx = meta.nx;
+    this.ny = meta.ny;
+    this.extent = meta.extent;
+    this.step = meta.step;
+    this.times = meta.times.map((t) => Date.parse(t));
+  }
+
+  /** Grid from the 50 km JSON file (base64-packed quantised fields). */
+  static fromFile(f: GridFile): Grid {
+    return new Grid(f, (name, ti) => {
+      const enc = f.encoding[name];
+      const bin = atob(f.fields[name][ti]);
+      const raw = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) raw[i] = bin.charCodeAt(i);
+      const typed = enc.type === 'int8' ? new Int8Array(raw.buffer) : raw;
+      const a = new Float32Array(typed.length);
+      for (let i = 0; i < typed.length; i++) a[i] = typed[i] * enc.scale;
+      return a;
+    });
   }
 
   /** Values of a field at time index ti, row-major with the south row first. */
@@ -35,13 +66,7 @@ export class Grid {
     const key = `${name}:${ti}`;
     let a = this.cache.get(key);
     if (!a) {
-      const enc = this.f.encoding[name];
-      const bin = atob(this.f.fields[name][ti]);
-      const raw = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) raw[i] = bin.charCodeAt(i);
-      const typed = enc.type === 'int8' ? new Int8Array(raw.buffer) : raw;
-      a = new Float32Array(typed.length);
-      for (let i = 0; i < typed.length; i++) a[i] = typed[i] * enc.scale;
+      a = this.decode(name, ti);
       this.cache.set(key, a);
     }
     return a;

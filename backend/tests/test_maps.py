@@ -47,3 +47,26 @@ def test_radar_colorize():
     assert st["coverage"] == 3 and st["echo"] == round(2 / 3, 4)
     assert not radar.is_empty(raw)
     assert radar.is_empty(Image.new("L", (3, 3), 255))
+
+
+def test_harmonie_netcdf_to_rasters(fixture_bytes):
+    import io
+
+    from PIL import Image
+
+    from wx.netcdf3 import Dataset
+    from wx.sources import fields
+
+    nc = fixture_bytes("fmi_harmonie_small.nc")
+    ds = Dataset(nc)
+    assert ds.variables["x"].shape == [40]
+    meta, frames = fields.rasters(nc, "fi", step_m=50000)
+    assert (meta["nx"], meta["ny"]) == (28, 26)
+    assert len(frames) == 3
+    t, png = frames[0]
+    img = Image.open(io.BytesIO(png))
+    assert img.mode == "RGB" and img.size == (28, 26)
+    r, g, b = (list(c.tobytes()) for c in img.split())
+    assert all(v <= 250 for v in r)  # whole extent covered: no "no data" cells
+    temps = [v / 2 - 50 for v in b]
+    assert -40 < min(temps) and max(temps) < 30

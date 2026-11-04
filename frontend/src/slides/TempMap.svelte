@@ -36,7 +36,9 @@
     const img = sctx.createImageData(g.nx, g.ny);
     for (let j = 0; j < g.ny; j++)
       for (let i = 0; i < g.nx; i++) {
-        const [r, gg, b] = tempRgb(t[j * g.nx + i]);
+        const v = t[j * g.nx + i];
+        if (Number.isNaN(v)) continue;
+        const [r, gg, b] = tempRgb(v);
         const o = ((g.ny - 1 - j) * g.nx + i) * 4;
         img.data.set([r, gg, b, 120], o);
       }
