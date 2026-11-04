@@ -19,6 +19,14 @@ export function activity(rangeNt: number): Activity {
   return 'quiet';
 }
 
+/** Traffic-light colours for magnetometer activity. */
+export const ACTIVITY_COLOR: Record<Activity, string> = {
+  quiet: '#3fbf5a',
+  low: '#ffd800',
+  moderate: '#ff8a00',
+  high: '#e8202a',
+};
+
 export function kpColor(kp: number): string {
   if (kp >= 7) return '#e8202a';
   if (kp >= 5) return '#ff8a00';

@@ -23,6 +23,8 @@ export interface Config {
   slides: SlideConf[];
   /** Per-place exceptions: place id -> slide ids switched off for that place (place-scoped slides only). */
   off: Record<string, string[]>;
+  /** Cities listed on the aurora summary; empty = the configured places. */
+  auroraPlaces: string[];
   music: { enabled: boolean; volume: number; streamUrl: string | null };
   kiosk: boolean;
 }
@@ -53,6 +55,7 @@ export const DEFAULT_CONFIG: Config = {
   airports: ['EFHK', 'EFTU', 'EFTP', 'EFJY', 'EFKU', 'EFOU', 'EFRO', 'EFKT', 'EFIV'],
   slides: DEFAULT_SLIDES,
   off: {},
+  auroraPlaces: [],
   music: { enabled: true, volume: 0.5, streamUrl: null },
   kiosk: false,
 };
@@ -98,6 +101,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
     }
     out.off = off;
   }
+  if (Array.isArray(p.auroraPlaces)) out.auroraPlaces = p.auroraPlaces.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
   if (p.music && typeof p.music === 'object') {
     if (typeof p.music.enabled === 'boolean') out.music.enabled = p.music.enabled;
     if (typeof p.music.volume === 'number') out.music.volume = clamp(p.music.volume, 0, 1);

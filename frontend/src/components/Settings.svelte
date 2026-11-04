@@ -37,6 +37,9 @@
     else delete off[placeId];
     c.off = off;
   }
+  function toggleAurora(id: string) {
+    c.auroraPlaces = c.auroraPlaces.includes(id) ? c.auroraPlaces.filter((x) => x !== id) : [...c.auroraPlaces, id];
+  }
   const chosen = $derived(c.places.map((id) => allPlaces.find((p) => p.id === id)).filter((p): p is Place => !!p));
 
   async function copyLink() {
@@ -98,6 +101,21 @@
         {/each}
       </div>
     {/each}
+
+    <h3>{L === 'fi' ? 'Revontulikatsauksen paikkakunnat (enintään 7)' : 'Aurora summary places (up to 7)'}</h3>
+    <p class="hint">
+      {L === 'fi' ? 'Jos mitään ei ole valittu, käytetään omia paikkakuntia.' : 'If none is selected, your own places are used.'}
+    </p>
+    <div class="chips">
+      {#each allPlaces as p (p.id)}
+        <button
+          class="chip"
+          class:on={c.auroraPlaces.includes(p.id)}
+          disabled={!c.auroraPlaces.includes(p.id) && c.auroraPlaces.length >= 7}
+          onclick={() => toggleAurora(p.id)}>{p.name[L]}</button
+        >
+      {/each}
+    </div>
 
     <h3>{L === 'fi' ? 'Lentoasemat (ICAO, pilkulla erotettuna)' : 'Airports (ICAO, comma separated)'}</h3>
     <input class="wide" value={c.airports.join(', ')} oninput={(e) => (c.airports = e.currentTarget.value.split(/[ ,]+/).filter(Boolean).map((x) => x.toUpperCase()))} />

@@ -1,13 +1,14 @@
 <script lang="ts" module>
   import type { Basemap } from '../map/basemap';
   import type { MapLabel } from '../map/MapView.svelte';
-  import type { Ovation } from '../lib/types';
+  import type { MagStation, Ovation } from '../lib/types';
   export interface AuroraMapData {
     base: Basemap;
     ovation: Ovation;
     labels: MapLabel[];
     kpNow: number | null;
     placeProb: number | null;
+    mags: MagStation[];
   }
 </script>
 
@@ -16,7 +17,8 @@
   import MapView from '../map/MapView.svelte';
   import { mapSize } from '../map/basemap';
   import { inverse, pixel } from '../map/proj';
-  import { kpColor } from '../lib/aurora';
+  import { activity, ACTIVITY_COLOR, kpColor, type Activity } from '../lib/aurora';
+  import { t } from '../i18n';
   import { num, time } from '../lib/format';
   import type { SlideProps } from '../engine/types';
 
@@ -38,6 +40,12 @@
     const g = ov.grid;
     return g[j][i] * (1 - fx) * (1 - fy) + g[j][i + 1] * fx * (1 - fy) + g[j + 1][i] * (1 - fx) * fy + g[j + 1][i + 1] * fx * fy;
   }
+
+  const magDots = $derived.by(() => {
+    const px = pixel(data.base.extent, size.w, size.h);
+    return data.mags.map((m) => ({ m, act: activity(m.range), xy: px.fromLatLon(m.lat, m.lon) }));
+  });
+  const ACTS: Activity[] = ['quiet', 'low', 'moderate', 'high'];
 
   let canvas: HTMLCanvasElement | undefined = $state();
   $effect(() => {
@@ -75,6 +83,11 @@
 <div class="mapslide">
   <MapView base={data.base} w={size.w} h={size.h} labels={data.labels} night>
     <canvas bind:this={canvas}></canvas>
+    <svg class="mags" width={size.w} height={size.h}>
+      {#each magDots as d (d.m.name)}
+        <circle cx={d.xy[0]} cy={d.xy[1]} r="9" fill={ACTIVITY_COLOR[d.act]} class="mdot" />
+      {/each}
+    </svg>
   </MapView>
   <div class="panel side">
     <div class="lbl">Kp {L === 'fi' ? 'nyt' : 'now'}</div>
@@ -82,6 +95,12 @@
     {#if data.placeProb != null}
       <div class="lbl">{ctx.place.name[L]}: <b>{Math.round(data.placeProb)} %</b></div>
     {/if}
+    <div class="mlegend">
+      <div class="mtitle">{t(L, 'localActivity')}</div>
+      {#each ACTS as a (a)}
+        <span><i style:background={ACTIVITY_COLOR[a]}></i>{t(L, `activity.${a}` as 'activity.quiet')}</span>
+      {/each}
+    </div>
     <p class="expl">
       {L === 'fi'
         ? 'Vihreä alue näyttää, missä revontulia todennäköisesti näkyy taivaalla juuri nyt (NOAA OVATION -malli).'
@@ -120,6 +139,38 @@
     font-size: 110px;
     font-weight: 700;
     line-height: 1;
+  }
+  .mags {
+    position: absolute;
+    inset: 0;
+  }
+  .mdot {
+    stroke: #000;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+  }
+  .mlegend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 22px;
+    margin-top: 6px;
+  }
+  .mtitle {
+    width: 100%;
+    color: var(--c-label);
+    font-size: 22px;
+  }
+  .mlegend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mlegend i {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #000;
   }
   .expl {
     font-size: 25px;

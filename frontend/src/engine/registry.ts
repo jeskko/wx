@@ -151,15 +151,25 @@ const warnings: SlideDef<WarningsData> = {
   },
 };
 
+// Aurora summary: once per loop, a row per selected city (config.auroraPlaces, else own places).
 const aurora: SlideDef<AuroraData> = {
   id: 'aurora',
   title: 'slide.aurora',
-  scope: 'place',
+  scope: 'global',
   component: Aurora,
-  async prepare({ place, now }) {
-    const [a, fc] = await Promise.all([soft(api.aurora()), soft(api.forecast(place.id))]);
-    if (!a || !a.kp) return null;
-    return { file: a, out: outlook(a, place.lat, place.lon, fc?.hourly ?? null, now) };
+  async prepare({ config, places, lang, now }) {
+    const [a, pf] = await Promise.all([soft(api.aurora()), soft(api.places())]);
+    if (!a || !a.kp || !pf) return null;
+    const chosen = (config.auroraPlaces.length ? config.auroraPlaces : places.map((p) => p.id))
+      .map((id) => pf.places.find((p) => p.id === id))
+      .filter((p): p is Place => !!p)
+      .slice(0, 7)
+      // north to south reads naturally for aurora
+      .sort((x, y) => y.lat - x.lat);
+    if (!chosen.length) return null;
+    const fcs = await Promise.all(chosen.map((p) => soft(api.forecast(p.id), 4000)));
+    const rows = chosen.map((p, i) => ({ id: p.id, name: p.name[lang], out: outlook(a, p.lat, p.lon, fcs[i]?.hourly ?? null, now) }));
+    return { file: a, rows, kpNow: rows[0].out.kpNow };
   },
 };
 
@@ -367,7 +377,7 @@ const auroraMap: SlideDef<AuroraMapData> = {
     const [base, a, labels] = await Promise.all([loadBasemap('nordic'), soft(api.aurora()), labelsFor(NORDIC_LABELS, lang)]);
     if (!a?.ovation) return null;
     const o = outlook(a, place.lat, place.lon, null, now);
-    return { base, ovation: a.ovation, labels, kpNow: o.kpNow, placeProb: o.ovation };
+    return { base, ovation: a.ovation, labels, kpNow: o.kpNow, placeProb: o.ovation, mags: a.mag ?? [] };
   },
 };
 
