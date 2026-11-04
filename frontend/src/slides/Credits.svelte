@@ -42,7 +42,6 @@
       {/each}
     </ul>
   {/if}
-  <p class="foot">wx.fi</p>
 </div>
 
 <style>
@@ -50,8 +49,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    font-size: 27px;
+    gap: 8px;
+    font-size: 25px;
   }
   .lead {
     font-size: 36px;
@@ -63,7 +62,7 @@
     padding-left: 1.1em;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
   }
   .music {
     font-size: 21px;
