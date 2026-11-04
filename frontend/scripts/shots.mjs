@@ -26,8 +26,6 @@ for (const theme of themes)
     for (const id of slides) {
       const url = `${base}?slides=${id}&place=${place}&lang=${lang}&theme=${theme}&music=0`;
       await page.goto(url);
-      await page.getByRole('button', { name: /▶/ }).waitFor();
-      await page.locator('.nomusic').click();
       try {
         await page.locator('.slide').waitFor({ timeout: 10000 });
         await page.waitForTimeout(900); // fade-in

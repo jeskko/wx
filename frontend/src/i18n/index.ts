@@ -1,9 +1,7 @@
 import type { Lang } from '../lib/types';
 
 const fi = {
-  start: 'Käynnistä',
-  startHint: 'Klikkaa tai paina välilyöntiä — musiikki käynnistyy',
-  startNoMusic: 'ilman musiikkia',
+  musicHint: 'Musiikki alkaa, kun klikkaat tai painat näppäintä',
   loading: 'Ladataan…',
   noData: 'Tietoja ei saatavilla',
   stale: 'vanhentunutta tietoa',
@@ -98,9 +96,7 @@ const fi = {
 export type Key = keyof typeof fi;
 
 const en: Record<Key, string> = {
-  start: 'Start',
-  startHint: 'Click or press space — music will start',
-  startNoMusic: 'without music',
+  musicHint: 'Click or press any key to start the music',
   loading: 'Loading…',
   noData: 'No data available',
   stale: 'stale data',

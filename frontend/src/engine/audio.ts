@@ -1,5 +1,9 @@
 // Background music: shuffled playlist from /wx/music/playlist.json, or a user stream URL.
-// Browsers block autoplay until a user gesture, so start() must be called from one.
+//
+// Browsers refuse audible playback until the user has interacted with the page. The player
+// therefore tracks what the user *wants* (on/off) separately from what the <audio> element is
+// doing: if play() is refused, it stays "blocked" and retries on the next click/keypress
+// anywhere on the page. The UI shows the wanted state, so one press always toggles.
 
 export interface Track {
   src: string; // relative to /wx/music/ or absolute URL
@@ -31,6 +35,8 @@ function shuffle<T>(xs: T[]): T[] {
   return a;
 }
 
+export type MusicState = 'off' | 'playing' | 'blocked' | 'unavailable';
+
 export class MusicPlayer {
   private audio = new Audio();
   private queue: Track[] = [];
@@ -38,6 +44,9 @@ export class MusicPlayer {
   private stream: string | null = null;
   private targetVolume = 0.5;
   private fadeTimer: number | null = null;
+  private gestureHooked = false;
+  wanted = false;
+  state: MusicState = 'off';
   current: Track | null = null;
   onchange: (() => void) | null = null;
 
@@ -46,22 +55,20 @@ export class MusicPlayer {
     this.audio.addEventListener('ended', () => this.next());
     this.audio.addEventListener('error', () => {
       // skip broken tracks; a broken stream just stops
-      if (!this.stream) window.setTimeout(() => this.next(), 1000);
+      if (this.wanted && !this.stream && this.tracks.length) window.setTimeout(() => this.next(), 1000);
     });
   }
 
   configure(tracks: Track[], streamUrl: string | null, volume: number) {
+    const changed = streamUrl !== this.stream || tracks.length !== this.tracks.length;
     this.tracks = tracks;
     this.stream = streamUrl;
     this.setVolume(volume);
+    if (changed) this.audio.removeAttribute('src');
   }
 
   get available(): boolean {
     return !!this.stream || this.tracks.length > 0;
-  }
-
-  get playing(): boolean {
-    return !this.audio.paused;
   }
 
   setVolume(v: number) {
@@ -69,33 +76,71 @@ export class MusicPlayer {
     if (!this.fadeTimer) this.audio.volume = this.targetVolume;
   }
 
-  async start() {
-    if (!this.available) return;
+  /** Turn music on (if possible). Safe to call outside a user gesture. */
+  play() {
+    this.wanted = true;
+    if (!this.available) return this.set('unavailable');
+    if (!this.audio.getAttribute('src')) this.load();
+    void this.attempt();
+  }
+
+  stop() {
+    this.wanted = false;
+    this.audio.pause();
+    this.set('off');
+  }
+
+  toggle() {
+    // when blocked, the user's press is exactly the gesture we were waiting for: start now
+    if (this.wanted && this.state !== 'blocked') this.stop();
+    else this.play();
+  }
+
+  private set(s: MusicState) {
+    this.state = s;
+    this.onchange?.();
+  }
+
+  private load() {
     if (this.stream) {
       this.current = { src: this.stream, title: 'Stream', artist: '', license: '' };
       this.audio.src = this.stream;
-    } else {
-      this.next(false);
+      return;
     }
-    await this.playWithFade();
-  }
-
-  private next(play = true) {
-    if (this.stream || !this.tracks.length) return;
     if (!this.queue.length) this.queue = shuffle(this.tracks);
     this.current = this.queue.shift()!;
     this.audio.src = /^https?:/.test(this.current.src) ? this.current.src : MUSIC_BASE + this.current.src;
-    this.onchange?.();
-    if (play) void this.playWithFade();
   }
 
-  private async playWithFade() {
+  private next() {
+    if (this.stream || !this.tracks.length) return;
+    this.load();
+    if (this.wanted) void this.attempt();
+  }
+
+  private async attempt() {
     this.audio.volume = 0;
     try {
       await this.audio.play();
-    } catch {
-      return; // autoplay blocked; the start screen will retry on a gesture
+    } catch (e) {
+      if (!this.wanted) return;
+      if ((e as DOMException)?.name === 'NotAllowedError') {
+        this.audio.pause();
+        this.set('blocked');
+        this.hookGesture();
+      }
+      return;
     }
+    if (!this.wanted) {
+      // turned off while play() was pending
+      this.audio.pause();
+      return;
+    }
+    this.set('playing');
+    this.fadeIn();
+  }
+
+  private fadeIn() {
     const step = this.targetVolume / 20;
     if (this.fadeTimer) clearInterval(this.fadeTimer);
     this.fadeTimer = window.setInterval(() => {
@@ -106,21 +151,19 @@ export class MusicPlayer {
         this.fadeTimer = null;
       }
     }, 100);
-    this.onchange?.();
   }
 
-  toggle() {
-    if (this.audio.paused) {
-      if (this.audio.src) void this.playWithFade();
-      else void this.start();
-    } else {
-      this.audio.pause();
-      this.onchange?.();
-    }
-  }
-
-  stop() {
-    this.audio.pause();
-    this.onchange?.();
+  /** Retry playback inside the next user gesture (play() must be called synchronously there). */
+  private hookGesture() {
+    if (this.gestureHooked) return;
+    this.gestureHooked = true;
+    const retry = () => {
+      document.removeEventListener('pointerdown', retry, true);
+      document.removeEventListener('keydown', retry, true);
+      this.gestureHooked = false;
+      if (this.wanted && this.state === 'blocked') void this.attempt();
+    };
+    document.addEventListener('pointerdown', retry, true);
+    document.addEventListener('keydown', retry, true);
   }
 }

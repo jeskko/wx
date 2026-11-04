@@ -3,7 +3,7 @@
   import Header from './components/Header.svelte';
   import Settings from './components/Settings.svelte';
   import Ticker from './components/Ticker.svelte';
-  import { MusicPlayer, loadPlaylist } from './engine/audio';
+  import { MusicPlayer, loadPlaylist, type MusicState } from './engine/audio';
   import { loadConfig, saveConfig, slideOnFor, type Config } from './engine/config';
   import { SLIDES } from './engine/registry';
   import type { SlideCtx, SlideDef } from './engine/types';
@@ -18,7 +18,8 @@
   let started = $state(false);
   let paused = $state(false);
   let showSettings = $state(false);
-  let musicOn = $state(false);
+  let musicWanted = $state(false);
+  let musicState = $state<MusicState>('off');
   let error = $state<string | null>(null);
 
   interface Shown {
@@ -35,7 +36,10 @@
   let busy = false;
 
   const player = new MusicPlayer();
-  player.onchange = () => (musicOn = player.playing);
+  player.onchange = () => {
+    musicWanted = player.wanted;
+    musicState = player.state;
+  };
 
   // stage scale: fixed 1280x720 design, letterboxed
   let scale = $state(1);
@@ -95,15 +99,22 @@
     if (!paused) timer = window.setTimeout(() => go(1), seconds * 1000);
   }
 
-  async function start(withMusic: boolean) {
+  /** Starts by itself once places are known. Music starts too if the browser allows it;
+   *  otherwise the player waits for the first click/keypress (see MusicPlayer). */
+  async function start() {
     if (started) return;
     started = true;
-    if (withMusic && config.music.enabled) {
-      player.configure(await loadPlaylist(), config.music.streamUrl, config.music.volume);
-      void player.start();
-    }
     void requestWakeLock();
     void go(1);
+    if (config.music.enabled) {
+      player.configure(await loadPlaylist(), config.music.streamUrl, config.music.volume);
+      player.play();
+    }
+  }
+
+  async function toggleMusic() {
+    if (!player.available) player.configure(await loadPlaylist(), config.music.streamUrl, config.music.volume);
+    player.toggle();
   }
 
   // --- kiosk helpers
@@ -128,13 +139,7 @@
       if (e.key === 'Escape') showSettings = false;
       return;
     }
-    if (!started) {
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        void start(true);
-      }
-      return;
-    }
+    if (!started) return;
     switch (e.key) {
       case 'ArrowRight':
         void go(1);
@@ -150,12 +155,7 @@
         break;
       case 'm':
       case 'M':
-        if (!player.available) {
-          void loadPlaylist().then((tr) => {
-            player.configure(tr, config.music.streamUrl, config.music.volume);
-            player.toggle();
-          });
-        } else player.toggle();
+        void toggleMusic();
         break;
       case 'f':
       case 'F':
@@ -173,7 +173,11 @@
     saveConfig(c);
     showSettings = false;
     if (!c.music.enabled) player.stop();
-    else void loadPlaylist().then((tr) => player.configure(tr, c.music.streamUrl, c.music.volume));
+    else
+      void loadPlaylist().then((tr) => {
+        player.configure(tr, c.music.streamUrl, c.music.volume);
+        if (!player.wanted) player.play();
+      });
     index = -1;
     void go(1);
   }
@@ -195,9 +199,9 @@
     };
   });
 
-  // kiosk mode starts by itself once places are known (music only if the browser allows autoplay)
+  // start as soon as the place list is known
   $effect(() => {
-    if (config.kiosk && allPlaces.length && !started) void start(true);
+    if (allPlaces.length && !started) void start();
   });
 
   $effect(() => {
@@ -216,13 +220,7 @@
   <div class="stage" style:transform={`translate(-50%, -50%) scale(${scale})`}>
     <Header {title} {subtitle} lang={config.lang} {tz} />
     <main class="body">
-      {#if !started}
-        <button class="start" onclick={() => start(true)}>
-          <span class="big">▶ {t(config.lang, 'start')}</span>
-          <span class="hint">{t(config.lang, 'startHint')}</span>
-        </button>
-        <button class="nomusic" onclick={(e) => { e.stopPropagation(); void start(false); }}>{t(config.lang, 'startNoMusic')}</button>
-      {:else if shown}
+      {#if shown}
         {#key shown.key}
           <div class="slide" in:fade={{ duration: 450, delay: 200 }} out:fade={{ duration: 200 }}>
             <shown.def.component ctx={shown.ctx} data={shown.data} />
@@ -241,10 +239,15 @@
   </div>
   {#if !config.kiosk}
     <div class="controls">
-      <button title="M" onclick={() => onKey(new KeyboardEvent('keydown', { key: 'm' }))}>{musicOn ? '♪' : '♪̸'}</button>
+      <button title="M" class:blocked={musicState === 'blocked'} onclick={() => void toggleMusic()}>
+        {musicWanted && musicState !== 'unavailable' ? '♪' : '♪̸'}
+      </button>
       <button title="F" onclick={toggleFullscreen}>⛶</button>
       <button title={t(config.lang, 'settings')} onclick={() => (showSettings = true)}>⚙</button>
     </div>
+  {/if}
+  {#if musicState === 'blocked' && !config.kiosk}
+    <div class="musichint">♪ {t(config.lang, 'musicHint')}</div>
   {/if}
 </div>
 
