@@ -7,6 +7,7 @@ import { next36Periods, summarize, type PeriodSummary } from '../lib/textfc';
 import type { Day, Metar, Taf } from '../lib/types';
 import { currentFor, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, stepAt, tzFor } from '../lib/wx';
 import { loadPlaylist } from './audio';
+import { upcoming } from '../lib/nowcast';
 import type { SlideDef } from './types';
 
 import Almanac, { type AlmanacData } from '../slides/Almanac.svelte';
@@ -27,6 +28,8 @@ import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
 import RoadMap, { type RoadData } from '../slides/RoadMap.svelte';
+import Sea, { type SeaData, type SeaWind } from '../slides/Sea.svelte';
+import AirQuality, { type AirQualityData, type AqRow } from '../slides/AirQuality.svelte';
 import { loadBasemap } from '../map/basemap';
 import { Grid, type GridFile } from '../map/grid';
 import type { MapLabel } from '../map/MapView.svelte';
@@ -65,15 +68,36 @@ const current: SlideDef<CurrentData> = {
 /** ~250 km radar window around a Finnish place, or null (outside radar coverage / stale). */
 async function localRadar(place: Place, lang: Lang, now: Date): Promise<LocalRadar | null> {
   if (place.country !== 'FI') return null;
-  const [base, index, pf] = await Promise.all([loadBasemap('fi'), soft(api.radar()), soft(api.places())]);
+  const [base, index, pf, ltg, nc] = await Promise.all([
+    loadBasemap('fi'),
+    soft(api.radar()),
+    soft(api.places()),
+    soft(api.lightning(), 4000),
+    soft(api.nowcast(place.id), 4000),
+  ]);
   if (!index?.frames.length) return null;
   if (now.getTime() - Date.parse(index.frames[index.frames.length - 1].time) > 30 * 60_000) return null;
-  const [e, n] = forward(place.lat, place.lon);
-  const half = 125_000;
-  const [x0, y0, x1, y1] = index.extent;
-  const cx = Math.min(x1 - half, Math.max(x0 + half, e));
-  const cy = Math.min(y1 - half, Math.max(y0 + half, n));
-  const view: Extent = [cx - half, cy - half, cx + half, cy + half];
+  // curated places have baked 500 m windows; others crop the 2 km national frames
+  const local = index.local?.[place.id];
+  let view: Extent;
+  let extent: Extent = index.extent;
+  let frames = index.frames;
+  let urls: string[];
+  if (local?.frames.length) {
+    view = local.view;
+    extent = local.view;
+    const have = new Set(local.frames);
+    frames = index.frames.filter((f) => have.has(f.file));
+    urls = frames.map((f) => `${DATA_BASE}radar/local/${place.id}/${f.file}`);
+  } else {
+    const [e, n] = forward(place.lat, place.lon);
+    const half = 125_000;
+    const [x0, y0, x1, y1] = index.extent;
+    const cx = Math.min(x1 - half, Math.max(x0 + half, e));
+    const cy = Math.min(y1 - half, Math.max(y0 + half, n));
+    view = [cx - half, cy - half, cx + half, cy + half];
+    urls = frames.map((f) => `${DATA_BASE}radar/fi/${f.file}`);
+  }
   const inView = (p: Place) => {
     const [pe, pn] = forward(p.lat, p.lon);
     return pe > view[0] + 15_000 && pe < view[2] - 15_000 && pn > view[1] + 10_000 && pn < view[3] - 10_000;
@@ -81,9 +105,18 @@ async function localRadar(place: Place, lang: Lang, now: Date): Promise<LocalRad
   const labels: MapLabel[] = (pf?.places ?? [place])
     .filter((p) => p.id === place.id || inView(p))
     .map((p) => ({ lat: p.lat, lon: p.lon, text: p.name[lang], side: p.lon < place.lon - 0.5 ? 'left' : 'right' }));
-  const urls = index.frames.map((f) => `${DATA_BASE}radar/fi/${f.file}`);
   await soft(Promise.all(urls.map(preload)), 6000);
-  return { base, extent: index.extent, view, urls, times: index.frames.map((f) => f.time), labels };
+  const nowcast = nc?.coverage === 'ok' ? upcoming(nc, now) : null;
+  return {
+    base,
+    extent,
+    view,
+    urls,
+    times: frames.map((f) => f.time),
+    labels,
+    strikes: ltg?.strikes ?? [],
+    nowcast: nowcast?.length ? nowcast : null,
+  };
 }
 
 const next36: SlideDef<PeriodSummary[]> = {
@@ -347,13 +380,18 @@ const radarMap: SlideDef<RadarData> = {
   scope: 'global',
   component: RadarMap,
   async prepare({ lang, now }) {
-    const [base, index, labels] = await Promise.all([loadBasemap('fi'), soft(api.radar()), labelsFor(FI_LABELS, lang)]);
+    const [base, index, labels, ltg] = await Promise.all([
+      loadBasemap('fi'),
+      soft(api.radar()),
+      labelsFor(FI_LABELS, lang),
+      soft(api.lightning(), 4000),
+    ]);
     if (!index?.frames.length) return null;
     // frames older than 30 min mean the baker is stuck: don't show a stale loop
     if (now.getTime() - Date.parse(index.frames[index.frames.length - 1].time) > 30 * 60_000) return null;
     const urls = index.frames.map((f) => `${DATA_BASE}radar/fi/${f.file}`);
     await soft(Promise.all(urls.map(preload)), 10000);
-    return { base, index, urls, labels };
+    return { base, index, urls, labels, strikes: ltg?.strikes ?? [] };
   },
 };
 
@@ -460,8 +498,82 @@ const roadMap: SlideDef<RoadData> = {
   },
 };
 
+// FMI stations on islands, lighthouses and harbours: representative of wind at sea
+const MARINE_WIND = [
+  'Kemi I majakka',
+  'Hailuoto Marjaniemi',
+  'Raahe Lapaluoto',
+  'Kokkola Tankar',
+  'Pietarsaari Kallan',
+  'Mustasaari Valassaaret',
+  'Kaskinen Sälgrund',
+  'Kristiinankaupunki Majakka',
+  'Pori Tahkoluoto',
+  'Rauma Kylmäpihlaja',
+  'Kustavi Isokari',
+  'Parainen Utö',
+  'Kökar Bogskär',
+  'Hammarland Märket',
+  'Lemland Nyhamn',
+  'Kumlinge',
+  'Hanko Russarö',
+  'Kemiönsaari Vänö',
+  'Kirkkonummi Mäkiluoto',
+  'Helsinki Harmaja',
+  'Porvoo Kalbådagrund',
+  'Loviisa Orrengrund',
+  'Kotka Haapasaari',
+];
+const SEA_LABELS = ['kemi', 'oulu', 'vaasa', 'pori', 'turku', 'maarianhamina', 'helsinki', 'kotka'];
+
+const sea: SlideDef<SeaData> = {
+  id: 'sea',
+  title: 'slide.sea',
+  scope: 'global',
+  component: Sea,
+  async prepare({ lang, now }) {
+    const [base, s, obs, pf] = await Promise.all([loadBasemap('fi'), soft(api.sea()), soft(api.obs()), soft(api.places())]);
+    if (!s || (!s.waves.length && !s.levels.length)) return null;
+    if (now.getTime() - Date.parse(s.updated) > 6 * 3600_000) return null;
+    const winds: SeaWind[] = (obs?.stations ?? [])
+      .filter((st) => st.ws != null && st.name && MARINE_WIND.some((m) => st.name!.startsWith(m)))
+      .filter((st) => now.getTime() - Date.parse(st.time) < 90 * 60_000)
+      .map((st) => ({ name: st.name!, lat: st.lat, lon: st.lon, ws: st.ws!, wg: st.wg, wd: st.wd }));
+    const labels: MapLabel[] = SEA_LABELS.map((id) => pf?.places.find((p) => p.id === id))
+      .filter((p): p is Place => !!p)
+      .map((p) => ({ lat: p.lat, lon: p.lon, text: p.name[lang] }));
+    return { base, sea: s, winds, labels };
+  },
+};
+
+const AQ_DEFAULT = ['helsinki', 'espoo', 'tampere', 'turku', 'lahti', 'jyvaskyla', 'kuopio', 'oulu'];
+
+const airQuality: SlideDef<AirQualityData> = {
+  id: 'airquality',
+  title: 'slide.airquality',
+  scope: 'global',
+  component: AirQuality,
+  async prepare({ lang, places, now }) {
+    const [base, aq, pf] = await Promise.all([loadBasemap('fi'), soft(api.airquality()), soft(api.places())]);
+    if (!aq?.stations.length || !pf) return null;
+    if (now.getTime() - Date.parse(aq.updated) > 6 * 3600_000) return null;
+    const fi = places.filter((p) => p.country === 'FI');
+    const extra = AQ_DEFAULT.map((id) => pf.places.find((p) => p.id === id)).filter((p): p is Place => !!p && !fi.some((q) => q.id === p.id));
+    const rows: AqRow[] = [];
+    for (const p of [...fi, ...extra]) {
+      const near = aq.stations.filter((s) => haversineKm(p.lat, p.lon, s.lat, s.lon) < 15);
+      if (!near.length) continue;
+      const worst = near.reduce((a, b) => (b.aqi > a.aqi ? b : a));
+      rows.push({ id: p.id, name: p.name[lang], station: worst, count: near.length });
+      if (rows.length >= 9) break;
+    }
+    if (!rows.length) return null;
+    return { base, stations: aq.stations, rows, labels: [] };
+  },
+};
+
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, aurora, auroraMap, aviation, taf, almanac, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, credits].map(
     (s) => [s.id, s],
   ),
 );

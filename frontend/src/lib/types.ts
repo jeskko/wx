@@ -188,3 +188,33 @@ export interface HealthFile {
   updated: string;
   jobs: Record<string, { last_ok: string | null; age_s: number | null; interval_s: number; stale: boolean; errors: number; last_error: string | null }>;
 }
+
+export interface SeaFile {
+  updated: string;
+  waves: { name: string; lat: number; lon: number; time: string; hs: number | null; dir: number | null; period: number | null; tw: number | null }[];
+  levels: { name: string; lat: number; lon: number; time: string; level: number; trend: number | null; tw: number | null }[];
+}
+
+/** strikes: [lat, lon, epoch seconds, cloud flash (1) / ground stroke (0), peak kA] */
+export interface LightningFile {
+  updated: string;
+  minutes: number;
+  strikes: [number, number, number, 0 | 1, number | null][];
+}
+
+export interface AirQualityStation {
+  name: string;
+  lat: number;
+  lon: number;
+  time: string;
+  aqi: number;
+  pm25: number | null;
+  pm10: number | null;
+  no2: number | null;
+  o3: number | null;
+}
+
+export interface AirQualityFile {
+  updated: string;
+  stations: AirQualityStation[];
+}

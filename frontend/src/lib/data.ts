@@ -2,7 +2,8 @@
 // Each file has a max age; stale entries are refetched, and if a refetch fails
 // the last good copy is kept (marked stale) so the screen never goes blank.
 
-import type { AuroraFile, AviationFile, ForecastFile, ObsFile, PlacesFile, WarningsFile } from './types';
+import type { AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
+import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
 import type { RadarIndex } from '../slides/RadarMap.svelte';
 import type { RoadsFile } from '../slides/RoadMap.svelte';
@@ -69,4 +70,8 @@ export const api = {
   radar: () => load<RadarIndex>('radar/fi/index.json', 120),
   grid: () => load<GridFile>('grid/fi.json', 1800),
   roads: () => load<RoadsFile>('roads/fi.json', 600),
+  nowcast: (id: string) => load<NowcastFile>(`nowcast/${id}.json`, 300),
+  sea: () => load<SeaFile>('sea/fi.json', 900),
+  lightning: () => load<LightningFile>('lightning/fi.json', 120),
+  airquality: () => load<AirQualityFile>('airquality/fi.json', 900),
 };

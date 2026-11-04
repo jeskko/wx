@@ -234,3 +234,163 @@ def summarize_magnetometer(series: list[Series]) -> list[dict]:
         )
     out.sort(key=lambda x: -x["lat"])
     return out
+
+
+# ---------------------------------------------------------------- sea
+
+WAVE_PARAMS = ("WaveHs", "ModalWDi", "TWATER", "WTP")
+LEVEL_PARAMS = ("WATLEV", "TW_PT1H_AVG")
+
+
+def _latest(s: Series, keys, max_age: timedelta = timedelta(hours=3), now: datetime | None = None) -> tuple[dict, datetime | None]:
+    """Newest non-null value per key within max_age of now."""
+    out: dict[str, float] = {}
+    t: datetime | None = None
+    cutoff = (now or datetime.now(timezone.utc)) - max_age
+    for ts, vals in reversed(s.rows):
+        if ts < cutoff:
+            break
+        for k in keys:
+            if k not in out and vals.get(k) is not None:
+                out[k] = vals[k]
+                t = t or ts
+    return out, t
+
+
+def summarize_waves(series: list[Series], now: datetime | None = None) -> list[dict]:
+    out = []
+    for s in series:
+        v, t = _latest(s, WAVE_PARAMS, now=now)
+        if not v:
+            continue
+        out.append(
+            {
+                "name": s.name,
+                "lat": round(s.lat, 4),
+                "lon": round(s.lon, 4),
+                "time": iso(t),
+                "hs": _r(v.get("WaveHs")),
+                "dir": None if v.get("ModalWDi") is None else int(v["ModalWDi"]),
+                "period": _r(v.get("WTP")),
+                "tw": _r(v.get("TWATER")),
+            }
+        )
+    out.sort(key=lambda x: -x["lat"])
+    return out
+
+
+def summarize_levels(series: list[Series], now: datetime | None = None) -> list[dict]:
+    out = []
+    for s in series:
+        v, t = _latest(s, LEVEL_PARAMS, now=now)
+        if v.get("WATLEV") is None:
+            continue
+        # change over the last ~6 h, cm
+        trend = None
+        target = t - timedelta(hours=6) if t else None
+        for ts, vals in s.rows:
+            if target and abs((ts - target).total_seconds()) <= 30 * 60 and vals.get("WATLEV") is not None:
+                trend = round((v["WATLEV"] - vals["WATLEV"]) / 10)
+                break
+        out.append(
+            {
+                "name": s.name,
+                "lat": round(s.lat, 4),
+                "lon": round(s.lon, 4),
+                "time": iso(t),
+                "level": round(v["WATLEV"] / 10),  # cm vs. theoretical mean water level
+                "trend": trend,
+                "tw": _r(v.get("TW_PT1H_AVG")),
+            }
+        )
+    out.sort(key=lambda x: -x["lat"])
+    return out
+
+
+def sea() -> dict:
+    start = _fmt(datetime.now(timezone.utc) - timedelta(hours=7))
+    waves = summarize_waves(
+        parse_multipointcoverage(
+            _wfs("fmi::observations::wave::multipointcoverage", bbox="17,58,32,67", starttime=start, parameters=",".join(WAVE_PARAMS))
+        )
+    )
+    levels = summarize_levels(
+        parse_multipointcoverage(
+            _wfs("fmi::observations::mareograph::multipointcoverage", bbox="17,58,32,67", starttime=start, parameters=",".join(LEVEL_PARAMS))
+        )
+    )
+    return {"source": "fmi", "updated": iso(datetime.now(timezone.utc)), "waves": waves, "levels": levels}
+
+
+# ---------------------------------------------------------------- lightning
+
+LIGHTNING_BBOX = "14,57,36,71.5"
+
+
+def summarize_lightning(series: list[Series]) -> list[list]:
+    """Flat strike list: [lat, lon, epoch_s, cloud(0/1), peak_kA]."""
+    out = []
+    for s in series:
+        for ts, vals in s.rows:
+            ka = vals.get("peak_current")
+            out.append(
+                [
+                    round(s.lat, 3),
+                    round(s.lon, 3),
+                    int(ts.timestamp()),
+                    1 if vals.get("cloud_indicator") else 0,
+                    None if ka is None else round(ka),
+                ]
+            )
+    out.sort(key=lambda x: x[2])
+    return out
+
+
+def lightning(minutes: int = 60) -> dict:
+    end = datetime.now(timezone.utc)
+    xml = _wfs(
+        "fmi::observations::lightning::multipointcoverage",
+        bbox=LIGHTNING_BBOX,
+        starttime=_fmt(end - timedelta(minutes=minutes)),
+        endtime=_fmt(end),
+        parameters="peak_current,cloud_indicator",
+    )
+    strikes = summarize_lightning(parse_multipointcoverage(xml))
+    return {"source": "fmi", "updated": iso(end), "minutes": minutes, "strikes": strikes}
+
+
+# ---------------------------------------------------------------- air quality
+
+AQ_PARAMS = {
+    "AQINDEX_PT1H_avg": "aqi",
+    "PM25_PT1H_avg": "pm25",
+    "PM10_PT1H_avg": "pm10",
+    "NO2_PT1H_avg": "no2",
+    "O3_PT1H_avg": "o3",
+}
+
+
+def summarize_airquality(series: list[Series], now: datetime | None = None) -> list[dict]:
+    out = []
+    for s in series:
+        v, t = _latest(s, AQ_PARAMS, max_age=timedelta(hours=4), now=now)
+        if v.get("AQINDEX_PT1H_avg") is None:
+            continue
+        row = {"name": s.name, "lat": round(s.lat, 4), "lon": round(s.lon, 4), "time": iso(t)}
+        for src, dst in AQ_PARAMS.items():
+            x = v.get(src)
+            row[dst] = None if x is None else (int(round(x)) if dst == "aqi" else _r(x))
+        out.append(row)
+    out.sort(key=lambda x: -x["lat"])
+    return out
+
+
+def airquality() -> dict:
+    start = _fmt(datetime.now(timezone.utc) - timedelta(hours=4))
+    xml = _wfs(
+        "urban::observations::airquality::hourly::multipointcoverage",
+        bbox=FI_BBOX,
+        starttime=start,
+        parameters=",".join(AQ_PARAMS),
+    )
+    return {"source": "fmi", "updated": iso(datetime.now(timezone.utc)), "stations": summarize_airquality(parse_multipointcoverage(xml))}

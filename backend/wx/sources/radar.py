@@ -9,7 +9,7 @@ import io
 import logging
 from datetime import datetime, timedelta, timezone
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 from .. import net
 from ..proj import EXTENTS
@@ -54,9 +54,12 @@ def size_for(extent: str, km_per_px: float = 2.0) -> tuple[int, int]:
     return round((x1 - x0) / 1000 / km_per_px), round((y1 - y0) / 1000 / km_per_px)
 
 
-def fetch_raw(t: datetime, extent: str = "fi") -> Image.Image:
+NATIVE_KM = 0.5  # FMI composite resolution
+
+
+def fetch_raw(t: datetime, extent: str = "fi", km_per_px: float = 2.0) -> Image.Image:
     x0, y0, x1, y1 = EXTENTS[extent]
-    w, h = size_for(extent)
+    w, h = size_for(extent, km_per_px)
     data = net.get_bytes(
         WMS,
         {
@@ -101,3 +104,42 @@ def latest_slot(now: datetime | None = None) -> datetime:
 def is_empty(raw: Image.Image) -> bool:
     """No coverage at all = frame not available yet (WMS returns an all-nodata image)."""
     return raw.histogram()[255] == raw.size[0] * raw.size[1]
+
+
+def downsample(raw: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """Shrink a raw frame keeping the strongest echo per block (so small cells don't vanish).
+
+    Raw 255 (= no coverage) would win a plain max filter, so it is mapped below 0 first.
+    """
+    # shift: 255 -> 0 (nodata), 0 -> 1 (no echo), v -> v+1 ; MaxFilter-equivalent via reduce
+    shifted = raw.point([1 + v if v < 255 else 0 for v in range(256)])
+    fx = raw.size[0] // size[0]
+    fy = raw.size[1] // size[1]
+    if fx * size[0] != raw.size[0] or fy * size[1] != raw.size[1]:
+        return raw.resize(size, Image.NEAREST)
+    # max over fx*fy blocks: PIL has no block-max, so take the max of the shifted sub-grids
+    out = None
+    for dy in range(fy):
+        for dx in range(fx):
+            sub = shifted.transform(size, Image.AFFINE, (fx, 0, dx + 0.5 - fx / 2, 0, fy, dy + 0.5 - fy / 2), resample=Image.NEAREST)
+            out = sub if out is None else ImageChops.lighter(out, sub)
+    assert out is not None
+    return out.point([255 if v == 0 else v - 1 for v in range(256)])
+
+
+def local_view(lat: float, lon: float, extent: str = "fi", half: float = 125_000) -> tuple[float, float, float, float]:
+    """Square window around a place, clamped inside the radar extent (metres, EPSG:3067)."""
+    from ..proj import forward
+
+    x0, y0, x1, y1 = EXTENTS[extent]
+    e, n = forward(lat, lon)
+    cx = min(x1 - half, max(x0 + half, e))
+    cy = min(y1 - half, max(y0 + half, n))
+    return (cx - half, cy - half, cx + half, cy + half)
+
+
+def crop(raw_hi: Image.Image, view: tuple[float, float, float, float], extent: str = "fi", km_per_px: float = NATIVE_KM) -> Image.Image:
+    x0, _, _, y1 = EXTENTS[extent]
+    m = km_per_px * 1000
+    box = (round((view[0] - x0) / m), round((y1 - view[3]) / m), round((view[2] - x0) / m), round((y1 - view[1]) / m))
+    return raw_hi.crop(box)

@@ -24,6 +24,8 @@ const fi = {
   'slide.windmap': 'Tuulet',
   'slide.auroramap': 'Revontuliovaali',
   'slide.roadmap': 'Ajokeli',
+  'slide.sea': 'Merisää',
+  'slide.airquality': 'Ilmanlaatu',
 
   temperature: 'Lämpötila',
   feelsLike: 'Tuntuu kuin',
@@ -120,6 +122,8 @@ const en: Record<Key, string> = {
   'slide.windmap': 'Wind Flow',
   'slide.auroramap': 'Auroral Oval',
   'slide.roadmap': 'Driving Conditions',
+  'slide.sea': 'Sea Conditions',
+  'slide.airquality': 'Air Quality',
 
   temperature: 'Temperature',
   feelsLike: 'Feels like',

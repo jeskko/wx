@@ -8,8 +8,13 @@ Output layout (all JSON, relative to DATA_DIR):
   warnings/fi.json       FMI CAP warnings with polygons and fi/sv/en texts
   aurora.json            Kp, OVATION Nordic grid, solar wind, FI magnetometers
   radar/fi/index.json    radar frame list (+ radar/fi/<time>.png, last hour, 5-min steps)
+  radar/local/<place>/   500 m radar windows (250 km) around each Finnish place
+  nowcast/<place>.json   MET Norway radar nowcast, 5-min precipitation for the next 90 min
   grid/fi.json           24 h of wind/cloud/precip/temperature on a map-space grid
   roads/fi.json          road condition forecasts per road section (+ road weather stations)
+  sea/fi.json            wave buoys + sea level / water temperature (FMI)
+  lightning/fi.json      lightning strikes in the last hour (FMI)
+  airquality/fi.json     hourly air quality index per station (FMI)
   health.json            job freshness (written by the runner)
 """
 
@@ -119,19 +124,40 @@ def job_aurora() -> dict:
 RADAR_FRAMES = 13  # one hour at 5-min steps
 
 
+def _frame_name(t: datetime) -> str:
+    return t.strftime("%Y%m%dT%H%MZ") + ".png"
+
+
+def _prune(folder, keep: set[str]) -> list[str]:
+    if not folder.exists():
+        return []
+    for f in folder.glob("*.png"):
+        if f.name not in keep:
+            f.unlink(missing_ok=True)
+    return sorted(f.name for f in folder.glob("*.png"))
+
+
 def job_radar() -> dict:
+    """National frames at 2 km + 250 km windows at the native 500 m for each Finnish place.
+
+    One 500 m WMS request per time slot feeds both, so local views cost no extra upstream load.
+    """
     extent = "fi"
     rel = f"radar/{extent}"
     folder = settings.DATA_DIR / rel
+    local_places = [p for p in places_mod.places() if p.country == "FI"]
+    views = {p.id: radar.local_view(p.lat, p.lon, extent) for p in local_places}
     latest = radar.latest_slot()
     slots = [latest - radar.STEP * i for i in range(RADAR_FRAMES)]
-    name = lambda t: t.strftime("%Y%m%dT%H%MZ") + ".png"  # noqa: E731
     fetched, missing = 0, 0
     for t in slots:
-        if (folder / name(t)).exists():
+        nm = _frame_name(t)
+        need_main = not (folder / nm).exists()
+        need_local = [pid for pid in views if not (settings.DATA_DIR / f"radar/local/{pid}/{nm}").exists()]
+        if not need_main and not need_local:
             continue
         try:
-            raw = radar.fetch_raw(t, extent)
+            raw = radar.fetch_raw(t, extent, radar.NATIVE_KM)
         except Exception as e:
             log.warning("radar %s: %s", t, e)
             missing += 1
@@ -139,19 +165,24 @@ def job_radar() -> dict:
         if radar.is_empty(raw):
             missing += 1
             continue
-        png, _ = radar.colorize(raw)
-        write_bytes(f"{rel}/{name(t)}", png)
+        if need_main:
+            png, _ = radar.colorize(radar.downsample(raw, radar.size_for(extent)))
+            write_bytes(f"{rel}/{nm}", png)
+        for pid in need_local:
+            png, _ = radar.colorize(radar.crop(raw, views[pid], extent))
+            write_bytes(f"radar/local/{pid}/{nm}", png)
         fetched += 1
-    # drop frames that fell out of the window
-    keep = {name(t) for t in slots}
-    if folder.exists():
-        for f in folder.glob("*.png"):
-            if f.name not in keep:
-                f.unlink(missing_ok=True)
-    frames = sorted(f.name for f in folder.glob("*.png")) if folder.exists() else []
+    keep = {_frame_name(t) for t in slots}
+    frames = _prune(folder, keep)
     if not frames:
         raise RuntimeError("no radar frames available")
+    local_index = {}
+    for pid, view in views.items():
+        lf = _prune(settings.DATA_DIR / f"radar/local/{pid}", keep)
+        if lf:
+            local_index[pid] = {"view": [round(v) for v in view], "frames": lf}
     w, h = radar.size_for(extent)
+    to_iso = lambda f: iso(datetime.strptime(f[:-4], "%Y%m%dT%H%MZ").replace(tzinfo=timezone.utc))  # noqa: E731
     write_json(
         f"{rel}/index.json",
         {
@@ -160,14 +191,13 @@ def job_radar() -> dict:
             "extent": list(EXTENTS[extent]),
             "width": w,
             "height": h,
-            "frames": [
-                {"time": iso(datetime.strptime(f[:-4], "%Y%m%dT%H%MZ").replace(tzinfo=timezone.utc)), "file": f}
-                for f in frames
-            ],
+            "frames": [{"time": to_iso(f), "file": f} for f in frames],
             "legend": [{"dbz": lo, "rgba": list(rgba)} for lo, rgba in radar.PALETTE],
+            # 500 m windows: radar/local/<place>/<file>, same file names as `frames`
+            "local": local_index,
         },
     )
-    return {"frames": len(frames), "fetched": fetched, "missing": missing}
+    return {"frames": len(frames), "fetched": fetched, "missing": missing, "local": len(local_index)}
 
 
 def job_grid() -> dict:
@@ -199,6 +229,47 @@ def job_roads() -> dict:
     return {"sections": len(secs), "poor": poor, "stations": len(stations)}
 
 
+def job_nowcast() -> dict:
+    counts = {"ok": 0, "nocoverage": 0, "failed": 0}
+    for p in places_mod.places():
+        try:
+            nc = metno.nowcast(p.lat, p.lon)
+        except Exception as e:  # e.g. outside the nowcast domain
+            log.info("nowcast %s: %s", p.id, e)
+            counts["failed"] += 1
+            continue
+        if nc["coverage"] != "ok" or not nc["steps"]:
+            counts["nocoverage"] += 1
+        else:
+            counts["ok"] += 1
+        write_json(f"nowcast/{p.id}.json", {"place": p.id, "source": "metno", **nc})
+    if counts["ok"] == 0:
+        raise RuntimeError(f"no nowcasts: {counts}")
+    return counts
+
+
+def job_sea() -> dict:
+    data = fmi.sea()
+    if not data["waves"] and not data["levels"]:
+        raise RuntimeError("no sea observations")
+    write_json("sea/fi.json", data)
+    return {"waves": len(data["waves"]), "levels": len(data["levels"])}
+
+
+def job_lightning() -> dict:
+    data = fmi.lightning()
+    write_json("lightning/fi.json", data)
+    return {"strikes": len(data["strikes"])}
+
+
+def job_airquality() -> dict:
+    data = fmi.airquality()
+    if not data["stations"]:
+        raise RuntimeError("no air quality stations")
+    write_json("airquality/fi.json", data)
+    return {"stations": len(data["stations"])}
+
+
 JOBS: list[Job] = [
     Job("places", 24 * 3600, job_places),
     Job("obs", 10 * 60, job_obs),
@@ -209,4 +280,8 @@ JOBS: list[Job] = [
     Job("radar", 5 * 60, job_radar),
     Job("grid", 60 * 60, job_grid),
     Job("roads", 15 * 60, job_roads),
+    Job("nowcast", 10 * 60, job_nowcast),
+    Job("sea", 30 * 60, job_sea),
+    Job("lightning", 5 * 60, job_lightning),
+    Job("airquality", 30 * 60, job_airquality),
 ]

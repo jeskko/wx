@@ -14,7 +14,7 @@
   import MapView from '../map/MapView.svelte';
   import { mapSize } from '../map/basemap';
   import { drawGridImage } from '../map/render';
-  import { time, weekday } from '../lib/format';
+  import { capitalize, time, weekday } from '../lib/format';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<CloudData> = $props();
@@ -115,7 +115,7 @@
     <canvas bind:this={canvas}></canvas>
   </MapView>
   <div class="panel side">
-    <div class="day">{weekday(L, new Date(tLabel), tz, 'long')}</div>
+    <div class="day">{capitalize(weekday(L, new Date(tLabel), tz, 'long'))}</div>
     <div class="clock">{time(L, new Date(tLabel), tz)}</div>
     <div class="bar"><span style:width={`${progress * 100}%`}></span></div>
     <h3>{L === 'fi' ? 'Sade' : 'Precipitation'} (mm/h)</h3>
@@ -144,7 +144,6 @@
   .day {
     font-size: 32px;
     color: var(--c-accent);
-    text-transform: capitalize;
   }
   .clock {
     font-size: 84px;

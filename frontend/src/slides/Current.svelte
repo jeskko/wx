@@ -3,6 +3,7 @@
   import type { Basemap } from '../map/basemap';
   import type { MapLabel } from '../map/MapView.svelte';
   import type { Extent } from '../map/proj';
+  import type { LightningFile } from '../lib/types';
   export interface LocalRadar {
     base: Basemap;
     extent: Extent;
@@ -10,6 +11,9 @@
     urls: string[];
     times: string[];
     labels: MapLabel[];
+    strikes: LightningFile['strikes'];
+    /** MET Norway nowcast steps from now on: [time, mm/h] */
+    nowcast: [string, number][] | null;
   }
   export interface CurrentData {
     cur: Current | null;
@@ -23,6 +27,8 @@
 <script lang="ts">
   import WindDir from '../components/WindDir.svelte';
   import RadarLoop from '../components/RadarLoop.svelte';
+  import Strikes from '../components/Strikes.svelte';
+  import { nowcastText, WET } from '../lib/nowcast';
   import MapView from '../map/MapView.svelte';
   import WxIcon from '../components/WxIcon.svelte';
   import { t } from '../i18n';
@@ -36,8 +42,12 @@
   const c = $derived(data.cur);
   const tz = $derived(tzFor(ctx.place.country));
 
-  const R = 350; // radar map size (px)
+  const R = 340; // radar map size (px)
   let frame = $state(0);
+
+  // nowcast bar colour by intensity (mm/h), echoing the radar palette
+  const ncColor = (r: number) => (r < WET ? 'transparent' : r < 0.5 ? '#78d2ff' : r < 2 ? '#28d73c' : r < 5 ? '#ffe828' : r < 10 ? '#ff9614' : '#eb2323');
+  const ncMax = $derived(Math.max(2, ...(data.radar?.nowcast ?? []).map(([, r]) => r)));
 
   const trend = $derived(
     c?.ptend == null ? '' : c.ptend > 0.7 ? `▲ ${t(L, 'rising')}` : c.ptend < -0.7 ? `▼ ${t(L, 'falling')}` : `► ${t(L, 'steady')}`,
@@ -91,8 +101,19 @@
     <div class="panel radar">
       <MapView base={rd.base} w={R} h={R} view={rd.view} labels={rd.labels}>
         <RadarLoop urls={rd.urls} extent={rd.extent} view={rd.view} w={R} h={R} bind:frame />
+        <Strikes strikes={rd.strikes} view={rd.view} w={R} h={R} now={ctx.now} />
       </MapView>
       <div class="rtime">{L === 'fi' ? 'Sadetutka' : 'Radar'} {time(L, rd.times[frame] ?? null, tz)}</div>
+      {#if rd.nowcast}
+        <div class="nc">
+          <div class="bars">
+            {#each rd.nowcast as [tt, r] (tt)}
+              <span style:height={`${Math.max(r >= WET ? 12 : 3, (Math.sqrt(r) / Math.sqrt(ncMax)) * 100)}%`} style:background={r >= WET ? ncColor(r) : null}></span>
+            {/each}
+          </div>
+          <div class="nctext">{nowcastText(L, rd.nowcast, tz)}</div>
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
@@ -126,8 +147,31 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 14px;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .nc {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 34px;
+    border-bottom: 2px solid var(--c-label);
+  }
+  .bars span {
+    flex: 1;
+    background: var(--progress-track);
+    border-radius: 2px 2px 0 0;
+  }
+  .nctext {
+    font-size: 19px;
+    color: var(--c-value);
+    text-align: center;
   }
   .rtime {
     font-size: 24px;

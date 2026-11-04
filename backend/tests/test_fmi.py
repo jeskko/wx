@@ -45,3 +45,33 @@ def test_magnetometer(fixture_bytes):
     assert {"Kevo", "Nurmijärvi", "Kilpisjärvi"} <= names
     assert all(m["range"] >= 0 and m["n"] >= 5 for m in mags)
     assert mags[0]["lat"] > mags[-1]["lat"]  # north first
+
+
+def _now():
+    from datetime import datetime, timezone
+
+    return datetime(2026, 11, 4, 19, 0, tzinfo=timezone.utc)
+
+
+def test_sea_waves_and_levels(fixture_bytes):
+    waves = fmi.summarize_waves(parse_multipointcoverage(fixture_bytes("fmi_wave.xml")), now=_now())
+    assert waves and any(w["hs"] is not None and w["dir"] is not None for w in waves)
+    assert all(w["tw"] is None or 0 <= w["tw"] < 30 for w in waves)
+    levels = fmi.summarize_levels(parse_multipointcoverage(fixture_bytes("fmi_mareograph.xml")), now=_now())
+    assert len(levels) > 8
+    assert all(isinstance(lv["level"], int) and -150 < lv["level"] < 200 for lv in levels)
+    assert any(lv["trend"] is not None for lv in levels)
+
+
+def test_lightning(fixture_bytes):
+    strikes = fmi.summarize_lightning(parse_multipointcoverage(fixture_bytes("fmi_lightning.xml")))
+    assert len(strikes) > 10
+    lat, lon, t, cloud, ka = strikes[0]
+    assert 55 < lat < 72 and 10 < lon < 40 and cloud in (0, 1)
+    assert [s[2] for s in strikes] == sorted(s[2] for s in strikes)
+
+
+def test_airquality(fixture_bytes):
+    st = fmi.summarize_airquality(parse_multipointcoverage(fixture_bytes("fmi_airquality.xml")), now=_now())
+    assert len(st) > 30
+    assert all(1 <= s["aqi"] <= 5 for s in st)

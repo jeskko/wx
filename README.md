@@ -29,8 +29,12 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | aviation | 10 min | `aviation.json`: METAR and TAF |
 | aurora | 15 min | `aurora.json`: Kp observed and forecast, OVATION Nordic grid, solar wind, FI magnetometers |
 | forecast | 60 min | `fc/<place>.json`: hourly and daily (FMI edited forecast; MET Norway outside FMI's area) |
-| radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured |
+| radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured; fetched at the native 500 m, saved at 2 km nationally + 250 km windows at 500 m per Finnish place in `radar/local/<place>/` |
 | roads | 15 min | `roads/fi.json`: Digitraffic road condition forecast per road section (projected paths) + road weather stations |
+| nowcast | 10 min | `nowcast/<place>.json`: MET Norway radar nowcast, 5-min precipitation rate for ~90 min (Nordic coverage) |
+| sea | 30 min | `sea/fi.json`: FMI wave buoys (Hs, direction, water temp) + mareographs (sea level vs. theoretical mean, trend) |
+| lightning | 5 min | `lightning/fi.json`: FMI lightning strikes of the last hour |
+| airquality | 30 min | `airquality/fi.json`: FMI hourly air quality index + PM2.5/PM10/NO2/O3 per station |
 | grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
 | (runner) | each run | `health.json`: freshness and errors per job |
 

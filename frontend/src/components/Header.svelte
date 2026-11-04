@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { capitalize } from '../lib/format';
   import { LOCALE } from '../i18n';
   import type { Lang } from '../lib/types';
 
@@ -10,7 +11,7 @@
     return () => clearInterval(id);
   });
   const clock = $derived(now.toLocaleTimeString(LOCALE[lang], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz }));
-  const date = $derived(now.toLocaleDateString(LOCALE[lang], { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz }));
+  const date = $derived(capitalize(now.toLocaleDateString(LOCALE[lang], { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz })));
 </script>
 
 <header class="hdr">

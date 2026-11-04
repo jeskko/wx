@@ -44,3 +44,21 @@ def parse(d: dict) -> list[dict]:
             }
         )
     return steps
+
+
+NOWCAST_URL = "https://api.met.no/weatherapi/nowcast/2.0/complete"
+
+
+def nowcast(lat: float, lon: float) -> dict:
+    """Radar nowcast (Nordic area): precipitation rate every 5 min for ~90 min."""
+    return parse_nowcast(net.get_json(NOWCAST_URL, {"lat": f"{lat:.4f}", "lon": f"{lon:.4f}"}))
+
+
+def parse_nowcast(d: dict) -> dict:
+    props = d["properties"]
+    steps = []
+    for st in props["timeseries"]:
+        r = st["data"]["instant"]["details"].get("precipitation_rate")
+        if r is not None:
+            steps.append([st["time"], round(r, 1)])
+    return {"coverage": props.get("meta", {}).get("radar_coverage"), "updated": props.get("meta", {}).get("updated_at"), "steps": steps}

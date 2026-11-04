@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wfs:FeatureCollection
+  timeStamp="2026-11-04T19:15:32Z"
+  numberMatched="1"
+  numberReturned="1"
+  xmlns:wfs="http://www.opengis.net/wfs/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:om="http://www.opengis.net/om/2.0"
+  xmlns:ompr="http://inspire.ec.europa.eu/schemas/ompr/3.0"
+  xmlns:omso="http://inspire.ec.europa.eu/schemas/omso/3.0"
+  xmlns:gml="http://www.opengis.net/gml/3.2"
+  xmlns:gmd="http://www.isotc211.org/2005/gmd"
+  xmlns:gco="http://www.isotc211.org/2005/gco"
+  xmlns:swe="http://www.opengis.net/swe/2.0"
+  xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+  xmlns:sam="http://www.opengis.net/sampling/2.0"
+  xmlns:sams="http://www.opengis.net/samplingSpatial/2.0"
+  xmlns:target="http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1"
+  xsi:schemaLocation="http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd
+  http://www.opengis.net/gmlcov/1.0 http://schemas.opengis.net/gmlcov/1.0/gmlcovAll.xsd
+  http://www.opengis.net/sampling/2.0 http://schemas.opengis.net/sampling/2.0/samplingFeature.xsd
+  http://www.opengis.net/samplingSpatial/2.0 http://schemas.opengis.net/samplingSpatial/2.0/spatialSamplingFeature.xsd
+  http://www.opengis.net/swe/2.0 http://schemas.opengis.net/sweCommon/2.0/swe.xsd
+  http://inspire.ec.europa.eu/schemas/ompr/3.0 https://inspire.ec.europa.eu/schemas/ompr/3.0/Processes.xsd
+  http://inspire.ec.europa.eu/schemas/omso/3.0 https://inspire.ec.europa.eu/schemas/omso/3.0/SpecialisedObservations.xsd
+  http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1 https://xml.fmi.fi/schema/om/atmosphericfeatures/1.1/atmosphericfeatures.xsd">
+
+  <wfs:member>
+    <omso:GridSeriesObservation gml:id="WFS-arXtVS2bBjKK53LDB.m6vOGmSOOJTowsYWbbpdOt.Lnl5dsPTTv3c3Trbh5Zd.flh4aHTrb12dNPDfp3dMe_tl5Yc.WFpYsufTuqaduW1V_CrSME1UJjY.XOtSLQpx3TpoyauGdl3ZKmnbltVfwq0jhzFEZ2bbp56cnOTuWKNJ5LFGk2mhkSXxRyJMIo5EmMUciSiOORJVHHIkrjjkSWRxyJLY45El0cciTqOORJ7TFGZ2vL577.WSp0a8vnvv5ZL._tl5d.WnphxbMsTM2YemXn0iZmzfjw7MtambTfjSV3XpmcNbbh8RNPPph3Y8tK1dCA0tuHxF4b8ejnPD6E3tuXpl30MPLDty9MvLnWZXg1JkWtWtUr36FRjIvwa0drbdPPnp3Z6mXx0rGnYZza3dds_NT6Yemnfu5zhNbj1w7NPTzJ3Zt8TW59MPTTv3VPPDLXNv4Zd2TD0w39uHll35.WHhobnPpv5ZcnHrl5eb.nJXGFm26XTrfi55eXbD00793N0624eWXfn5YeGh0629dnTTw36d3THv7ZeWHPlaHTTty0.mXhPyE0Omnbltb92WsarUhg">
+
+                 <om:phenomenonTime>
+        <gml:TimePeriod gml:id="time1-1-1">
+          <gml:beginPosition>2026-11-04T12:00:00Z</gml:beginPosition>
+          <gml:endPosition>2026-11-04T19:00:00Z</gml:endPosition>
+        </gml:TimePeriod>
+      </om:phenomenonTime>
+      <om:resultTime>
+        <gml:TimeInstant gml:id="time2-1-1">
+          <gml:timePosition>2026-11-04T19:00:00Z</gml:timePosition>
+        </gml:TimeInstant>
+      </om:resultTime>
+
+     <om:procedure xlink:href="http://xml.fmi.fi/inspire/process/opendata_mareograph"/>
+     <om:observedProperty  xlink:href="https://opendata.fmi.fi/meta?observableProperty=forecast&amp;param=WATLEV,TW_PT1H_AVG&amp;language=eng"/>
+     	<om:featureOfInterest>
+        <sams:SF_SpatialSamplingFeature gml:id="sampling-feature-1-1-fmisid">
+
+          <sam:sampledFeature>
+		<target:LocationCollection gml:id="sampled-target-1-1">
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-100539-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">100539</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Kemi Ajos</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-100539</gml:name>
+			
+			<target:representativePoint xlink:href="#point-100539"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Kemi</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-100540-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">100540</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Raahe Lapaluoto</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-100540</gml:name>
+			
+			<target:representativePoint xlink:href="#point-100540"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Raahe</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-100669-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">100669</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Porvoo Emäsalo Vaarlahti</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-100669</gml:name>
+			
+			<target:representativePoint xlink:href="#point-100669"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Porvoo</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-132310-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">132310</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Helsinki Kaivopuisto</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022814</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/wmo">2960</gml:name>
+			<target:representativePoint xlink:href="#point-132310"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Helsinki</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134223-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134223</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Vaasa Vaskiluoto</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022815</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134223"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Vaasa</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134224-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134224</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Rauma Petäjäs</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022816</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134224"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Rauma</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134225-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134225</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Turku Ruissalo Saaronniemi</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022817</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134225"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Turku</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134248-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134248</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Oulu Toppila</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022818</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134248"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Oulu</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134250-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134250</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Pietarsaari Leppäluoto</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022819</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134250"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Pietarsaari</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134251-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134251</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Kaskinen Ådskär</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022820</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134251"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Kaskinen</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134252-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134252</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Föglö Degerby</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022821</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134252"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Föglö</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134253-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134253</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Hanko Pikku Kolalahti</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022822</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134253"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Hanko</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134254-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134254</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Hamina Pitäjänsaari</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022823</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134254"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Hamina</target:region>	   			
+			
+		    </target:Location></target:member>
+		    <target:member>
+		    <target:Location gml:id="obsloc-fmisid-134266-pos">
+		        <gml:identifier codeSpace="http://xml.fmi.fi/namespace/stationcode/fmisid">134266</gml:identifier>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/name">Pori Mäntyluoto Kallo</gml:name>
+			<gml:name codeSpace="http://xml.fmi.fi/namespace/locationcode/geoid">-10022824</gml:name>
+			
+			<target:representativePoint xlink:href="#point-134266"/>					
+			
+			
+			<target:region codeSpace="http://xml.fmi.fi/namespace/location/region">Pori</target:region>	   			
+			
+		    </target:Location></target:member>
+		</target:LocationCollection>
+ 	   </sam:sampledFeature>
+          <sams:shape>
+            <gml:MultiPoint gml:id="mp-1-1-fmisid">
+              <gml:pointMember>
+              <gml:Point gml:id="point-100539" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Kemi Ajos</gml:name>
+                <gml:pos>65.67337 24.51526 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-100540" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Raahe Lapaluoto</gml:name>
+                <gml:pos>64.66630 24.40708 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-100669" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Porvoo Emäsalo Vaarlahti</gml:name>
+                <gml:pos>60.20579 25.62509 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-132310" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Helsinki Kaivopuisto</gml:name>
+                <gml:pos>60.15363 24.95622 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134223" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Vaasa Vaskiluoto</gml:name>
+                <gml:pos>63.08150 21.57118 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134224" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Rauma Petäjäs</gml:name>
+                <gml:pos>61.13390 21.44263 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134225" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Turku Ruissalo Saaronniemi</gml:name>
+                <gml:pos>60.42828 22.10053 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134248" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Oulu Toppila</gml:name>
+                <gml:pos>65.04030 25.41820 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134250" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Pietarsaari Leppäluoto</gml:name>
+                <gml:pos>63.70857 22.68958 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134251" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Kaskinen Ådskär</gml:name>
+                <gml:pos>62.34395 21.21483 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134252" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Föglö Degerby</gml:name>
+                <gml:pos>60.03188 20.38482 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134253" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Hanko Pikku Kolalahti</gml:name>
+                <gml:pos>59.82287 22.97658 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134254" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Hamina Pitäjänsaari</gml:name>
+                <gml:pos>60.56277 27.17920 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+              <gml:pointMember>
+              <gml:Point gml:id="point-134266" srsName="http://www.opengis.net/def/crs/EPSG/0/4258" srsDimension="2">
+                <gml:name>Pori Mäntyluoto Kallo</gml:name>
+                <gml:pos>61.59438 21.46343 </gml:pos>
+            </gml:Point>
+	    </gml:pointMember>
+	    </gml:MultiPoint>
+          </sams:shape>
+        </sams:SF_SpatialSamplingFeature>
+      </om:featureOfInterest>
+
+           <om:result>
+        <gmlcov:MultiPointCoverage gml:id="mpcv1-1-1">
+          <gml:domainSet>
+            <gmlcov:SimpleMultiPoint gml:id="mp1-1-1" srsName="http://xml.fmi.fi/gml/crs/compoundCRS.php?crs=4258&amp;time=unixtime" srsDimension="3">
+              <gmlcov:positions>
+                65.67337 24.51526  1793793600
+                65.67337 24.51526  1793797200
+                65.67337 24.51526  1793800800
+                65.67337 24.51526  1793804400
+                65.67337 24.51526  1793808000
+                65.67337 24.51526  1793811600
+                65.67337 24.51526  1793815200
+                65.67337 24.51526  1793818800
+                64.66630 24.40708  1793793600
+                64.66630 24.40708  1793797200
+                64.66630 24.40708  1793800800
+                64.66630 24.40708  1793804400
+                64.66630 24.40708  1793808000
+                64.66630 24.40708  1793811600
+                64.66630 24.40708  1793815200
+                64.66630 24.40708  1793818800
+                60.20579 25.62509  1793793600
+                60.20579 25.62509  1793797200
+                60.20579 25.62509  1793800800
+                60.20579 25.62509  1793804400
+                60.20579 25.62509  1793808000
+                60.20579 25.62509  1793811600
+                60.20579 25.62509  1793815200
+                60.20579 25.62509  1793818800
+                60.15363 24.95622  1793793600
+                60.15363 24.95622  1793797200
+                60.15363 24.95622  1793800800
+                60.15363 24.95622  1793804400
+                60.15363 24.95622  1793808000
+                60.15363 24.95622  1793811600
+                60.15363 24.95622  1793815200
+                60.15363 24.95622  1793818800
+                63.08150 21.57118  1793793600
+                63.08150 21.57118  1793797200
+                63.08150 21.57118  1793800800
+                63.08150 21.57118  1793804400
+                63.08150 21.57118  1793808000
+                63.08150 21.57118  1793811600
+                63.08150 21.57118  1793815200
+                63.08150 21.57118  1793818800
+                61.13390 21.44263  1793793600
+                61.13390 21.44263  1793797200
+                61.13390 21.44263  1793800800
+                61.13390 21.44263  1793804400
+                61.13390 21.44263  1793808000
+                61.13390 21.44263  1793811600
+                61.13390 21.44263  1793815200
+                61.13390 21.44263  1793818800
+                60.42828 22.10053  1793793600
+                60.42828 22.10053  1793797200
+                60.42828 22.10053  1793800800
+                60.42828 22.10053  1793804400
+                60.42828 22.10053  1793808000
+                60.42828 22.10053  1793811600
+                60.42828 22.10053  1793815200
+                60.42828 22.10053  1793818800
+                65.04030 25.41820  1793793600
+                65.04030 25.41820  1793797200
+                65.04030 25.41820  1793800800
+                65.04030 25.41820  1793804400
+                65.04030 25.41820  1793808000
+                65.04030 25.41820  1793811600
+                65.04030 25.41820  1793815200
+                65.04030 25.41820  1793818800
+                63.70857 22.68958  1793793600
+                63.70857 22.68958  1793797200
+                63.70857 22.68958  1793800800
+                63.70857 22.68958  1793804400
+                63.70857 22.68958  1793808000
+                63.70857 22.68958  1793811600
+                63.70857 22.68958  1793815200
+                63.70857 22.68958  1793818800
+                62.34395 21.21483  1793793600
+                62.34395 21.21483  1793797200
+                62.34395 21.21483  1793800800
+                62.34395 21.21483  1793804400
+                62.34395 21.21483  1793808000
+                62.34395 21.21483  1793811600
+                62.34395 21.21483  1793815200
+                62.34395 21.21483  1793818800
+                60.03188 20.38482  1793793600
+                60.03188 20.38482  1793797200
+                60.03188 20.38482  1793800800
+                60.03188 20.38482  1793804400
+                60.03188 20.38482  1793808000
+                60.03188 20.38482  1793811600
+                60.03188 20.38482  1793815200
+                60.03188 20.38482  1793818800
+                59.82287 22.97658  1793793600
+                59.82287 22.97658  1793797200
+                59.82287 22.97658  1793800800
+                59.82287 22.97658  1793804400
+                59.82287 22.97658  1793808000
+                59.82287 22.97658  1793811600
+                59.82287 22.97658  1793815200
+                59.82287 22.97658  1793818800
+                60.56277 27.17920  1793793600
+                60.56277 27.17920  1793797200
+                60.56277 27.17920  1793800800
+                60.56277 27.17920  1793804400
+                60.56277 27.17920  1793808000
+                60.56277 27.17920  1793811600
+                60.56277 27.17920  1793815200
+                60.56277 27.17920  1793818800
+                61.59438 21.46343  1793793600
+                61.59438 21.46343  1793797200
+                61.59438 21.46343  1793800800
+                61.59438 21.46343  1793804400
+                61.59438 21.46343  1793808000
+                61.59438 21.46343  1793811600
+                61.59438 21.46343  1793815200
+                61.59438 21.46343  1793818800
+                </gmlcov:positions>
+            </gmlcov:SimpleMultiPoint>
+          </gml:domainSet>
+          <gml:rangeSet>
+            <gml:DataBlock>
+              <gml:rangeParameters/>
+              <gml:doubleOrNilReasonTupleList>
+                237.0 4.6 
+                233.0 4.6 
+                191.0 4.6 
+                160.0 4.6 
+                187.0 4.6 
+                217.0 4.6 
+                216.0 4.6 
+                215.0 4.6 
+                194.0 6.2 
+                175.0 6.2 
+                223.0 6.2 
+                271.0 6.2 
+                262.0 6.2 
+                227.0 6.2 
+                212.0 6.2 
+                190.0 6.2 
+                87.0 9.8 
+                83.0 9.8 
+                99.0 9.8 
+                108.0 9.8 
+                128.0 9.8 
+                170.0 9.9 
+                182.0 9.9 
+                211.0 9.9 
+                71.0 8.8 
+                78.0 8.9 
+                77.0 8.9 
+                82.0 8.8 
+                99.0 8.9 
+                129.0 8.8 
+                154.0 8.8 
+                166.0 9.0 
+                85.0 5.7 
+                80.0 5.8 
+                91.0 5.9 
+                100.0 5.9 
+                79.0 5.9 
+                95.0 6.0 
+                102.0 6.0 
+                99.0 6.1 
+                46.0 8.1 
+                41.0 8.1 
+                35.0 8.1 
+                40.0 8.0 
+                45.0 8.0 
+                39.0 8.0 
+                35.0 8.0 
+                38.0 8.0 
+                52.0 9.2 
+                41.0 9.6 
+                23.0 9.6 
+                12.0 9.5 
+                30.0 9.5 
+                43.0 9.5 
+                4.0 9.5 
+                5.0 9.5 
+                351.0 6.8 
+                299.0 6.7 
+                209.0 6.8 
+                330.0 6.9 
+                301.0 6.8 
+                375.0 6.7 
+                409.0 6.7 
+                388.0 6.6 
+                112.0 6.6 
+                153.0 6.4 
+                178.0 6.6 
+                182.0 6.7 
+                171.0 6.3 
+                177.0 6.3 
+                160.0 6.3 
+                170.0 6.3 
+                32.0 NaN 
+                21.0 NaN 
+                23.0 NaN 
+                15.0 NaN 
+                27.0 NaN 
+                26.0 NaN 
+                25.0 NaN 
+                25.0 NaN 
+                -1.0 8.8 
+                -9.0 8.8 
+                -12.0 8.8 
+                8.0 8.8 
+                -24.0 8.8 
+                -20.0 8.8 
+                -7.0 8.8 
+                -17.0 8.7 
+                55.0 9.5 
+                54.0 9.5 
+                55.0 9.5 
+                55.0 9.5 
+                51.0 9.5 
+                53.0 9.4 
+                59.0 9.4 
+                70.0 9.3 
+                120.0 8.2 
+                131.0 8.3 
+                187.0 7.7 
+                182.0 7.8 
+                224.0 8.1 
+                245.0 8.0 
+                256.0 8.2 
+                308.0 8.0 
+                38.0 7.1 
+                27.0 7.1 
+                28.0 7.1 
+                21.0 7.2 
+                11.0 7.2 
+                17.0 7.2 
+                28.0 7.2 
+                24.0 7.2 
+                </gml:doubleOrNilReasonTupleList>
+            </gml:DataBlock>
+          </gml:rangeSet>
+          <gml:coverageFunction>
+            <gml:CoverageMappingRule>
+              <gml:ruleDefinition>Linear</gml:ruleDefinition>
+            </gml:CoverageMappingRule>
+          </gml:coverageFunction>
+          <gmlcov:rangeType>
+            <swe:DataRecord>
+              <swe:field name="WATLEV"  xlink:href="https://opendata.fmi.fi/meta?observableProperty=observation&amp;param=WATLEV&amp;language=eng"/>
+              <swe:field name="TW_PT1H_AVG"  xlink:href="https://opendata.fmi.fi/meta?observableProperty=observation&amp;param=TW_PT1H_AVG&amp;language=eng"/>
+              </swe:DataRecord>
+          </gmlcov:rangeType>
+        </gmlcov:MultiPointCoverage>
+      </om:result>
+
+    </omso:GridSeriesObservation>
+  </wfs:member>
+</wfs:FeatureCollection>

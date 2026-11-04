@@ -1,6 +1,7 @@
 <script lang="ts" module>
   import type { Basemap } from '../map/basemap';
   import type { MapLabel } from '../map/MapView.svelte';
+  import type { LightningFile } from '../lib/types';
   export interface RadarIndex {
     updated: string;
     extent: [number, number, number, number];
@@ -8,17 +9,21 @@
     height: number;
     frames: { time: string; file: string }[];
     legend: { dbz: number; rgba: [number, number, number, number] }[];
+    /** 500 m windows around Finnish places: radar/local/<id>/<file> */
+    local?: Record<string, { view: [number, number, number, number]; frames: string[] }>;
   }
   export interface RadarData {
     base: Basemap;
     index: RadarIndex;
     urls: string[];
     labels: MapLabel[];
+    strikes: LightningFile['strikes'];
   }
 </script>
 
 <script lang="ts">
   import MapView from '../map/MapView.svelte';
+  import Strikes from '../components/Strikes.svelte';
   import { mapSize } from '../map/basemap';
   import { time } from '../lib/format';
   import type { SlideProps } from '../engine/types';
@@ -54,6 +59,7 @@
     {#each data.urls as u, k (u)}
       <img src={u} alt="" class:on={k === i} />
     {/each}
+    <Strikes strikes={data.strikes} view={data.index.extent} w={size.w} h={size.h} now={ctx.now} />
   </MapView>
   <div class="panel side">
     <div class="clock">{time(L, frameTime ?? null, 'Europe/Helsinki')}</div>
@@ -71,6 +77,12 @@
         </li>
       {/each}
     </ul>
+    {#if data.strikes.length}
+      <div class="ltg">
+        <svg width="18" height="18" viewBox="-9 -9 18 18"><path d="M-6 0h12M0 -6v12" stroke="#ffe14a" stroke-width="3" /></svg>
+        {L === 'fi' ? `Salamat tunnin aikana: ${data.strikes.length}` : `Lightning, last hour: ${data.strikes.length}`}
+      </div>
+    {/if}
     <p class="note">{L === 'fi' ? 'Tutkakuva, viimeinen tunti · Ilmatieteen laitos' : 'Radar, last hour · Finnish Meteorological Institute'}</p>
   </div>
 </div>
@@ -102,13 +114,13 @@
     font-variant-numeric: tabular-nums;
   }
   .ago {
-    font-size: 26px;
+    font-size: 24px;
     color: var(--c-label);
   }
   .track {
     display: flex;
     gap: 4px;
-    margin: 6px 0 14px;
+    margin: 4px 0 8px;
   }
   .track span {
     flex: 1;
@@ -130,8 +142,8 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    font-size: 24px;
+    gap: 3px;
+    font-size: 23px;
   }
   .legend li {
     display: flex;
@@ -140,12 +152,19 @@
   }
   .sw {
     width: 44px;
-    height: 22px;
+    height: 20px;
     border: 2px solid rgba(0, 0, 0, 0.6);
   }
   .dbz {
     width: 90px;
     color: var(--c-label);
+  }
+  .ltg {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    margin-top: 6px;
   }
   .note {
     margin-top: auto;

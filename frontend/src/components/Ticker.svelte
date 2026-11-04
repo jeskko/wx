@@ -44,7 +44,7 @@
         const o = outlook(a, place.lat, place.lon, null, new Date());
         const strongest = (a.mag ?? []).reduce((m, s) => Math.max(m, s.range), 0);
         out.push(
-          `${t(lang, 'slide.aurora')}: Kp ${num(o.kpNow, 1)} · ${t(lang, 'localActivity').toLowerCase()} ${t(lang, `activity.${activity(strongest)}`)}`,
+          `${t(lang, 'slide.aurora')}: Kp ${num(o.kpNow, 1)} · ${t(lang, 'localActivity')}: ${t(lang, `activity.${activity(strongest)}`)}`,
         );
       }
     } catch {

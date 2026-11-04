@@ -9,7 +9,7 @@
 
 <script lang="ts">
   import { t } from '../i18n';
-  import { time, weekday } from '../lib/format';
+  import { capitalize, time, weekday } from '../lib/format';
   import { tzFor } from '../lib/wx';
   import { autoscroll } from '../lib/autoscroll';
   import type { SlideProps } from '../engine/types';
@@ -56,7 +56,7 @@
           <span class="badge {w.color}"></span>
           <div>
             <div class="head">{txt(w).event} <small>· {areaNames(w)}</small></div>
-            <div class="valid">{when(w.onset)} – {when(w.expires)}</div>
+            <div class="valid">{capitalize(when(w.onset))} – {when(w.expires)}</div>
           </div>
         </article>
       {/each}

@@ -67,3 +67,33 @@ def test_symbols():
     assert symbols.from_metno("rainandthunder") == "thunder-1"
     assert symbols.from_metno("fair_night") == "partly"
     assert symbols.from_metno("lightssleetshowersandthunder_day") == "cloudy"  # unknown -> safe default
+
+
+def test_metno_nowcast(fixture_bytes):
+    import json
+
+    from wx.sources import metno
+
+    nc = metno.parse_nowcast(json.loads(fixture_bytes("metno_nowcast.json")))
+    assert nc["coverage"] == "ok"
+    assert len(nc["steps"]) >= 15
+    assert all(isinstance(r, float) and r >= 0 for _, r in nc["steps"])
+
+
+def test_radar_downsample_keeps_echo_and_nodata():
+    from PIL import Image
+
+    from wx.sources import radar
+
+    raw = Image.new("L", (8, 8), 0)
+    raw.putpixel((1, 1), 150)  # a single strong pixel in block (0,0)
+    for x in range(4, 8):
+        for y in range(4, 8):
+            raw.putpixel((x, y), 255)  # block (1,1) outside coverage
+    raw.putpixel((5, 5), 0)  # ...except one covered pixel: covered wins
+    small = radar.downsample(raw, (2, 2))
+    assert small.getpixel((0, 0)) == 150
+    assert small.getpixel((1, 0)) == 0
+    assert small.getpixel((1, 1)) == 0
+    full = Image.new("L", (4, 4), 255)
+    assert radar.downsample(full, (2, 2)).getpixel((0, 0)) == 255
