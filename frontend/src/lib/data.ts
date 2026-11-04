@@ -2,7 +2,7 @@
 // Each file has a max age; stale entries are refetched, and if a refetch fails
 // the last good copy is kept (marked stale) so the screen never goes blank.
 
-import type { CapitalsFile, AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
+import type { CamsFile, CapitalsFile, AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
 import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
 import type { FieldsIndex, WorldIndex } from '../map/raster';
@@ -75,6 +75,7 @@ export const api = {
   nowcast: (id: string) => load<NowcastFile>(`nowcast/${id}.json`, 300),
   sea: () => load<SeaFile>('sea/fi.json', 900),
   lightning: () => load<LightningFile>('lightning/fi.json', 120),
+  cams: () => load<CamsFile>('cams/fi/index.json', 300),
   world: () => load<WorldIndex>('world/index.json', 1800),
   capitals: () => load<CapitalsFile>('world/capitals.json', 900),
   airquality: () => load<AirQualityFile>('airquality/fi.json', 900),

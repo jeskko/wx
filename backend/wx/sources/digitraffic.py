@@ -86,3 +86,55 @@ def stations() -> list[dict]:
             row["cond"] = None
         out.append(row)
     return out
+
+
+# ---------------------------------------------------------------- weather cameras
+
+CAM_API = "https://tie.digitraffic.fi/api/weathercam/v1"
+ROAD_RE = __import__("re").compile(r"^(vt|kt|st|mt|yt|pt)(\d+)_(.+)$", __import__("re").I)
+
+
+def cam_label(station_name: str) -> tuple[str, str | None]:
+    """'kt51_Inkoo' -> ('Inkoo', 'kt 51'); other names are returned as they are."""
+    m = ROAD_RE.match(station_name)
+    if not m:
+        return station_name.replace("_", " "), None
+    return m.group(3).replace("_", " "), f"{m.group(1).lower()} {m.group(2)}"
+
+
+def cam_stations() -> list[dict]:
+    """Collecting camera stations: id, lat, lon, label, road, preset ids."""
+    d = net.get_json(f"{CAM_API}/stations", headers=HEADERS)
+    out = []
+    for f in d.get("features", []):
+        p = f["properties"]
+        if p.get("collectionStatus") != "GATHERING":
+            continue
+        presets = [x["id"] for x in p.get("presets", []) if x.get("inCollection")]
+        if not presets:
+            continue
+        lon, lat = f["geometry"]["coordinates"][:2]
+        name, road = cam_label(p.get("name") or p["id"])
+        out.append({"id": p["id"], "lat": lat, "lon": lon, "name": name, "road": road, "presets": sorted(presets)})
+    return out
+
+
+def cam_times() -> dict[str, str]:
+    """preset id -> measuredTime of its latest image."""
+    d = net.get_json(f"{CAM_API}/stations/data", headers=HEADERS)
+    return {pr["id"]: pr["measuredTime"] for st in d.get("stations", []) for pr in st.get("presets", []) if pr.get("measuredTime")}
+
+
+def cam_image(preset: str, width: int = 640) -> bytes:
+    """Latest image of a preset, downscaled to `width` px as JPEG."""
+    import io
+
+    from PIL import Image
+
+    raw = net.get(f"https://weathercam.digitraffic.fi/{preset}.jpg", headers=HEADERS).content
+    im = Image.open(io.BytesIO(raw)).convert("RGB")
+    if im.width > width:
+        im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, format="JPEG", quality=78, optimize=True, progressive=True)
+    return buf.getvalue()

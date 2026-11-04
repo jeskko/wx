@@ -21,7 +21,7 @@
   const SOURCES = [
     { name: 'Natural Earth', what: { fi: 'karttapohjat', en: 'base maps' }, lic: 'public domain' },
     { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, tutka, salamat, merisää, ilmanlaatu, varoitukset, magnetometrit', en: 'observations, forecasts, radar, lightning, sea, air quality, warnings, magnetometers' }, lic: 'CC BY 4.0' },
-    { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli ja tiesääasemat', en: 'road conditions and road weather stations' }, lic: 'CC BY 4.0' },
+    { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli, tiesääasemat ja kelikamerat', en: 'road conditions, road weather stations and weather cameras' }, lic: 'CC BY 4.0' },
     { name: 'ECMWF', what: { fi: 'maailmankartat (Ilmatieteen laitoksen avoimen datan kautta)', en: 'world maps (via FMI open data)' }, lic: 'CC BY 4.0' },
     { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolella', en: 'precipitation nowcast, forecasts outside Finland' }, lic: 'CC BY 4.0' },
     { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },

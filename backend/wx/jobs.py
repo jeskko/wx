@@ -14,6 +14,7 @@ Output layout (all JSON, relative to DATA_DIR):
   fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
   world/index.json       ECMWF temperature/precip/wind rasters per world view (world/<view>/<time>.png)
   world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
+  cams/fi/index.json     road weather cameras near each Finnish place (+ cams/fi/<preset>.jpg)
   roads/fi.json          road condition forecasts per road section (+ road weather stations)
   sea/fi.json            wave buoys + sea level / water temperature (FMI)
   lightning/fi.json      lightning strikes in the last hour (FMI)
@@ -334,6 +335,76 @@ def job_capitals() -> dict:
     return {"metar": len(metars), "forecasts": fc_ok}
 
 
+CAMS_PER_PLACE = 3
+CAM_RADIUS_KM = 30
+
+
+def job_cams() -> dict:
+    """Up to 3 road weather cameras near each Finnish place. Each run refreshes the oldest
+    local image per place (so ~25 downloads per run), skipping presets without a newer image."""
+    import json
+
+    from .geo import haversine_km
+
+    rel = "cams/fi"
+    idx_path = settings.DATA_DIR / rel / "index.json"
+    old: dict = {}
+    if idx_path.exists():
+        try:
+            old = json.loads(idx_path.read_text()).get("places", {})
+        except ValueError:
+            old = {}
+    have = {c["preset"]: c for cams in old.values() for c in cams}
+    stations = digitraffic.cam_stations()
+    times = digitraffic.cam_times()
+    places: dict = {}
+    fetched = failed = 0
+    for p in places_mod.places():
+        if p.country != "FI":
+            continue
+        near = sorted(
+            ((haversine_km(p.lat, p.lon, s["lat"], s["lon"]), s) for s in stations),
+            key=lambda x: x[0],
+        )
+        chosen = [s for d, s in near if d <= CAM_RADIUS_KM][:CAMS_PER_PLACE]
+        cams = []
+        for s in chosen:
+            preset = s["presets"][0]
+            prev = have.get(preset)
+            cams.append(
+                {
+                    "station": s["id"],
+                    "preset": preset,
+                    "name": s["name"],
+                    "road": s["road"],
+                    "lat": round(s["lat"], 5),
+                    "lon": round(s["lon"], 5),
+                    "time": prev["time"] if prev and (settings.DATA_DIR / rel / f"{preset}.jpg").exists() else None,
+                    "file": f"{preset}.jpg",
+                }
+            )
+        # refresh the stalest camera of this place if the source has something newer
+        todo = sorted(cams, key=lambda c: c["time"] or "")
+        for c in todo[:1]:
+            src_t = times.get(c["preset"])
+            if c["time"] and src_t and src_t <= c["time"]:
+                continue
+            try:
+                write_bytes(f"{rel}/{c['file']}", digitraffic.cam_image(c["preset"]))
+                c["time"] = src_t or iso(utcnow())
+                fetched += 1
+            except Exception as e:
+                log.info("cam %s: %s", c["preset"], e)
+                failed += 1
+        places[p.id] = [c for c in cams if c["time"]]
+    keep = {c["file"] for cams in places.values() for c in cams}
+    for f in (settings.DATA_DIR / rel).glob("*.jpg"):
+        if f.name not in keep:
+            f.unlink(missing_ok=True)
+    write_json(f"{rel}/index.json", {"updated": iso(utcnow()), "source": "digitraffic", "places": places})
+    return {"places": sum(1 for v in places.values() if v), "fetched": fetched, "failed": failed}
+
+
 def job_roads() -> dict:
     secs = digitraffic.sections("fi")
     try:
@@ -411,6 +482,7 @@ JOBS: list[Job] = [
     Job("world", 60 * 60, job_world),
     Job("capitals", 60 * 60, job_capitals),
     Job("roads", 15 * 60, job_roads),
+    Job("cams", 15 * 60, job_cams),
     Job("nowcast", 10 * 60, job_nowcast),
     Job("sea", 30 * 60, job_sea),
     Job("lightning", 5 * 60, job_lightning),

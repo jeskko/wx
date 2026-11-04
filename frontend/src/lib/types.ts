@@ -223,3 +223,19 @@ export interface CapitalsFile {
   updated: string;
   capitals: Record<string, { metar: Metar | null; daily: Day[]; now: Step | null }>;
 }
+
+export interface CamInfo {
+  station: string;
+  preset: string;
+  name: string;
+  road: string | null;
+  lat: number;
+  lon: number;
+  time: string;
+  file: string;
+}
+
+export interface CamsFile {
+  updated: string;
+  places: Record<string, CamInfo[]>;
+}

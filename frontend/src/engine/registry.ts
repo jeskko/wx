@@ -67,10 +67,22 @@ const current: SlideDef<CurrentData> = {
     const cur = currentFor(place, obs?.stations ?? null, av ? Object.values(av.metar) : null);
     const step = fc ? stepAt(fc.hourly, now) : null;
     if (!cur && !step) return null;
-    const radar = await soft(localRadar(place, lang, now), 6000);
-    return { cur, sym: cur?.sym ?? step?.sym ?? null, night: isNight(now, place.lat, place.lon), fcT: step?.t ?? null, radar };
+    const [radar, cam] = await Promise.all([soft(localRadar(place, lang, now), 6000), soft(randomCam(place, now), 5000)]);
+    return { cur, sym: cur?.sym ?? step?.sym ?? null, night: isNight(now, place.lat, place.lon), fcT: step?.t ?? null, radar, cam };
   },
 };
+
+/** A random recent road weather camera image near the place (Finland only), preloaded. */
+async function randomCam(place: Place, now: Date): Promise<CurrentData['cam']> {
+  if (place.country !== 'FI') return null;
+  const f = await soft(api.cams(), 4000);
+  const fresh = (f?.places[place.id] ?? []).filter((c) => now.getTime() - Date.parse(c.time) < 2 * 3600_000);
+  if (!fresh.length) return null;
+  const c = fresh[Math.floor(Math.random() * fresh.length)];
+  const url = `${DATA_BASE}cams/fi/${c.file}?v=${encodeURIComponent(c.time)}`;
+  await preload(url);
+  return { url, name: c.name, road: c.road, time: c.time };
+}
 
 /** ~250 km radar window around a Finnish place, or null (outside radar coverage / stale). */
 async function localRadar(place: Place, lang: Lang, now: Date): Promise<LocalRadar | null> {

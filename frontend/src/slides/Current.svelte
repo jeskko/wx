@@ -21,6 +21,8 @@
     night: boolean;
     fcT: number | null;
     radar: LocalRadar | null;
+    /** road weather camera near the place (Digitraffic) */
+    cam: { url: string; name: string; road: string | null; time: string } | null;
   }
 </script>
 
@@ -55,10 +57,19 @@
 </script>
 
 <div class="current" class:withradar={!!data.radar}>
-  <div class="panel hero">
-    <WxIcon sym={data.sym} night={data.night} size={data.radar ? 150 : 190} />
+  <div class="panel hero" class:withcam={!!data.cam}>
+    <WxIcon sym={data.sym} night={data.night} size={data.cam ? 96 : data.radar ? 150 : 190} />
     <div class="temp-big">{temp(c?.t ?? data.fcT)}</div>
     <div class="cond">{symLabel(L, data.sym)}</div>
+    {#if data.cam}
+      <figure class="cam">
+        <img src={data.cam.url} alt="" />
+        <figcaption>
+          {data.cam.name}{#if data.cam.road}<span> · {data.cam.road}</span>{/if}
+          <span class="ct">{time(L, data.cam.time, tz)}</span>
+        </figcaption>
+      </figure>
+    {/if}
   </div>
 
   <div class="panel facts">
@@ -177,6 +188,44 @@
     font-size: 24px;
     color: var(--c-label);
     font-variant-numeric: tabular-nums;
+  }
+  .hero.withcam {
+    gap: 2px;
+    padding-bottom: 10px;
+  }
+  .withcam .temp-big {
+    font-size: 96px;
+  }
+  .withcam .cond {
+    font-size: 28px;
+  }
+  .cam {
+    margin: 10px 0 0;
+    width: 100%;
+  }
+  .cam img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 2px solid rgba(0, 0, 0, 0.6);
+    border-radius: 3px;
+  }
+  .cam figcaption {
+    display: flex;
+    gap: 4px;
+    font-size: 16px;
+    color: var(--c-label);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .cam figcaption span {
+    flex: none;
+  }
+  .cam .ct {
+    margin-left: auto;
+    padding-left: 6px;
   }
   .hero {
     display: flex;
