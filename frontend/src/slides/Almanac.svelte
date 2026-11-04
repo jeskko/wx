@@ -6,8 +6,11 @@
     sunrise: Date | null;
     sunset: Date | null;
     dayMin: number;
-    changeMin: number;
+    /** null: no comparison (first day after a polar period) */
+    changeMin: number | null;
     polar: 'night' | 'day' | null;
+    /** next sunrise (polar night) / sunset (midnight sun) */
+    polarEnds: Date | null;
   }
   export interface AlmanacData {
     rows: SunRow[];
@@ -15,7 +18,7 @@
     moonFraction: number;
     nextFull: Date;
     nextNew: Date;
-    moonPlace: { name: string; tz: string; rise: Date | null; set: Date | null };
+    moonPlace: { name: string; tz: string; rise: Date | null; set: Date | null; always: 'up' | 'down' | null };
   }
 </script>
 
@@ -46,7 +49,17 @@
     const sweepTerm = (waxing ? k > 0 : k < 0) ? 0 : 1;
     return `M0 ${-R} A${R} ${R} 0 0 ${sweepOuter} 0 ${R} A${rx} ${R} 0 0 ${sweepTerm} 0 ${-R}Z`;
   });
-  const sign = (m: number) => (m >= 0 ? '+' : '−') + `${Math.abs(Math.round(m))} min`;
+  const sign = (m: number) => {
+    const r = Math.round(m);
+    return (r > 0 ? '+' : r < 0 ? '−' : '±') + `${Math.abs(r)} min`;
+  };
+  // moonrise/moonset in the order they happen
+  const moonEvents = $derived(
+    [
+      { k: t(L, 'moonrise'), d: data.moonPlace.rise },
+      { k: t(L, 'moonset'), d: data.moonPlace.set },
+    ].sort((a, b) => (a.d?.getTime() ?? Infinity) - (b.d?.getTime() ?? Infinity)),
+  );
   const day = (d: Date) => d.toLocaleDateString(LOCALE[L], { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'Europe/Helsinki' });
 </script>
 
@@ -63,10 +76,23 @@
       <dd>{day(data.nextFull)}</dd>
       <dt>{L === 'fi' ? 'Uusikuu' : 'New moon'}</dt>
       <dd>{day(data.nextNew)}</dd>
-      <dt>{t(L, 'moonrise')} <small>({data.moonPlace.name})</small></dt>
-      <dd>{time(L, data.moonPlace.rise, data.moonPlace.tz)}</dd>
-      <dt>{t(L, 'moonset')}</dt>
-      <dd>{time(L, data.moonPlace.set, data.moonPlace.tz)}</dd>
+      {#if data.moonPlace.always}
+        <dt>{L === 'fi' ? 'Kuu' : 'Moon'} <small>({data.moonPlace.name})</small></dt>
+        <dd>
+          {data.moonPlace.always === 'up'
+            ? L === 'fi'
+              ? 'ei laske tänään'
+              : 'up all day'
+            : L === 'fi'
+              ? 'ei nouse tänään'
+              : 'below horizon all day'}
+        </dd>
+      {:else}
+        {#each moonEvents as ev, i (ev.k)}
+          <dt>{ev.k} {#if i === 0}<small>({data.moonPlace.name})</small>{/if}</dt>
+          <dd>{time(L, ev.d, data.moonPlace.tz)}</dd>
+        {/each}
+      {/if}
     </dl>
   </div>
   <div class="panel sun">
@@ -85,13 +111,21 @@
           <tr>
             <td class="name">{r.name}</td>
             {#if r.polar}
-              <td class="polar" colspan="3">{r.polar === 'night' ? (L === 'fi' ? 'kaamos' : 'polar night') : L === 'fi' ? 'yötön yö' : 'midnight sun'}</td>
+              <td class="polar" colspan="3">
+                {r.polar === 'night' ? (L === 'fi' ? 'kaamos' : 'polar night') : L === 'fi' ? 'yötön yö' : 'midnight sun'}
+                {#if r.polarEnds}
+                  <small>
+                    · {r.polar === 'night' ? (L === 'fi' ? 'aurinko nousee' : 'sun rises') : L === 'fi' ? 'aurinko laskee' : 'sun sets'}
+                    {day(r.polarEnds)}
+                  </small>
+                {/if}
+              </td>
             {:else}
               <td class="n">{time(L, r.sunrise, r.tz)}</td>
               <td class="n">{time(L, r.sunset, r.tz)}</td>
               <td class="n">{duration(r.dayMin)}</td>
             {/if}
-            <td class="n chg" class:neg={r.changeMin < 0}>{r.polar ? '' : sign(r.changeMin)}</td>
+            <td class="n chg" class:neg={(r.changeMin ?? 0) < 0}>{r.polar || r.changeMin == null ? '' : sign(r.changeMin)}</td>
           </tr>
         {/each}
       </tbody>
@@ -186,5 +220,10 @@
   .polar {
     text-align: center;
     color: var(--c-accent);
+    white-space: nowrap;
+  }
+  .polar small {
+    font-size: 0.72em;
+    color: var(--c-label);
   }
 </style>

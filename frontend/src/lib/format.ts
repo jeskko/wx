@@ -60,8 +60,10 @@ export function dateLong(lang: Lang, d: Date, tz?: string): string {
 }
 
 export function duration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+  // round the total first, so 299.6 min is "5 h 00 min", not "4 h 60 min"
+  const total = Math.round(minutes);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
   return `${h} h ${m.toString().padStart(2, '0')} min`;
 }
 

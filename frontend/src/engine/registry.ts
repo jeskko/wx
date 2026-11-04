@@ -293,6 +293,13 @@ function nextPhase(from: Date, target: 0 | 0.5): Date {
 }
 
 // Almanac, once per loop: moon + sun table for config.almanacPlaces (else own places).
+const validDate = (d: Date | undefined | null): d is Date => !!d && !Number.isNaN(d.getTime());
+
+/** Minutes from sunrise to sunset, or null when the sun doesn't rise or doesn't set that day. */
+function dayLength(t: { sunrise?: Date | null; sunset?: Date | null }): number | null {
+  return validDate(t.sunrise) && validDate(t.sunset) ? (t.sunset.getTime() - t.sunrise.getTime()) / 60000 : null;
+}
+
 const almanac: SlideDef<AlmanacData> = {
   id: 'almanac',
   title: 'slide.almanac',
@@ -309,19 +316,29 @@ const almanac: SlideDef<AlmanacData> = {
       const noon = new Date(`${ymd}T12:00:00Z`);
       const st = getTimes(noon, p.lat, p.lon);
       const sy = getTimes(new Date(noon.getTime() - 86400_000), p.lat, p.lon);
-      const len = (s: typeof st) => (s.sunrise && s.sunset ? (s.sunset.getTime() - s.sunrise.getTime()) / 60000 : null);
-      const today = len(st);
-      const prev = len(sy);
+      const today = dayLength(st);
+      const prev = dayLength(sy);
       const polar: AlmanacData['rows'][number]['polar'] = today == null ? (isNight(noon, p.lat, p.lon) ? 'night' : 'day') : null;
+      // first day the sun rises again (polar night) or sets again (midnight sun)
+      let polarEnds: Date | null = null;
+      for (let d = 1; polar && d <= 90; d++) {
+        const t = getTimes(new Date(noon.getTime() + d * 86400_000), p.lat, p.lon);
+        if (dayLength(t) != null) {
+          polarEnds = polar === 'night' ? t.sunrise : t.sunset;
+          break;
+        }
+      }
       return {
         id: p.id,
         name: p.name[lang],
         tz,
-        sunrise: st.sunrise,
-        sunset: st.sunset,
+        sunrise: polar ? null : st.sunrise,
+        sunset: polar ? null : st.sunset,
         dayMin: today ?? (polar === 'day' ? 1440 : 0),
-        changeMin: today != null && prev != null ? today - prev : 0,
+        // no comparison on the first day after a polar period
+        changeMin: today != null && prev != null ? today - prev : null,
         polar,
+        polarEnds,
       };
     });
     // north to south
@@ -337,7 +354,13 @@ const almanac: SlideDef<AlmanacData> = {
       moonFraction: mi.fraction,
       nextFull: nextPhase(now, 0.5),
       nextNew: nextPhase(now, 0),
-      moonPlace: { name: first.name[lang], tz: ftz, rise: mt.rise ?? null, set: mt.set ?? null },
+      moonPlace: {
+        name: first.name[lang],
+        tz: ftz,
+        rise: validDate(mt.rise) ? mt.rise : null,
+        set: validDate(mt.set) ? mt.set : null,
+        always: mt.alwaysUp ? 'up' : mt.alwaysDown ? 'down' : null,
+      },
     };
   },
 };
