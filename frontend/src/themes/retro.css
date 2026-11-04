@@ -24,10 +24,6 @@
   --title-c: #ffffff;
   --subtitle-c: #fff1c9;
   --title-transform: uppercase;
-  --logo-bg: linear-gradient(180deg, #2c4ae0, #12238f);
-  --logo-border: 3px outset #8fa8ff;
-  --logo-radius: 2px;
-  --logo-c: #ffffff;
 
   --panel-bg: linear-gradient(180deg, rgba(64, 100, 255, 0.92) 0%, rgba(26, 46, 170, 0.92) 100%);
   --panel-border: 4px outset #7f9cff;
@@ -44,8 +40,7 @@
 }
 
 :root[data-theme='retro'] .title,
-:root[data-theme='retro'] .clock .time,
-:root[data-theme='retro'] .logo {
+:root[data-theme='retro'] .clock .time {
   text-shadow: 3px 3px 0 rgba(60, 10, 0, 0.75);
 }
 :root[data-theme='retro'] .ticker {

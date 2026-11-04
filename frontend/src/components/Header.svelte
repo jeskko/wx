@@ -15,7 +15,6 @@
 </script>
 
 <header class="hdr">
-  <div class="logo"><span class="wx">wx</span><span class="dot">.</span><span class="fi">fi</span></div>
   <div class="titles">
     <div class="title">{title}</div>
     {#if subtitle}<div class="subtitle">{subtitle}</div>{/if}

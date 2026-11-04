@@ -46,21 +46,6 @@ body {
   background: var(--hdr-bg);
   border-bottom: var(--hdr-border);
 }
-.logo {
-  font-family: var(--font-logo);
-  font-weight: 700;
-  font-size: 44px;
-  line-height: 1;
-  padding: 8px 14px;
-  background: var(--logo-bg);
-  border: var(--logo-border);
-  border-radius: var(--logo-radius);
-  color: var(--logo-c);
-  letter-spacing: 1px;
-}
-.logo .dot {
-  color: var(--c-accent);
-}
 .titles {
   flex: 1;
   min-width: 0;
