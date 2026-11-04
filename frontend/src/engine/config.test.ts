@@ -25,3 +25,14 @@ describe('config', () => {
     expect(c.music.enabled).toBe(false);
   });
 });
+
+describe('per-place slide matrix', () => {
+  it('validates the off map and drops unknown slides', async () => {
+    const { slideOnFor } = await import('./config');
+    const c = merge(DEFAULT_CONFIG, { off: { Oulu: ['aurora', 'bogus'], turku: 'x' as never } });
+    expect(c.off).toEqual({ oulu: ['aurora'] });
+    expect(slideOnFor(c, 'oulu', 'aurora')).toBe(false);
+    expect(slideOnFor(c, 'oulu', 'current')).toBe(true);
+    expect(slideOnFor(c, 'helsinki', 'aurora')).toBe(true);
+  });
+});

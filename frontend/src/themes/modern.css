@@ -41,6 +41,13 @@
 
   --icon-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   --h3-size: 30px;
+
+  --map-water: #0e1b30;
+  --map-land: #1d2b40;
+  --map-lake: #0e1b30;
+  --map-coast: #41587d;
+  --map-border: #5f7398;
+  --map-frame: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 :root[data-theme='modern'] .title {

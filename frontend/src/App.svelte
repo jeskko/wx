@@ -4,7 +4,7 @@
   import Settings from './components/Settings.svelte';
   import Ticker from './components/Ticker.svelte';
   import { MusicPlayer, loadPlaylist } from './engine/audio';
-  import { loadConfig, saveConfig, type Config } from './engine/config';
+  import { loadConfig, saveConfig, slideOnFor, type Config } from './engine/config';
   import { SLIDES } from './engine/registry';
   import type { SlideCtx, SlideDef } from './engine/types';
   import { t } from './i18n';
@@ -54,7 +54,8 @@
     const enabled = config.slides.filter((s) => s.enabled && SLIDES[s.id]);
     const seq: { id: string; duration: number; place: Place }[] = [];
     for (const p of ps)
-      for (const s of enabled) if (SLIDES[s.id].scope === 'place') seq.push({ id: s.id, duration: s.duration, place: p });
+      for (const s of enabled)
+        if (SLIDES[s.id].scope === 'place' && slideOnFor(config, p.id, s.id)) seq.push({ id: s.id, duration: s.duration, place: p });
     for (const s of enabled) if (SLIDES[s.id].scope === 'global') seq.push({ id: s.id, duration: s.duration, place: ps[0] });
     return seq;
   });

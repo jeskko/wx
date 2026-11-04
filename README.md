@@ -29,6 +29,8 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | aviation | 10 min | `aviation.json`: METAR and TAF |
 | aurora | 15 min | `aurora.json`: Kp observed and forecast, OVATION Nordic grid, solar wind, FI magnetometers |
 | forecast | 60 min | `fc/<place>.json`: hourly and daily (FMI edited forecast; MET Norway outside FMI's area) |
+| radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured |
+| grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
 | (runner) | each run | `health.json`: freshness and errors per job |
 
 The timer ticks every 5 min; each job runs when its own interval has elapsed. After a
@@ -69,7 +71,18 @@ ssh 172.16.173.100 sudo journalctl _SYSTEMD_USER_UNIT=wx-bake.service -n 50
 curl -s https://wx.fi/wx/data/health.json
 ```
 
+## Maps
+
+All maps use ETRS-TM35FIN (EPSG:3067); the projection exists in `backend/wx/proj.py` and
+`frontend/src/map/proj.ts` (kept in sync, both tested against the same values). Basemaps are
+built once from Natural Earth 10m GeoJSON (public domain) and committed:
+
+```sh
+python3 tools/build_basemap.py <dir with ne_10m_admin_0_countries/lakes/boundary_lines_land .geojson>
+```
+
 ## Data licences
 
 FMI, MET Norway, Fintraffic: CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain.
+Natural Earth: public domain.
 The info-screen has a credits slide listing them.

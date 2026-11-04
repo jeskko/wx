@@ -20,6 +20,18 @@ import Next36 from '../slides/Next36.svelte';
 import Regional, { type RegionalRow } from '../slides/Regional.svelte';
 import Taf_ from '../slides/Taf.svelte';
 import Warnings, { type WarningsData } from '../slides/Warnings.svelte';
+import AuroraMap, { type AuroraMapData } from '../slides/AuroraMap.svelte';
+import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
+import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
+import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
+import WindMap, { type WindData } from '../slides/WindMap.svelte';
+import { loadBasemap } from '../map/basemap';
+import { Grid, type GridFile } from '../map/grid';
+import type { MapLabel } from '../map/MapView.svelte';
+import { tempRgb } from '../map/render';
+import { temp as fmtTemp } from '../lib/format';
+import { DATA_BASE } from '../lib/data';
+import type { Lang, Place } from '../lib/types';
 
 /** Await a promise but give up (→ null) after ms, so one slow file can't stall the loop. */
 async function soft<T>(p: Promise<T>, ms = 8000): Promise<T | null> {
@@ -226,7 +238,142 @@ const credits: SlideDef<{ tracks: import('./audio').Track[] }> = {
   },
 };
 
+// ------------------------------------------------------------------ map slides
+
+// city labels: [place id, label side]
+const FI_LABELS: [string, 'left' | 'right'][] = [
+  ['helsinki', 'right'], ['turku', 'left'], ['tampere', 'right'], ['vaasa', 'left'], ['jyvaskyla', 'right'],
+  ['kuopio', 'right'], ['joensuu', 'right'], ['oulu', 'left'], ['kajaani', 'right'], ['rovaniemi', 'right'],
+  ['ivalo', 'right'], ['stockholm', 'left'], ['tallinn', 'right'],
+];
+const NORDIC_LABELS: [string, 'left' | 'right'][] = [
+  ['tromso', 'left'], ['kiruna', 'left'], ['ivalo', 'right'], ['rovaniemi', 'right'], ['oulu', 'right'],
+  ['trondheim', 'left'], ['helsinki', 'right'], ['stockholm', 'left'], ['oslo', 'left'],
+];
+
+async function labelsFor(ids: [string, 'left' | 'right'][], lang: Lang): Promise<MapLabel[]> {
+  const pf = await soft(api.places());
+  if (!pf) return [];
+  const out: MapLabel[] = [];
+  for (const [id, side] of ids) {
+    const p = pf.places.find((x) => x.id === id);
+    if (p) out.push({ lat: p.lat, lon: p.lon, text: p.name[lang], side });
+  }
+  return out;
+}
+
+let gridCache: { updated: string; grid: Grid } | null = null;
+async function loadGrid(): Promise<Grid | null> {
+  const f = await soft<GridFile>(api.grid());
+  if (!f) return null;
+  if (gridCache?.updated !== f.updated) gridCache = { updated: f.updated, grid: new Grid(f) };
+  return gridCache.grid;
+}
+
+function preload(url: string): Promise<void> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res();
+    img.onerror = () => rej(new Error(url));
+    img.src = url;
+  });
+}
+
+const radarMap: SlideDef<RadarData> = {
+  id: 'radar',
+  title: 'slide.radar',
+  scope: 'global',
+  component: RadarMap,
+  async prepare({ lang, now }) {
+    const [base, index, labels] = await Promise.all([loadBasemap('fi'), soft(api.radar()), labelsFor(FI_LABELS, lang)]);
+    if (!index?.frames.length) return null;
+    // frames older than 30 min mean the baker is stuck: don't show a stale loop
+    if (now.getTime() - Date.parse(index.frames[index.frames.length - 1].time) > 30 * 60_000) return null;
+    const urls = index.frames.map((f) => `${DATA_BASE}radar/fi/${f.file}`);
+    await soft(Promise.all(urls.map(preload)), 10000);
+    return { base, index, urls, labels };
+  },
+};
+
+const windMap: SlideDef<WindData> = {
+  id: 'windmap',
+  title: 'slide.windmap',
+  scope: 'global',
+  component: WindMap,
+  async prepare({ lang }) {
+    const [base, grid, labels, obs] = await Promise.all([loadBasemap('fi'), loadGrid(), labelsFor(FI_LABELS, lang), soft(api.obs())]);
+    if (!grid) return null;
+    const strongest = (obs?.stations ?? [])
+      .filter((s) => s.ws != null && Date.now() - Date.parse(s.time) < 90 * 60_000)
+      .sort((a, b) => (b.ws ?? 0) - (a.ws ?? 0))
+      .slice(0, 5)
+      .map((s) => ({ name: s.name ?? '', ws: s.ws!, wg: s.wg }));
+    return { base, grid, labels, strongest };
+  },
+};
+
+const cloudMap: SlideDef<CloudData> = {
+  id: 'cloudmap',
+  title: 'slide.cloudmap',
+  scope: 'global',
+  component: CloudMap,
+  async prepare({ lang }) {
+    const [base, grid, labels] = await Promise.all([loadBasemap('fi'), loadGrid(), labelsFor(FI_LABELS, lang)]);
+    return grid && grid.times.length > 6 ? { base, grid, labels } : null;
+  },
+};
+
+// spaced so the badges don't overlap at map scale
+const TEMP_CITIES = ['helsinki', 'turku', 'maarianhamina', 'tampere', 'vaasa', 'lappeenranta', 'kuopio', 'kajaani', 'oulu', 'kuusamo', 'rovaniemi', 'ivalo', 'enontekio'];
+
+const tempMap: SlideDef<TempMapData> = {
+  id: 'tempmap',
+  title: 'slide.tempmap',
+  scope: 'global',
+  component: TempMap,
+  async prepare({ lang }) {
+    const [base, grid, pf, obs] = await Promise.all([loadBasemap('fi'), loadGrid(), soft(api.places()), soft(api.obs())]);
+    if (!pf || !obs) return null;
+    const fresh = obs.stations.filter((s) => s.t != null && Date.now() - Date.parse(s.time) < 90 * 60_000);
+    if (!fresh.length) return null;
+    const labels: MapLabel[] = [];
+    for (const id of TEMP_CITIES) {
+      const p = pf.places.find((x) => x.id === id) as Place | undefined;
+      if (!p) continue;
+      const st = nearestStation(fresh, p.lat, p.lon, 30);
+      if (!st || st.t == null) continue;
+      const [r, g, b] = tempRgb(st.t);
+      labels.push({ lat: p.lat, lon: p.lon, text: p.name[lang], badge: fmtTemp(st.t), badgeColor: `rgb(${r},${g},${b})` });
+    }
+    const byT = [...fresh].sort((a, b) => a.t! - b.t!);
+    const nm = (s: (typeof fresh)[number]) => s.name ?? '';
+    return {
+      base,
+      grid,
+      labels,
+      coldest: { name: nm(byT[0]), t: byT[0].t! },
+      warmest: { name: nm(byT[byT.length - 1]), t: byT[byT.length - 1].t! },
+      obsTime: fresh.map((s) => s.time).sort().pop()!,
+    };
+  },
+};
+
+const auroraMap: SlideDef<AuroraMapData> = {
+  id: 'auroramap',
+  title: 'slide.auroramap',
+  scope: 'global',
+  component: AuroraMap,
+  async prepare({ lang, place, now }) {
+    const [base, a, labels] = await Promise.all([loadBasemap('nordic'), soft(api.aurora()), labelsFor(NORDIC_LABELS, lang)]);
+    if (!a?.ovation) return null;
+    const o = outlook(a, place.lat, place.lon, null, now);
+    return { base, ovation: a.ovation, labels, kpNow: o.kpNow, placeProb: o.ovation };
+  },
+};
+
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, regional, aurora, aviation, taf, almanac, credits].map((s) => [s.id, s]),
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, aurora, auroraMap, aviation, taf, almanac, credits].map(
+    (s) => [s.id, s],
+  ),
 );
 

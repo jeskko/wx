@@ -7,17 +7,22 @@ Output layout (all JSON, relative to DATA_DIR):
   aviation.json          METAR + TAF for configured airports
   warnings/fi.json       FMI CAP warnings with polygons and fi/sv/en texts
   aurora.json            Kp, OVATION Nordic grid, solar wind, FI magnetometers
+  radar/fi/index.json    radar frame list (+ radar/fi/<time>.png, last hour, 5-min steps)
+  grid/fi.json           24 h of wind/cloud/precip/temperature on a map-space grid
   health.json            job freshness (written by the runner)
 """
 
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Callable
 
 from . import daily as daily_mod
 from . import places as places_mod
-from .sources import aviation, cap, fmi, metno, swpc
-from .store import iso, utcnow, write_json
+from . import settings
+from .proj import EXTENTS
+from .sources import aviation, cap, fmi, grid, metno, radar, swpc
+from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
 
@@ -110,6 +115,66 @@ def job_aurora() -> dict:
     return {"errors": errors}
 
 
+RADAR_FRAMES = 13  # one hour at 5-min steps
+
+
+def job_radar() -> dict:
+    extent = "fi"
+    rel = f"radar/{extent}"
+    folder = settings.DATA_DIR / rel
+    latest = radar.latest_slot()
+    slots = [latest - radar.STEP * i for i in range(RADAR_FRAMES)]
+    name = lambda t: t.strftime("%Y%m%dT%H%MZ") + ".png"  # noqa: E731
+    fetched, missing = 0, 0
+    for t in slots:
+        if (folder / name(t)).exists():
+            continue
+        try:
+            raw = radar.fetch_raw(t, extent)
+        except Exception as e:
+            log.warning("radar %s: %s", t, e)
+            missing += 1
+            continue
+        if radar.is_empty(raw):
+            missing += 1
+            continue
+        png, _ = radar.colorize(raw)
+        write_bytes(f"{rel}/{name(t)}", png)
+        fetched += 1
+    # drop frames that fell out of the window
+    keep = {name(t) for t in slots}
+    if folder.exists():
+        for f in folder.glob("*.png"):
+            if f.name not in keep:
+                f.unlink(missing_ok=True)
+    frames = sorted(f.name for f in folder.glob("*.png")) if folder.exists() else []
+    if not frames:
+        raise RuntimeError("no radar frames available")
+    w, h = radar.size_for(extent)
+    write_json(
+        f"{rel}/index.json",
+        {
+            "updated": iso(utcnow()),
+            "source": "fmi",
+            "extent": list(EXTENTS[extent]),
+            "width": w,
+            "height": h,
+            "frames": [
+                {"time": iso(datetime.strptime(f[:-4], "%Y%m%dT%H%MZ").replace(tzinfo=timezone.utc)), "file": f}
+                for f in frames
+            ],
+            "legend": [{"dbz": lo, "rgba": list(rgba)} for lo, rgba in radar.PALETTE],
+        },
+    )
+    return {"frames": len(frames), "fetched": fetched, "missing": missing}
+
+
+def job_grid() -> dict:
+    data = grid.fields("fi")
+    write_json("grid/fi.json", data)
+    return {"nodes": data["nx"] * data["ny"], "times": len(data["times"])}
+
+
 JOBS: list[Job] = [
     Job("places", 24 * 3600, job_places),
     Job("obs", 10 * 60, job_obs),
@@ -117,4 +182,6 @@ JOBS: list[Job] = [
     Job("aviation", 10 * 60, job_aviation),
     Job("aurora", 15 * 60, job_aurora),
     Job("forecast", 60 * 60, job_forecast),
+    Job("radar", 5 * 60, job_radar),
+    Job("grid", 60 * 60, job_grid),
 ]

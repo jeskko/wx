@@ -3,6 +3,8 @@
 // the last good copy is kept (marked stale) so the screen never goes blank.
 
 import type { AuroraFile, AviationFile, ForecastFile, ObsFile, PlacesFile, WarningsFile } from './types';
+import type { GridFile } from '../map/grid';
+import type { RadarIndex } from '../slides/RadarMap.svelte';
 
 export const DATA_BASE = '/wx/data/';
 
@@ -63,4 +65,6 @@ export const api = {
   aviation: () => load<AviationFile>('aviation.json', 300),
   warnings: () => load<WarningsFile>('warnings/fi.json', 300),
   aurora: () => load<AuroraFile>('aurora.json', 600),
+  radar: () => load<RadarIndex>('radar/fi/index.json', 120),
+  grid: () => load<GridFile>('grid/fi.json', 1800),
 };

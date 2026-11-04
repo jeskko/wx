@@ -21,6 +21,8 @@ export interface Config {
   places: string[];
   airports: string[];
   slides: SlideConf[];
+  /** Per-place exceptions: place id -> slide ids switched off for that place (place-scoped slides only). */
+  off: Record<string, string[]>;
   music: { enabled: boolean; volume: number; streamUrl: string | null };
   kiosk: boolean;
 }
@@ -31,8 +33,13 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'chart', enabled: true, duration: 12 },
   { id: 'extended', enabled: true, duration: 12 },
   { id: 'warnings', enabled: true, duration: 14 },
+  { id: 'radar', enabled: true, duration: 14 },
+  { id: 'cloudmap', enabled: true, duration: 13 },
+  { id: 'tempmap', enabled: true, duration: 12 },
   { id: 'regional', enabled: true, duration: 14 },
+  { id: 'windmap', enabled: true, duration: 12 },
   { id: 'aurora', enabled: true, duration: 14 },
+  { id: 'auroramap', enabled: true, duration: 12 },
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: false, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },
@@ -45,6 +52,7 @@ export const DEFAULT_CONFIG: Config = {
   places: ['helsinki'],
   airports: ['EFHK', 'EFTU', 'EFTP', 'EFJY', 'EFKU', 'EFOU', 'EFRO', 'EFKT', 'EFIV'],
   slides: DEFAULT_SLIDES,
+  off: {},
   music: { enabled: true, volume: 0.5, streamUrl: null },
   kiosk: false,
 };
@@ -79,6 +87,16 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
     // new slides added in later versions appear at the end, with their defaults
     for (const s of DEFAULT_SLIDES) if (!seen.has(s.id)) slides.push({ ...s });
     out.slides = slides;
+  }
+  if (p.off && typeof p.off === 'object') {
+    const known = new Set(DEFAULT_SLIDES.map((s) => s.id));
+    const off: Record<string, string[]> = {};
+    for (const [place, ids] of Object.entries(p.off)) {
+      if (!Array.isArray(ids)) continue;
+      const clean = [...new Set(ids.filter((x) => typeof x === 'string' && known.has(x)))];
+      if (clean.length) off[place.toLowerCase()] = clean;
+    }
+    out.off = off;
   }
   if (p.music && typeof p.music === 'object') {
     if (typeof p.music.enabled === 'boolean') out.music.enabled = p.music.enabled;
@@ -156,6 +174,11 @@ export function loadConfig(loc: Location = window.location): { config: Config; f
     fromUrl = true;
   }
   return { config: c, fromUrl };
+}
+
+/** Is a place-scoped slide shown for a place? */
+export function slideOnFor(c: Config, placeId: string, slideId: string): boolean {
+  return !(c.off[placeId] ?? []).includes(slideId);
 }
 
 export function saveConfig(c: Config): void {

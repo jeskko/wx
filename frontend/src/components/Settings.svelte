@@ -2,7 +2,8 @@
   import { untrack } from 'svelte';
   import { t } from '../i18n';
   import type { Place } from '../lib/types';
-  import { DEFAULT_CONFIG, shareUrl, type Config } from '../engine/config';
+  import { DEFAULT_CONFIG, shareUrl, slideOnFor, type Config } from '../engine/config';
+  import { SLIDES } from '../engine/registry';
 
   let {
     config,
@@ -26,6 +27,18 @@
     [s[i], s[j]] = [s[j], s[i]];
     c.slides = s;
   }
+  /** Per-place switch for place-scoped slides (stored as exceptions in c.off). */
+  function toggleCell(placeId: string, slideId: string) {
+    const cur = new Set(c.off[placeId] ?? []);
+    if (cur.has(slideId)) cur.delete(slideId);
+    else cur.add(slideId);
+    const off = { ...c.off };
+    if (cur.size) off[placeId] = [...cur];
+    else delete off[placeId];
+    c.off = off;
+  }
+  const chosen = $derived(c.places.map((id) => allPlaces.find((p) => p.id === id)).filter((p): p is Place => !!p));
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(shareUrl(c));
@@ -89,18 +102,54 @@
     <h3>{L === 'fi' ? 'Lentoasemat (ICAO, pilkulla erotettuna)' : 'Airports (ICAO, comma separated)'}</h3>
     <input class="wide" value={c.airports.join(', ')} oninput={(e) => (c.airports = e.currentTarget.value.split(/[ ,]+/).filter(Boolean).map((x) => x.toUpperCase()))} />
 
-    <h3>{L === 'fi' ? 'Sivut' : 'Slides'}</h3>
-    <ol class="slides">
-      {#each c.slides as s, i (s.id)}
-        <li>
-          <input type="checkbox" bind:checked={s.enabled} />
-          <span class="sname">{t(L, `slide.${s.id}` as 'slide.current')}</span>
-          <input type="number" min="4" max="120" bind:value={s.duration} /> s
-          <button onclick={() => move(i, -1)} aria-label="up">▲</button>
-          <button onclick={() => move(i, 1)} aria-label="down">▼</button>
-        </li>
-      {/each}
-    </ol>
+    <h3>{L === 'fi' ? 'Sivut ja paikkakunnat' : 'Slides per place'}</h3>
+    <p class="hint">
+      {L === 'fi'
+        ? 'Ensimmäinen ruutu kytkee sivun päälle tai pois kokonaan. Paikkakuntasarakkeista valitaan, millä paikkakunnilla paikkakuntakohtainen sivu näytetään. Koko maan sivut näytetään kerran kierroksessa.'
+        : 'The first box switches a slide on or off entirely. The place columns choose where a per-place slide is shown. Country-wide slides show once per loop.'}
+    </p>
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th class="sl">{L === 'fi' ? 'Sivu' : 'Slide'}</th>
+            <th>{L === 'fi' ? 'Päällä' : 'On'}</th>
+            {#each chosen as p (p.id)}<th class="pl"><span>{p.name[L]}</span></th>{/each}
+            <th>s</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each c.slides as s, i (s.id)}
+            {@const perPlace = SLIDES[s.id]?.scope === 'place'}
+            <tr class:dim={!s.enabled}>
+              <td class="sl">{t(L, `slide.${s.id}` as 'slide.current')}</td>
+              <td class="c"><input type="checkbox" bind:checked={s.enabled} aria-label="on" /></td>
+              {#if perPlace}
+                {#each chosen as p (p.id)}
+                  <td class="c">
+                    <input
+                      type="checkbox"
+                      checked={slideOnFor(c, p.id, s.id)}
+                      disabled={!s.enabled}
+                      onchange={() => toggleCell(p.id, s.id)}
+                      aria-label={p.name[L]}
+                    />
+                  </td>
+                {/each}
+              {:else}
+                <td class="once" colspan={Math.max(1, chosen.length)}>{L === 'fi' ? 'kerran kierroksessa' : 'once per loop'}</td>
+              {/if}
+              <td class="c"><input type="number" min="4" max="120" bind:value={s.duration} /></td>
+              <td class="c nowrap">
+                <button onclick={() => move(i, -1)} aria-label="up">▲</button>
+                <button onclick={() => move(i, 1)} aria-label="down">▼</button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
 
     <div class="actions">
       <button onclick={copyLink}>{copied ? '✓' : L === 'fi' ? 'Kopioi jakolinkki' : 'Copy share link'}</button>
@@ -194,21 +243,56 @@
     border-color: #1a3fb8;
     color: #fff;
   }
-  .slides {
-    padding-left: 22px;
-    margin: 0;
+  .matrix-wrap {
+    overflow-x: auto;
+    border: 1px solid #ccd;
+    border-radius: 6px;
   }
-  .slides li {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin: 3px 0;
+  .matrix {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
   }
-  .sname {
-    flex: 1;
+  .matrix th,
+  .matrix td {
+    padding: 3px 6px;
+    border-bottom: 1px solid #e2e5ee;
   }
-  .slides input[type='number'] {
-    width: 56px;
+  .matrix thead th {
+    background: #e8ecf6;
+    font-weight: 600;
+    vertical-align: bottom;
+  }
+  .matrix .pl span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    display: inline-block;
+    max-height: 110px;
+  }
+  .matrix .sl {
+    text-align: left;
+    white-space: nowrap;
+  }
+  .matrix .c {
+    text-align: center;
+  }
+  .matrix .once {
+    text-align: center;
+    color: #778;
+    font-style: italic;
+  }
+  .matrix tr.dim td {
+    color: #99a;
+  }
+  .matrix input[type='number'] {
+    width: 52px;
+  }
+  .matrix button {
+    padding: 1px 6px;
+  }
+  .nowrap {
+    white-space: nowrap;
   }
   .actions {
     display: flex;

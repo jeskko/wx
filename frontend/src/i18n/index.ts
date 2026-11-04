@@ -20,6 +20,11 @@ const fi = {
   'slide.warnings': 'Varoitukset',
   'slide.almanac': 'Almanakka',
   'slide.credits': 'Tietolähteet',
+  'slide.radar': 'Sadetutka',
+  'slide.cloudmap': 'Pilvet ja sade',
+  'slide.tempmap': 'Lämpötilat',
+  'slide.windmap': 'Tuulet',
+  'slide.auroramap': 'Revontuliovaali',
 
   temperature: 'Lämpötila',
   feelsLike: 'Tuntuu kuin',
@@ -112,6 +117,11 @@ const en: Record<Key, string> = {
   'slide.warnings': 'Weather Warnings',
   'slide.almanac': 'Almanac',
   'slide.credits': 'Data Sources',
+  'slide.radar': 'Precipitation Radar',
+  'slide.cloudmap': 'Clouds & Precipitation',
+  'slide.tempmap': 'Temperatures',
+  'slide.windmap': 'Wind Flow',
+  'slide.auroramap': 'Auroral Oval',
 
   temperature: 'Temperature',
   feelsLike: 'Feels like',
