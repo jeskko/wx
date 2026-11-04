@@ -10,6 +10,8 @@ export interface SlideCtx {
   place: Place;
   places: Place[];
   now: Date;
+  /** seconds this slide stays on screen */
+  duration: number;
 }
 
 export interface SlideProps<D> {

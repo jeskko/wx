@@ -60,7 +60,8 @@ export interface Current {
 const KT = 0.514444;
 
 export function currentFor(place: Pick<Place, 'lat' | 'lon'>, stations: Station[] | null, metars: Metar[] | null): Current | null {
-  const st = stations ? nearestStation(stations, place.lat, place.lon) : null;
+  let st = stations ? nearestStation(stations, place.lat, place.lon) : null;
+  if (st && stations) st = fillFromNeighbours(st, stations, place.lat, place.lon);
   if (st) {
     return {
       source: 'fmi',
@@ -116,6 +117,34 @@ export function currentFor(place: Pick<Place, 'lat' | 'lon'>, stations: Station[
     }
   }
   return null;
+}
+
+const FILLABLE: (keyof Station)[] = ['ws', 'wg', 'wd', 'p', 'ptend', 'vis', 'n', 'wawa', 'rh', 'td', 'snow', 'r1h'];
+
+/** Many stations measure only some quantities: fill the gaps from the nearest other stations
+ *  (within maxKm) that do report them. Wind gust is only taken together with wind speed. */
+export function fillFromNeighbours<S extends Station>(st: S, stations: Station[], lat: number, lon: number, maxKm = 50): S {
+  const missing = FILLABLE.filter((k) => st[k] == null);
+  if (!missing.length) return st;
+  const now = Date.now();
+  const near = stations
+    .filter((s) => s !== st && now - Date.parse(s.time) < 90 * 60_000)
+    .map((s) => ({ s, km: haversineKm(lat, lon, s.lat, s.lon) }))
+    .filter((x) => x.km <= maxKm)
+    .sort((a, b) => a.km - b.km);
+  const out = { ...st } as Record<string, unknown>;
+  for (const k of missing) {
+    if (k === 'wg' || k === 'wd') continue; // follow the station chosen for ws
+    const hit = near.find(({ s }) => s[k] != null);
+    if (!hit) continue;
+    out[k] = hit.s[k];
+    if (k === 'ws') {
+      out.wd = hit.s.wd;
+      out.wg = hit.s.wg;
+    }
+    if (k === 'p' && out.ptend == null) out.ptend = hit.s.ptend;
+  }
+  return out as S;
 }
 
 export function relHumidity(t: number, td: number): number {

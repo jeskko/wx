@@ -3,7 +3,9 @@
   import { temp } from '../lib/format';
   import type { SlideProps } from '../engine/types';
 
-  let { data }: SlideProps<Metar[]> = $props();
+  import { autoscroll } from '../lib/autoscroll';
+
+  let { ctx, data }: SlideProps<Metar[]> = $props();
 
   function wind(m: Metar) {
     if (m.wskt == null) return '';
@@ -24,8 +26,8 @@
   }
 </script>
 
-<div class="panel av">
-  {#each data.slice(0, 8) as m (m.icao)}
+<div class="panel av" use:autoscroll={{ total: ctx.duration * 1000 }}>
+  {#each data as m (m.icao)}
     <div class="row">
       <span class="icao">{m.icao}</span>
       <span class="cat {m.cat ?? ''}">{m.cat ?? '—'}</span>
@@ -40,9 +42,11 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    gap: 14px;
+    overflow: hidden;
   }
   .row {
+    flex: none;
     display: grid;
     grid-template-columns: 110px 100px 1fr;
     grid-template-rows: auto auto;

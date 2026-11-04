@@ -11,14 +11,13 @@
   import { t } from '../i18n';
   import { time, weekday } from '../lib/format';
   import { tzFor } from '../lib/wx';
+  import { autoscroll } from '../lib/autoscroll';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<WarningsData> = $props();
   const L = $derived(ctx.lang);
   const tz = $derived(tzFor(ctx.place.country));
   const multi = $derived(ctx.places.length > 1);
-  const maxElsewhere = $derived(data.here.length ? 2 : 6);
-  const moreElsewhere = $derived(Math.max(0, data.elsewhere.length - maxElsewhere));
 
   function txt(w: Warning) {
     return w.text[L] ?? w.text.fi ?? w.text.en ?? { event: '', headline: '', description: '', instruction: '' };
@@ -33,11 +32,11 @@
   }
 </script>
 
-<div class="warn">
+<div class="warn" use:autoscroll={{ total: ctx.duration * 1000 }}>
   {#if data.here.length}
     <section class="panel">
       <h3>{multi ? t(L, 'warningsHere') : ctx.place.name[L]}</h3>
-      {#each data.here.slice(0, 3) as { warning: w, places } (w.id)}
+      {#each data.here as { warning: w, places } (w.id)}
         <article>
           <span class="badge {w.color}"></span>
           <div>
@@ -52,7 +51,7 @@
   {#if data.elsewhere.length}
     <section class="panel">
       <h3>{data.here.length ? t(L, 'warningsElsewhere') : t(L, 'slide.warnings')}</h3>
-      {#each data.elsewhere.slice(0, maxElsewhere) as w (w.id)}
+      {#each data.elsewhere as w (w.id)}
         <article class="compact">
           <span class="badge {w.color}"></span>
           <div>
@@ -61,9 +60,7 @@
           </div>
         </article>
       {/each}
-      {#if moreElsewhere}
-        <p class="more">+{moreElsewhere} {L === 'fi' ? 'muuta varoitusta' : 'more'}</p>
-      {/if}
+
     </section>
   {/if}
 </div>
@@ -74,10 +71,10 @@
     flex-direction: column;
     gap: 18px;
     height: 100%;
+    overflow: hidden;
   }
   section {
-    flex: 1;
-    overflow: hidden;
+    flex: none;
   }
   h3 {
     margin: 0 0 10px;
@@ -133,10 +130,5 @@
   }
   .compact {
     margin-bottom: 8px;
-  }
-  .more {
-    margin: 0 0 0 46px;
-    font-size: 24px;
-    color: var(--c-label);
   }
 </style>

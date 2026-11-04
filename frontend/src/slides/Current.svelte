@@ -1,15 +1,29 @@
 <script lang="ts" module>
   import type { Current } from '../lib/wx';
+  import type { Basemap } from '../map/basemap';
+  import type { MapLabel } from '../map/MapView.svelte';
+  import type { Extent } from '../map/proj';
+  export interface LocalRadar {
+    base: Basemap;
+    extent: Extent;
+    view: Extent;
+    urls: string[];
+    times: string[];
+    labels: MapLabel[];
+  }
   export interface CurrentData {
     cur: Current | null;
     sym: string | null;
     night: boolean;
     fcT: number | null;
+    radar: LocalRadar | null;
   }
 </script>
 
 <script lang="ts">
   import WindDir from '../components/WindDir.svelte';
+  import RadarLoop from '../components/RadarLoop.svelte';
+  import MapView from '../map/MapView.svelte';
   import WxIcon from '../components/WxIcon.svelte';
   import { t } from '../i18n';
   import { num, temp, time, visibility } from '../lib/format';
@@ -22,14 +36,17 @@
   const c = $derived(data.cur);
   const tz = $derived(tzFor(ctx.place.country));
 
+  const R = 350; // radar map size (px)
+  let frame = $state(0);
+
   const trend = $derived(
     c?.ptend == null ? '' : c.ptend > 0.7 ? `▲ ${t(L, 'rising')}` : c.ptend < -0.7 ? `▼ ${t(L, 'falling')}` : `► ${t(L, 'steady')}`,
   );
 </script>
 
-<div class="current">
+<div class="current" class:withradar={!!data.radar}>
   <div class="panel hero">
-    <WxIcon sym={data.sym} night={data.night} size={190} />
+    <WxIcon sym={data.sym} night={data.night} size={data.radar ? 150 : 190} />
     <div class="temp-big">{temp(c?.t ?? data.fcT)}</div>
     <div class="cond">{symLabel(L, data.sym)}</div>
   </div>
@@ -68,6 +85,16 @@
       <p class="nodata">{t(L, 'noData')}</p>
     {/if}
   </div>
+
+  {#if data.radar}
+    {@const rd = data.radar}
+    <div class="panel radar">
+      <MapView base={rd.base} w={R} h={R} view={rd.view} labels={rd.labels}>
+        <RadarLoop urls={rd.urls} extent={rd.extent} view={rd.view} w={R} h={R} bind:frame />
+      </MapView>
+      <div class="rtime">{L === 'fi' ? 'Sadetutka' : 'Radar'} {time(L, rd.times[frame] ?? null, tz)}</div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -76,6 +103,36 @@
     grid-template-columns: 5fr 6fr;
     gap: 28px;
     height: 100%;
+  }
+  .current.withradar {
+    grid-template-columns: 300px 1fr auto;
+    gap: 20px;
+  }
+  .withradar .temp-big {
+    font-size: 120px;
+  }
+  .withradar .cond {
+    font-size: 32px;
+  }
+  .withradar dl {
+    font-size: 29px;
+    gap: 8px 18px;
+  }
+  .withradar .foot {
+    font-size: 19px;
+  }
+  .radar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+  }
+  .rtime {
+    font-size: 24px;
+    color: var(--c-label);
+    font-variant-numeric: tabular-nums;
   }
   .hero {
     display: flex;

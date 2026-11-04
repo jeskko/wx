@@ -14,7 +14,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import type { Basemap } from './basemap';
-  import { pixel } from './proj';
+  import { pixel, type Extent } from './proj';
 
   let {
     base,
@@ -22,10 +22,24 @@
     h,
     labels = [],
     night = false,
+    view,
     children,
-  }: { base: Basemap; w: number; h: number; labels?: MapLabel[]; night?: boolean; children?: Snippet } = $props();
+  }: {
+    base: Basemap;
+    w: number;
+    h: number;
+    labels?: MapLabel[];
+    night?: boolean;
+    /** visible window in map metres (default: the whole basemap) */
+    view?: Extent;
+    children?: Snippet;
+  } = $props();
 
-  const px = $derived(pixel(base.extent, w, h));
+  const v = $derived(view ?? base.extent);
+  const px = $derived(pixel(v, w, h));
+  const viewBox = $derived(
+    `${(v[0] - base.extent[0]) / 1000} ${(base.extent[3] - v[3]) / 1000} ${(v[2] - v[0]) / 1000} ${(v[3] - v[1]) / 1000}`,
+  );
   const placed = $derived(
     labels
       .map((l) => ({ ...l, xy: px.fromLatLon(l.lat, l.lon) }))
@@ -34,8 +48,8 @@
 </script>
 
 <div class="map" class:night style:width={`${w}px`} style:height={`${h}px`}>
-  <svg class="base" viewBox={`0 0 ${base.width} ${base.height}`} width={w} height={h} preserveAspectRatio="none">
-    <rect class="water" width={base.width} height={base.height} />
+  <svg class="base" {viewBox} width={w} height={h} preserveAspectRatio="none">
+    <rect class="water" x="-1000" y="-1000" width={base.width + 2000} height={base.height + 2000} />
     <path class="land" d={base.land} fill-rule="evenodd" />
     <path class="lake" d={base.lakes} fill-rule="evenodd" />
     <path class="border" d={base.borders} />
@@ -74,8 +88,8 @@
     position: absolute;
     inset: 0;
   }
-  .overlay :global(canvas),
-  .overlay :global(img) {
+  .overlay > :global(canvas),
+  .overlay > :global(img) {
     position: absolute;
     inset: 0;
     width: 100%;

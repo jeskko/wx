@@ -14,7 +14,8 @@ import Aurora, { type AuroraData } from '../slides/Aurora.svelte';
 import Aviation from '../slides/Aviation.svelte';
 import Chart from '../slides/Chart.svelte';
 import Credits from '../slides/Credits.svelte';
-import Current, { type CurrentData } from '../slides/Current.svelte';
+import Current, { type CurrentData, type LocalRadar } from '../slides/Current.svelte';
+import { forward, type Extent } from '../map/proj';
 import Extended from '../slides/Extended.svelte';
 import Next36 from '../slides/Next36.svelte';
 import Regional, { type RegionalRow } from '../slides/Regional.svelte';
@@ -51,14 +52,39 @@ const current: SlideDef<CurrentData> = {
   title: 'slide.current',
   scope: 'place',
   component: Current,
-  async prepare({ place, now }) {
+  async prepare({ place, now, lang }) {
     const [obs, av, fc] = await Promise.all([soft(api.obs()), soft(api.aviation()), soft(api.forecast(place.id))]);
     const cur = currentFor(place, obs?.stations ?? null, av ? Object.values(av.metar) : null);
     const step = fc ? stepAt(fc.hourly, now) : null;
     if (!cur && !step) return null;
-    return { cur, sym: cur?.sym ?? step?.sym ?? null, night: isNight(now, place.lat, place.lon), fcT: step?.t ?? null };
+    const radar = await soft(localRadar(place, lang, now), 6000);
+    return { cur, sym: cur?.sym ?? step?.sym ?? null, night: isNight(now, place.lat, place.lon), fcT: step?.t ?? null, radar };
   },
 };
+
+/** ~250 km radar window around a Finnish place, or null (outside radar coverage / stale). */
+async function localRadar(place: Place, lang: Lang, now: Date): Promise<LocalRadar | null> {
+  if (place.country !== 'FI') return null;
+  const [base, index, pf] = await Promise.all([loadBasemap('fi'), soft(api.radar()), soft(api.places())]);
+  if (!index?.frames.length) return null;
+  if (now.getTime() - Date.parse(index.frames[index.frames.length - 1].time) > 30 * 60_000) return null;
+  const [e, n] = forward(place.lat, place.lon);
+  const half = 125_000;
+  const [x0, y0, x1, y1] = index.extent;
+  const cx = Math.min(x1 - half, Math.max(x0 + half, e));
+  const cy = Math.min(y1 - half, Math.max(y0 + half, n));
+  const view: Extent = [cx - half, cy - half, cx + half, cy + half];
+  const inView = (p: Place) => {
+    const [pe, pn] = forward(p.lat, p.lon);
+    return pe > view[0] + 15_000 && pe < view[2] - 15_000 && pn > view[1] + 10_000 && pn < view[3] - 10_000;
+  };
+  const labels: MapLabel[] = (pf?.places ?? [place])
+    .filter((p) => p.id === place.id || inView(p))
+    .map((p) => ({ lat: p.lat, lon: p.lon, text: p.name[lang], side: p.lon < place.lon - 0.5 ? 'left' : 'right' }));
+  const urls = index.frames.map((f) => `${DATA_BASE}radar/fi/${f.file}`);
+  await soft(Promise.all(urls.map(preload)), 6000);
+  return { base, extent: index.extent, view, urls, times: index.frames.map((f) => f.time), labels };
+}
 
 const next36: SlideDef<PeriodSummary[]> = {
   id: 'next36',

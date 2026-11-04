@@ -65,3 +65,16 @@ suite('helpers', () => {
     expect(feelsLike(15, 8, 80)).toBe(15);
   });
 });
+
+import { fillFromNeighbours } from './wx';
+suite('fillFromNeighbours', () => {
+  it('fills missing wind and pressure from the nearest station that has them', () => {
+    const t = new Date().toISOString();
+    const base = { id: '1', name: 'A', region: null, time: t, t: 1, ws: null, wg: null, wd: null, rh: 50, td: null, r1h: null, ri: null, snow: null, p: null, ptend: null, vis: null, n: null, wawa: null };
+    const a = { ...base, lat: 66.5, lon: 25.7 };
+    const far = { ...base, id: '3', lat: 67.5, lon: 25.7, ws: 9, wd: 90, p: 990 }; // ~110 km
+    const b = { ...base, id: '2', lat: 66.55, lon: 25.75, ws: 3, wd: 200, wg: 6, p: 1012, ptend: -1.2 };
+    const out = fillFromNeighbours(a, [a, far, b], 66.5, 25.7);
+    expect([out.ws, out.wd, out.wg, out.p, out.ptend, out.name]).toEqual([3, 200, 6, 1012, -1.2, 'A']);
+  });
+});

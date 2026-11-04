@@ -73,7 +73,7 @@
         index = (index + dir + sequence.length) % sequence.length;
         const item = sequence[index];
         const def = SLIDES[item.id];
-        const ctx: SlideCtx = { lang: config.lang, config, place: item.place, places, now: new Date() };
+        const ctx: SlideCtx = { lang: config.lang, config, place: item.place, places, now: new Date(), duration: item.duration };
         let data: unknown = null;
         try {
           data = await def.prepare(ctx);

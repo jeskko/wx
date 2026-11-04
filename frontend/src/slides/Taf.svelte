@@ -2,7 +2,9 @@
   import type { Taf } from '../lib/types';
   import type { SlideProps } from '../engine/types';
 
-  let { data }: SlideProps<Taf[]> = $props();
+  import { autoscroll } from '../lib/autoscroll';
+
+  let { ctx, data }: SlideProps<Taf[]> = $props();
 
   // break TAF into change groups for readability
   function lines(raw: string): string[] {
@@ -10,8 +12,8 @@
   }
 </script>
 
-<div class="panel taf">
-  {#each data.slice(0, 4) as tf (tf.icao)}
+<div class="panel taf" use:autoscroll={{ total: ctx.duration * 1000 }}>
+  {#each data as tf (tf.icao)}
     <pre>{#each lines(tf.raw) as l, i (i)}<span class:first={i === 0}>{l}</span>{'\n'}{/each}</pre>
   {/each}
 </div>
@@ -25,6 +27,7 @@
     overflow: hidden;
   }
   pre {
+    flex: none;
     margin: 0;
     font-family: var(--font-mono);
     font-size: 29px;
