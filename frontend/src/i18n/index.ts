@@ -81,7 +81,7 @@ const fi = {
   'activity.high': 'voimakas',
 
   noWarnings: 'Ei voimassa olevia varoituksia',
-  warningsHere: 'Varoitukset alueella',
+  warningsHere: 'Valituilla paikkakunnilla',
   warningsElsewhere: 'Muualla Suomessa',
   valid: 'Voimassa',
 
@@ -173,7 +173,7 @@ const en: Record<Key, string> = {
   'activity.high': 'strong',
 
   noWarnings: 'No warnings in effect',
-  warningsHere: 'Warnings for this area',
+  warningsHere: 'For your places',
   warningsElsewhere: 'Elsewhere in Finland',
   valid: 'Valid',
 

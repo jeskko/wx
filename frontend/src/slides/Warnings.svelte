@@ -1,7 +1,8 @@
 <script lang="ts" module>
   import type { Warning } from '../lib/types';
   export interface WarningsData {
-    here: Warning[];
+    /** warnings covering at least one configured place, with those places' names */
+    here: { warning: Warning; places: string[] }[];
     elsewhere: Warning[];
   }
 </script>
@@ -15,6 +16,9 @@
   let { ctx, data }: SlideProps<WarningsData> = $props();
   const L = $derived(ctx.lang);
   const tz = $derived(tzFor(ctx.place.country));
+  const multi = $derived(ctx.places.length > 1);
+  const maxElsewhere = $derived(data.here.length ? 2 : 6);
+  const moreElsewhere = $derived(Math.max(0, data.elsewhere.length - maxElsewhere));
 
   function txt(w: Warning) {
     return w.text[L] ?? w.text.fi ?? w.text.en ?? { event: '', headline: '', description: '', instruction: '' };
@@ -32,12 +36,12 @@
 <div class="warn">
   {#if data.here.length}
     <section class="panel">
-      <h3>{t(L, 'warningsHere')}</h3>
-      {#each data.here.slice(0, 3) as w (w.id)}
+      <h3>{multi ? t(L, 'warningsHere') : ctx.place.name[L]}</h3>
+      {#each data.here.slice(0, 3) as { warning: w, places } (w.id)}
         <article>
           <span class="badge {w.color}"></span>
           <div>
-            <div class="head">{txt(w).event}</div>
+            <div class="head">{txt(w).event}{#if multi}{' '}<small>· {places.join(', ')}</small>{/if}</div>
             <div class="desc">{txt(w).description ?? txt(w).headline}</div>
             <div class="valid">{t(L, 'valid')}: {when(w.onset)} – {when(w.expires)}</div>
           </div>
@@ -48,7 +52,7 @@
   {#if data.elsewhere.length}
     <section class="panel">
       <h3>{data.here.length ? t(L, 'warningsElsewhere') : t(L, 'slide.warnings')}</h3>
-      {#each data.elsewhere.slice(0, data.here.length ? 3 : 6) as w (w.id)}
+      {#each data.elsewhere.slice(0, maxElsewhere) as w (w.id)}
         <article class="compact">
           <span class="badge {w.color}"></span>
           <div>
@@ -57,6 +61,9 @@
           </div>
         </article>
       {/each}
+      {#if moreElsewhere}
+        <p class="more">+{moreElsewhere} {L === 'fi' ? 'muuta varoitusta' : 'more'}</p>
+      {/if}
     </section>
   {/if}
 </div>
@@ -126,5 +133,10 @@
   }
   .compact {
     margin-bottom: 8px;
+  }
+  .more {
+    margin: 0 0 0 46px;
+    font-size: 24px;
+    color: var(--c-label);
   }
 </style>

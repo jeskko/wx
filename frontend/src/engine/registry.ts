@@ -116,18 +116,26 @@ const regional: SlideDef<RegionalRow[]> = {
   },
 };
 
+// Warnings are national: one slide per loop. Warnings covering any configured place come
+// first, tagged with those places; the rest of Finland follows.
 const warnings: SlideDef<WarningsData> = {
   id: 'warnings',
   title: 'slide.warnings',
-  scope: 'place',
+  scope: 'global',
   component: Warnings,
-  async prepare({ place, now }) {
+  async prepare({ places, lang, now }) {
     const w = await soft(api.warnings());
     if (!w) return null;
     const active = w.warnings.filter((x) => !x.expires || Date.parse(x.expires) > now.getTime());
     if (!active.length) return null;
-    const hits = (x: (typeof active)[number]) => x.areas.some((a) => a.polygons.some((poly) => pointInPolygon(place.lat, place.lon, poly)));
-    return { here: active.filter(hits), elsewhere: active.filter((x) => !hits(x)) };
+    const here: WarningsData['here'] = [];
+    const elsewhere: WarningsData['elsewhere'] = [];
+    for (const x of active) {
+      const hit = places.filter((p) => x.areas.some((a) => a.polygons.some((poly) => pointInPolygon(p.lat, p.lon, poly))));
+      if (hit.length) here.push({ warning: x, places: hit.map((p) => p.name[lang]) });
+      else elsewhere.push(x);
+    }
+    return { here, elsewhere };
   },
 };
 
