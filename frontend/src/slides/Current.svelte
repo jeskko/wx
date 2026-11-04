@@ -9,9 +9,10 @@
 </script>
 
 <script lang="ts">
+  import WindDir from '../components/WindDir.svelte';
   import WxIcon from '../components/WxIcon.svelte';
   import { t } from '../i18n';
-  import { num, temp, time, visibility, windShort } from '../lib/format';
+  import { num, temp, time, visibility } from '../lib/format';
   import { symLabel } from '../lib/textfc';
   import { tzFor } from '../lib/wx';
   import type { SlideProps } from '../engine/types';
@@ -40,7 +41,7 @@
         <dd>{temp(c.feels)}</dd>
         <dt>{t(L, 'wind')}</dt>
         <dd>
-          {#if c.ws == null}–{:else if c.ws < 0.5}{t(L, 'calm')}{:else}{windShort(L, c.wd)} {num(c.ws)} m/s{/if}
+          {#if c.ws == null}–{:else if c.ws < 0.5}{t(L, 'calm')}{:else}<WindDir lang={L} deg={c.wd} /> {num(c.ws)} m/s{/if}
           {#if c.wg != null && c.wg >= (c.ws ?? 0) + 3}<small> ({t(L, 'gusts')} {num(c.wg)})</small>{/if}
         </dd>
         <dt>{t(L, 'humidity')}</dt>

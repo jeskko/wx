@@ -40,6 +40,6 @@ if [ "${SKIP_FRONTEND:-0}" != 1 ]; then
   # only this one file at the webroot level is ours; overwrite in place (keeps wx owner/group)
   ssh "$HOST" "cat > /opt/wx/html/index.html" < "$ROOT/frontend/dist/index.html"
   echo ">> sync music -> /opt/wx/html/wx/music"
-  rsync -rlt --delete --chmod=D2775,F664 "$ROOT/music/" "$HOST:/opt/wx/html/wx/music/"
+  rsync -rlt --delete --chmod=D2775,F664 --exclude fetch.py --exclude "*.py" "$ROOT/music/" "$HOST:/opt/wx/html/wx/music/"
 fi
 echo ">> done"

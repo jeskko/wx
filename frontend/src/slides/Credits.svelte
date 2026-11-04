@@ -6,6 +6,17 @@
   let { ctx, data }: SlideProps<{ tracks: Track[] }> = $props();
   const L = $derived(ctx.lang);
 
+  // group tracks by artist + license: "Artist — “A”, “B” (CC BY 4.0)"
+  const byArtist = $derived.by(() => {
+    const m = new Map<string, { artist: string; license: string; titles: string[] }>();
+    for (const tr of data.tracks) {
+      const k = `${tr.artist}|${tr.license}`;
+      if (!m.has(k)) m.set(k, { artist: tr.artist, license: tr.license, titles: [] });
+      m.get(k)!.titles.push(tr.title);
+    }
+    return [...m.values()];
+  });
+
   const SOURCES = [
     { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, varoitukset, magnetometrit', en: 'observations, forecasts, warnings, magnetometers' }, lic: 'CC BY 4.0' },
     { name: 'MET Norway', what: { fi: 'ennusteet Suomen ulkopuolella', en: 'forecasts outside Finland' }, lic: 'CC BY 4.0' },
@@ -24,8 +35,8 @@
   {#if data.tracks.length}
     <h3>{t(L, 'music')}</h3>
     <ul class="music">
-      {#each data.tracks as tr (tr.src)}
-        <li>“{tr.title}” — {tr.artist} <span class="lic">({tr.license})</span></li>
+      {#each byArtist as g (g.artist + g.license)}
+        <li><b>{g.artist}</b> — {g.titles.map((x) => `“${x}”`).join(', ')} <span class="lic">({g.license})</span></li>
       {/each}
     </ul>
   {/if}
@@ -53,7 +64,8 @@
     gap: 8px;
   }
   .music {
-    font-size: 22px;
+    font-size: 21px;
+    line-height: 1.25;
   }
   h3 {
     margin: 12px 0 0;

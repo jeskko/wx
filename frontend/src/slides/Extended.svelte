@@ -1,7 +1,8 @@
 <script lang="ts">
+  import WindDir from '../components/WindDir.svelte';
   import WxIcon from '../components/WxIcon.svelte';
   import { t } from '../i18n';
-  import { num, temp, weekday, windShort } from '../lib/format';
+  import { num, temp, weekday } from '../lib/format';
   import type { Day } from '../lib/types';
   import type { SlideProps } from '../engine/types';
 
@@ -19,7 +20,7 @@
       <div class="sub">
         {#if d.pr >= 0.1}{num(d.pr, d.pr < 10 ? 1 : 0)} mm{:else}&nbsp;{/if}
       </div>
-      <div class="sub">{windShort(L, d.wd)} {num(d.wsmax)} m/s</div>
+      <div class="sub"><WindDir lang={L} deg={d.wd} /> {num(d.wsmax)} m/s</div>
     </div>
   {/each}
 </div>

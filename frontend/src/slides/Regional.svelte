@@ -11,8 +11,9 @@
 </script>
 
 <script lang="ts">
+  import WindDir from '../components/WindDir.svelte';
   import WxIcon from '../components/WxIcon.svelte';
-  import { num, temp, windShort } from '../lib/format';
+  import { num, temp } from '../lib/format';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<RegionalRow[]> = $props();
@@ -31,7 +32,7 @@
               <td class="name">{r.name}</td>
               <td class="icon"><WxIcon sym={r.sym} night={r.night} size={44} /></td>
               <td class="t">{temp(r.t)}</td>
-              <td class="w">{r.ws == null ? '' : `${windShort(L, r.wd)} ${num(r.ws)}`}</td>
+              <td class="w">{#if r.ws != null}<WindDir lang={L} deg={r.wd} /> {num(r.ws)}{/if}</td>
             </tr>
           {/each}
         </tbody>
