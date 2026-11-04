@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from '../i18n';
+  import { autoscroll } from '../lib/autoscroll';
   import type { Track } from '../engine/audio';
   import type { SlideProps } from '../engine/types';
 
@@ -28,7 +29,7 @@
   ];
 </script>
 
-<div class="panel credits">
+<div class="panel credits" use:autoscroll={{ total: ctx.duration * 1000 }}>
   <p class="lead">{t(L, 'credits')}</p>
   <ul>
     {#each SOURCES as s (s.name)}
@@ -48,6 +49,7 @@
 <style>
   .credits {
     height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -76,5 +78,8 @@
   }
   .lic {
     color: var(--c-label);
+  }
+  .credits > :global(*) {
+    flex: none;
   }
 </style>

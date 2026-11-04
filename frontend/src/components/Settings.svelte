@@ -1,5 +1,6 @@
 <script lang="ts">
   import { CAPITALS, REGIONS } from '../lib/world';
+  import { loadPlaylists, type Playlist } from '../engine/audio';
   import { untrack } from 'svelte';
   import { t } from '../i18n';
   import type { Place } from '../lib/types';
@@ -38,6 +39,14 @@
     else delete off[placeId];
     c.off = off;
   }
+  let playlists = $state<Playlist[]>([]);
+  void loadPlaylists().then((p) => (playlists = p));
+  function togglePlaylist(id: string) {
+    const cur = c.music.playlists;
+    const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    c.music.playlists = next.length ? next : cur; // keep at least one
+  }
+
   function toggleCapital(id: string) {
     c.capitals = c.capitals.includes(id) ? c.capitals.filter((x) => x !== id) : [...c.capitals, id];
   }
@@ -90,6 +99,16 @@
         {L === 'fi' ? 'Äänenvoimakkuus' : 'Volume'}
         <input type="range" min="0" max="1" step="0.05" bind:value={c.music.volume} />
       </label>
+    </section>
+    <section>
+      <span class="lbl">{L === 'fi' ? 'Soittolistat' : 'Playlists'}</span>
+      <div class="chips">
+        {#each playlists as pl (pl.id)}
+          <button class="chip" class:on={c.music.playlists.includes(pl.id)} onclick={() => togglePlaylist(pl.id)}>
+            {pl[L]} <small>({pl.tracks.length})</small>
+          </button>
+        {/each}
+      </div>
     </section>
     <section>
       <label class="wide">

@@ -1,4 +1,5 @@
-// Background music: shuffled playlist from /wx/music/playlist.json, or a user stream URL.
+// Background music: the selected playlists from /wx/music/playlists.json (shuffled together), or a
+// user stream URL.
 //
 // Browsers refuse audible playback until the user has interacted with the page. The player
 // therefore tracks what the user *wants* (on/off) separately from what the <audio> element is
@@ -15,15 +16,37 @@ export interface Track {
 
 export const MUSIC_BASE = '/wx/music/';
 
-export async function loadPlaylist(): Promise<Track[]> {
-  try {
-    const r = await fetch(`${MUSIC_BASE}playlist.json?t=${Math.floor(Date.now() / 3600_000)}`);
-    if (!r.ok) return [];
-    const d = await r.json();
-    return Array.isArray(d.tracks) ? d.tracks.filter((t: Track) => t && typeof t.src === 'string') : [];
-  } catch {
-    return [];
-  }
+export interface Playlist {
+  id: string;
+  fi: string;
+  en: string;
+  tracks: Track[];
+}
+
+let lists: Promise<Playlist[]> | null = null;
+
+/** All playlists (cached for the session; the file changes only on deploy). */
+export function loadPlaylists(): Promise<Playlist[]> {
+  lists ??= fetch(`${MUSIC_BASE}playlists.json?t=${Math.floor(Date.now() / 3600_000)}`)
+    .then((r) => (r.ok ? r.json() : { playlists: [] }))
+    .then((d) =>
+      (Array.isArray(d.playlists) ? d.playlists : []).map((p: Playlist) => ({
+        ...p,
+        tracks: (p.tracks ?? []).filter((t) => t && typeof t.src === 'string'),
+      })),
+    )
+    .catch(() => {
+      lists = null;
+      return [];
+    });
+  return lists!;
+}
+
+/** Tracks of the chosen playlists; none chosen (or unknown ids) = the first playlist. */
+export async function loadPlaylist(ids: string[] = []): Promise<Track[]> {
+  const all = await loadPlaylists();
+  const chosen = all.filter((p) => ids.includes(p.id));
+  return (chosen.length ? chosen : all.slice(0, 1)).flatMap((p) => p.tracks);
 }
 
 function shuffle<T>(xs: T[]): T[] {
@@ -60,7 +83,8 @@ export class MusicPlayer {
   }
 
   configure(tracks: Track[], streamUrl: string | null, volume: number) {
-    const changed = streamUrl !== this.stream || tracks.length !== this.tracks.length;
+    const key = (ts: Track[]) => ts.map((t) => t.src).sort().join('|');
+    const changed = streamUrl !== this.stream || key(tracks) !== key(this.tracks);
     this.tracks = tracks;
     this.stream = streamUrl;
     this.setVolume(volume);

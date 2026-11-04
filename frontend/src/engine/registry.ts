@@ -335,8 +335,8 @@ const credits: SlideDef<{ tracks: import('./audio').Track[] }> = {
   title: 'slide.credits',
   scope: 'global',
   component: Credits,
-  async prepare() {
-    return { tracks: (await soft(loadPlaylist(), 3000)) ?? [] };
+  async prepare({ config }) {
+    return { tracks: (await soft(loadPlaylist(config.music.playlists), 3000)) ?? [] };
   },
 };
 

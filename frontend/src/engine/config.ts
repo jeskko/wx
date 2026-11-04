@@ -3,6 +3,7 @@
 // URL examples:
 //   /?place=oulu,helsinki&lang=en
 //   /?kiosk=1&slides=current,next36,extended&theme=retro
+//   /?playlist=synth,synthwave   (music playlists, see music/playlists.json)
 //   /#c=eyJwbGFjZXMiOlsib3VsdSJdfQ   (full config, base64url JSON; see encodeConfig)
 
 import type { Lang } from '../lib/types';
@@ -29,7 +30,7 @@ export interface Config {
   almanacPlaces: string[];
   /** World capitals with their own slide (ids from map/world.json). */
   capitals: string[];
-  music: { enabled: boolean; volume: number; streamUrl: string | null };
+  music: { enabled: boolean; volume: number; streamUrl: string | null; playlists: string[] };
   kiosk: boolean;
 }
 
@@ -73,7 +74,7 @@ export const DEFAULT_CONFIG: Config = {
   auroraPlaces: [],
   almanacPlaces: [],
   capitals: ['stockholm', 'london', 'washington', 'tokyo'],
-  music: { enabled: true, volume: 0.5, streamUrl: null },
+  music: { enabled: true, volume: 0.5, streamUrl: null, playlists: ['jazz'] },
   kiosk: false,
 };
 
@@ -125,6 +126,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
     if (typeof p.music.enabled === 'boolean') out.music.enabled = p.music.enabled;
     if (typeof p.music.volume === 'number') out.music.volume = clamp(p.music.volume, 0, 1);
     if (p.music.streamUrl === null || typeof p.music.streamUrl === 'string') out.music.streamUrl = p.music.streamUrl || null;
+    if (Array.isArray(p.music.playlists)) out.music.playlists = p.music.playlists.filter((x: unknown) => typeof x === 'string');
   }
   if (typeof p.kiosk === 'boolean') out.kiosk = p.kiosk;
   return out;
@@ -171,7 +173,12 @@ export function fromQuery(q: URLSearchParams): Partial<Config> {
     ];
   }
   if (q.has('kiosk')) p.kiosk = q.get('kiosk') !== '0';
-  if (q.has('music')) p.music = { ...DEFAULT_CONFIG.music, enabled: q.get('music') !== '0' };
+  if (q.has('music') || q.has('playlist'))
+    p.music = {
+      ...DEFAULT_CONFIG.music,
+      enabled: q.get('music') !== '0',
+      ...(q.get('playlist') ? { playlists: q.get('playlist')!.split(',').map((s) => s.trim()) } : {}),
+    };
   return p;
 }
 

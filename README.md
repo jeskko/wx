@@ -5,7 +5,7 @@ aviationweather.gov, NOAA SWPC, …). Finland and the Nordics first.
 
 - `backend/`: the **baker**, a Python CLI that fetches upstream data and writes static JSON to `/opt/wx/html/wx/data/`
 - `frontend/`: the info-screen SPA (Svelte 5 + TypeScript + Vite), served at https://wx.fi/
-- `music/`: background music playlist (`playlist.json` + audio files), served at `/wx/music/`
+- `music/`: background music playlist (`playlists.json` + audio files), served at `/wx/music/`
 - `deploy/`: deploy script and systemd *user* units for the `wx` account
 
 ## Baker
@@ -61,9 +61,11 @@ URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&ki
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
 Keys: ← → browse, space pause, M music, F fullscreen, S settings.
 
-Music: put CC0/CC-BY tracks in `music/` and list them in `music/playlist.json`:
-`{"tracks": [{"src": "file.mp3", "title": "…", "artist": "…", "license": "CC BY 4.0", "url": "…"}]}`.
-They are credited on the Data Sources slide automatically.
+Music: playlists live in `music/playlists.json`
+(`{"playlists": [{"id", "fi", "en", "tracks": [{"src", "title", "artist", "license", "url", "download"}]}]}`;
+currently smooth jazz, synth classics and synthwave, all CC BY 4.0). `python3 music/fetch.py` downloads
+the audio (not in git). Users pick playlists in the settings or with `?playlist=synth,synthwave`; the
+selected tracks are credited on the Data Sources slide automatically.
 
 ## Server (172.16.173.100)
 

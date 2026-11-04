@@ -134,7 +134,7 @@
     {"id": "canberra", "fi": "Canberra", "en": "Canberra", "lat": -35.28, "lon": 149.13, "icao": "YSCB", "tz": "Australia/Sydney", "region": "oceania"},
     {"id": "wellington", "fi": "Wellington", "en": "Wellington", "lat": -41.29, "lon": 174.78, "icao": "NZWN", "tz": "Pacific/Auckland", "region": "oceania"},
     {"id": "portmoresby", "fi": "Port Moresby", "en": "Port Moresby", "lat": -9.44, "lon": 147.18, "icao": "AYPY", "tz": "Pacific/Port_Moresby", "region": "oceania"},
-    {"id": "washington", "fi": "Washington", "en": "Washington", "lat": 38.9, "lon": -77.04, "icao": "KDCA", "tz": "America/New_York", "region": "namerica"},
+    {"id": "washington", "fi": "Washington D.C.", "en": "Washington, D.C.", "lat": 38.9, "lon": -77.04, "icao": "KDCA", "tz": "America/New_York", "region": "namerica"},
     {"id": "ottawa", "fi": "Ottawa", "en": "Ottawa", "lat": 45.42, "lon": -75.7, "icao": "CYOW", "tz": "America/Toronto", "region": "namerica"},
     {"id": "mexicocity", "fi": "México", "en": "Mexico City", "lat": 19.43, "lon": -99.13, "icao": "MMMX", "tz": "America/Mexico_City", "region": "namerica"},
     {"id": "havana", "fi": "Havanna", "en": "Havana", "lat": 23.11, "lon": -82.37, "icao": "MUHA", "tz": "America/Havana", "region": "namerica"},

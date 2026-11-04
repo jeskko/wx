@@ -113,13 +113,13 @@
     void requestWakeLock();
     void go(1);
     if (config.music.enabled) {
-      player.configure(await loadPlaylist(), config.music.streamUrl, config.music.volume);
+      player.configure(await loadPlaylist(config.music.playlists), config.music.streamUrl, config.music.volume);
       player.play();
     }
   }
 
   async function toggleMusic() {
-    if (!player.available) player.configure(await loadPlaylist(), config.music.streamUrl, config.music.volume);
+    if (!player.available) player.configure(await loadPlaylist(config.music.playlists), config.music.streamUrl, config.music.volume);
     player.toggle();
   }
 
@@ -180,7 +180,7 @@
     showSettings = false;
     if (!c.music.enabled) player.stop();
     else
-      void loadPlaylist().then((tr) => {
+      void loadPlaylist(c.music.playlists).then((tr) => {
         player.configure(tr, c.music.streamUrl, c.music.volume);
         if (!player.wanted) player.play();
       });

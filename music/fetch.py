@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Download the tracks listed in music/playlist.json and re-encode them to 128 kbps MP3.
+"""Download the tracks listed in music/playlists.json and re-encode them to 128 kbps MP3.
 
 Usage: python3 music/fetch.py [--force]
-Files land next to playlist.json (git-ignored) and are synced to the server by deploy.sh.
+Files land next to playlists.json (git-ignored) and are synced to the server by deploy.sh.
 Skips files that already exist unless --force.
 """
 
@@ -20,7 +20,8 @@ UA = "wx.fi music fetch (+https://wx.fi)"
 
 def main() -> int:
     force = "--force" in sys.argv
-    tracks = json.loads((HERE / "playlist.json").read_text())["tracks"]
+    lists = json.loads((HERE / "playlists.json").read_text())["playlists"]
+    tracks = [t for pl in lists for t in pl["tracks"]]
     have_ffmpeg = shutil.which("ffmpeg") is not None
     failed = 0
     for t in tracks:
