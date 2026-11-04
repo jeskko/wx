@@ -148,6 +148,22 @@ body {
 }
 
 /* music hint (browser blocked autoplay until the first interaction) */
+.nowplaying {
+  position: fixed;
+  right: 16px;
+  bottom: 70px;
+  z-index: 60;
+  max-width: 60vw;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font: 14px system-ui, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
 .musichint {
   position: fixed;
   right: 60px;

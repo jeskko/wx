@@ -118,6 +118,19 @@
     }
   }
 
+  // "now playing" toast after a manual skip
+  let nowPlaying = $state<string | null>(null);
+  let toastTimer = 0;
+  function skipTrack() {
+    if (!player.wanted || musicState !== 'playing') return;
+    player.skip();
+    const tr = player.current;
+    if (!tr) return;
+    nowPlaying = tr.artist ? `${tr.title} — ${tr.artist.replace(/\s*\(.*\)$/, '')}` : tr.title;
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => (nowPlaying = null), 4000);
+  }
+
   async function toggleMusic() {
     if (!player.available) player.configure(await loadPlaylist(config.music.playlists), config.music.streamUrl, config.music.volume);
     player.toggle();
@@ -162,6 +175,10 @@
       case 'm':
       case 'M':
         void toggleMusic();
+        break;
+      case 'n':
+      case 'N':
+        skipTrack();
         break;
       case 'f':
       case 'F':
@@ -250,9 +267,15 @@
       <button title="M" class:blocked={musicState === 'blocked'} onclick={() => void toggleMusic()}>
         {musicWanted && musicState !== 'unavailable' ? '♪' : '♪̸'}
       </button>
+      {#if musicWanted && musicState === 'playing'}
+        <button title="N" onclick={skipTrack}>⏭</button>
+      {/if}
       <button title="F" onclick={toggleFullscreen}>⛶</button>
       <button title={t(config.lang, 'settings')} onclick={() => (showSettings = true)}>⚙</button>
     </div>
+  {/if}
+  {#if nowPlaying}
+    <div class="nowplaying">♪ {nowPlaying}</div>
   {/if}
   {#if musicState === 'blocked' && !config.kiosk}
     <div class="musichint">♪ {t(config.lang, 'musicHint')}</div>

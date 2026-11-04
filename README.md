@@ -59,7 +59,7 @@ npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot ever
 
 URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0`,
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
-Keys: ← → browse, space pause, M music, F fullscreen, S settings.
+Keys: ← → browse, space pause, M music, N next track, F fullscreen, S settings.
 
 Music: playlists live in `music/playlists.json`
 (`{"playlists": [{"id", "fi", "en", "tracks": [{"src", "title", "artist", "license", "url", "download"}]}]}`;

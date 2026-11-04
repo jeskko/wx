@@ -118,6 +118,13 @@ export class MusicPlayer {
     void this.attempt();
   }
 
+  /** Jump to the next shuffled track (no-op for a stream or while music is off). */
+  skip() {
+    if (this.stream || !this.tracks.length || !this.wanted) return;
+    this.audio.pause();
+    this.next();
+  }
+
   stop() {
     this.wanted = false;
     this.audio.pause();
@@ -144,6 +151,7 @@ export class MusicPlayer {
     if (!this.queue.length) this.queue = shuffle(this.tracks);
     this.current = this.queue.shift()!;
     this.audio.src = /^https?:/.test(this.current.src) ? this.current.src : MUSIC_BASE + this.current.src;
+    this.onchange?.();
   }
 
   private next() {

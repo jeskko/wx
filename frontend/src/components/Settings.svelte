@@ -235,8 +235,8 @@
     </div>
     <p class="hint">
       {L === 'fi'
-        ? 'Näppäimet: ← → selaa · välilyönti tauko · M musiikki · F koko näyttö · S asetukset'
-        : 'Keys: ← → browse · space pause · M music · F fullscreen · S settings'}
+        ? 'Näppäimet: ← → selaa · välilyönti tauko · M musiikki · N seuraava kappale · F koko näyttö · S asetukset'
+        : 'Keys: ← → browse · space pause · M music · N next track · F fullscreen · S settings'}
     </p>
   </div>
 </div>
