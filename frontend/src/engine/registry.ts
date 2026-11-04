@@ -161,12 +161,8 @@ const aurora: SlideDef<AuroraData> = {
   async prepare({ config, places, lang, now }) {
     const [a, pf] = await Promise.all([soft(api.aurora()), soft(api.places())]);
     if (!a || !a.kp || !pf) return null;
-    const chosen = (config.auroraPlaces.length ? config.auroraPlaces : places.map((p) => p.id))
-      .map((id) => pf.places.find((p) => p.id === id))
-      .filter((p): p is Place => !!p)
-      .slice(0, 7)
-      // north to south reads naturally for aurora
-      .sort((x, y) => y.lat - x.lat);
+    // north to south reads naturally for aurora
+    const chosen = [...pickPlaces(config.auroraPlaces, places, pf.places)].sort((x, y) => y.lat - x.lat);
     if (!chosen.length) return null;
     const fcs = await Promise.all(chosen.map((p) => soft(api.forecast(p.id), 4000)));
     const rows = chosen.map((p, i) => ({ id: p.id, name: p.name[lang], out: outlook(a, p.lat, p.lon, fcs[i]?.hourly ?? null, now) }));
@@ -200,41 +196,70 @@ const taf: SlideDef<Taf[]> = {
   },
 };
 
+/** Selected cities for a summary slide: explicit list, else the configured places. */
+function pickPlaces(ids: string[], places: Place[], all: Place[], max = 7): Place[] {
+  const chosen = ids.length ? ids.map((id) => all.find((p) => p.id === id)).filter((p): p is Place => !!p) : places;
+  return chosen.slice(0, max);
+}
+
+/** Next time (after `from`) the moon phase crosses `target` (0 = new, 0.5 = full). */
+function nextPhase(from: Date, target: 0 | 0.5): Date {
+  let prev = getMoonIllumination(from).phase;
+  for (let h = 1; h <= 31 * 24; h++) {
+    const d = new Date(from.getTime() + h * 3600_000);
+    const ph = getMoonIllumination(d).phase;
+    if (target === 0.5 ? prev < 0.5 && ph >= 0.5 : ph < prev) return d;
+    prev = ph;
+  }
+  return from;
+}
+
+// Almanac, once per loop: moon + sun table for config.almanacPlaces (else own places).
 const almanac: SlideDef<AlmanacData> = {
   id: 'almanac',
   title: 'slide.almanac',
-  scope: 'place',
+  scope: 'global',
   component: Almanac,
-  async prepare({ place, now }) {
-    const tz = tzFor(place.country);
-    // local noon today, so getTimes picks the right calendar day
-    const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
-    const noon = new Date(`${ymd}T12:00:00Z`);
-    const yesterday = new Date(noon.getTime() - 86400_000);
-    const st = getTimes(noon, place.lat, place.lon);
-    const sy = getTimes(yesterday, place.lat, place.lon);
-    const len = (s: typeof st) => (s.sunrise && s.sunset ? (s.sunset.getTime() - s.sunrise.getTime()) / 60000 : null);
-    const today = len(st);
-    const prev = len(sy);
-    let polar: AlmanacData['polar'] = null;
-    if (today == null) {
-      const alt = isNight(noon, place.lat, place.lon);
-      polar = alt ? 'night' : 'day';
-    }
+  async prepare({ config, places, lang, now }) {
+    const pf = await soft(api.places());
+    const chosen = pickPlaces(config.almanacPlaces, places, pf?.places ?? places);
+    if (!chosen.length) return null;
+    const rows = chosen.map((p) => {
+      const tz = tzFor(p.country);
+      // local calendar day; noon UTC of that date is within the day everywhere in Europe
+      const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
+      const noon = new Date(`${ymd}T12:00:00Z`);
+      const st = getTimes(noon, p.lat, p.lon);
+      const sy = getTimes(new Date(noon.getTime() - 86400_000), p.lat, p.lon);
+      const len = (s: typeof st) => (s.sunrise && s.sunset ? (s.sunset.getTime() - s.sunrise.getTime()) / 60000 : null);
+      const today = len(st);
+      const prev = len(sy);
+      const polar: AlmanacData['rows'][number]['polar'] = today == null ? (isNight(noon, p.lat, p.lon) ? 'night' : 'day') : null;
+      return {
+        id: p.id,
+        name: p.name[lang],
+        tz,
+        sunrise: st.sunrise,
+        sunset: st.sunset,
+        dayMin: today ?? (polar === 'day' ? 1440 : 0),
+        changeMin: today != null && prev != null ? today - prev : 0,
+        polar,
+      };
+    });
+    // north to south
+    rows.sort((a, b) => chosen.find((p) => p.id === b.id)!.lat - chosen.find((p) => p.id === a.id)!.lat);
     const mi = getMoonIllumination(now);
-    const mt = getMoonTimes(noon, place.lat, place.lon);
+    const first = chosen[0];
+    const ftz = tzFor(first.country);
+    const fymd = new Intl.DateTimeFormat('en-CA', { timeZone: ftz }).format(now);
+    const mt = getMoonTimes(new Date(`${fymd}T12:00:00Z`), first.lat, first.lon);
     return {
-      sunrise: st.sunrise,
-      sunset: st.sunset,
-      dawn: st.dawn,
-      dusk: st.dusk,
-      dayMin: today ?? (polar === 'day' ? 1440 : 0),
-      changeMin: today != null && prev != null ? today - prev : 0,
-      polar,
+      rows,
       moonPhase: mi.phase,
       moonFraction: mi.fraction,
-      moonrise: mt.rise ?? null,
-      moonset: mt.set ?? null,
+      nextFull: nextPhase(now, 0.5),
+      nextNew: nextPhase(now, 0),
+      moonPlace: { name: first.name[lang], tz: ftz, rise: mt.rise ?? null, set: mt.set ?? null },
     };
   },
 };

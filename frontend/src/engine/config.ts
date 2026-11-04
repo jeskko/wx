@@ -25,6 +25,8 @@ export interface Config {
   off: Record<string, string[]>;
   /** Cities listed on the aurora summary; empty = the configured places. */
   auroraPlaces: string[];
+  /** Cities listed on the almanac; empty = the configured places. */
+  almanacPlaces: string[];
   music: { enabled: boolean; volume: number; streamUrl: string | null };
   kiosk: boolean;
 }
@@ -57,6 +59,7 @@ export const DEFAULT_CONFIG: Config = {
   slides: DEFAULT_SLIDES,
   off: {},
   auroraPlaces: [],
+  almanacPlaces: [],
   music: { enabled: true, volume: 0.5, streamUrl: null },
   kiosk: false,
 };
@@ -102,6 +105,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
     }
     out.off = off;
   }
+  if (Array.isArray(p.almanacPlaces)) out.almanacPlaces = p.almanacPlaces.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
   if (Array.isArray(p.auroraPlaces)) out.auroraPlaces = p.auroraPlaces.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
   if (p.music && typeof p.music === 'object') {
     if (typeof p.music.enabled === 'boolean') out.music.enabled = p.music.enabled;

@@ -76,9 +76,4 @@
   .lic {
     color: var(--c-label);
   }
-  .foot {
-    margin-top: auto;
-    text-align: right;
-    color: var(--c-label);
-  }
 </style>
