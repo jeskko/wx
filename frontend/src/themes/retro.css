@@ -1,0 +1,53 @@
+/* Retro: early-90s cable weather look — deep blue gradients, orange title bar,
+   bevelled panels, chunky condensed type with hard drop shadows. Original styling. */
+
+:root[data-theme='retro'] {
+  --font-main: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-logo: 'Barlow Condensed', sans-serif;
+  --font-mono: 'VT323', ui-monospace, monospace;
+
+  --c-text: #ffffff;
+  --c-value: #ffffff;
+  --c-label: #b9c8ff;
+  --c-accent: #ffd23f;
+  --c-warm: #ffb03a;
+  --c-cold: #8fe3ff;
+  --c-text-stroke: rgba(0, 0, 20, 0.85);
+
+  --letterbox: #04071c;
+  --stage-bg:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 4px),
+    linear-gradient(180deg, #1a2b9c 0%, #22197a 55%, #3b1466 100%);
+
+  --hdr-bg: linear-gradient(180deg, #ff9a2a 0%, #f06a10 55%, #c8460a 100%);
+  --hdr-border: 3px solid #ffd7a0;
+  --title-c: #ffffff;
+  --subtitle-c: #fff1c9;
+  --title-transform: uppercase;
+  --logo-bg: linear-gradient(180deg, #2c4ae0, #12238f);
+  --logo-border: 3px outset #8fa8ff;
+  --logo-radius: 2px;
+  --logo-c: #ffffff;
+
+  --panel-bg: linear-gradient(180deg, rgba(64, 100, 255, 0.92) 0%, rgba(26, 46, 170, 0.92) 100%);
+  --panel-border: 4px outset #7f9cff;
+  --panel-radius: 2px;
+  --panel-shadow: 6px 6px 0 rgba(0, 0, 20, 0.55);
+  --text-shadow: 2px 2px 0 rgba(0, 0, 20, 0.85);
+
+  --ticker-bg: linear-gradient(180deg, #0c145c, #060a36);
+  --ticker-border: 3px solid #ff9a2a;
+  --ticker-c: #ffffff;
+  --ticker-tag-bg: linear-gradient(180deg, #ff9a2a, #c8460a);
+  --ticker-tag-c: #ffffff;
+  --progress-track: rgba(255, 255, 255, 0.15);
+}
+
+:root[data-theme='retro'] .title,
+:root[data-theme='retro'] .clock .time,
+:root[data-theme='retro'] .logo {
+  text-shadow: 3px 3px 0 rgba(60, 10, 0, 0.75);
+}
+:root[data-theme='retro'] .ticker {
+  text-shadow: 2px 2px 0 #000;
+}

@@ -4,7 +4,8 @@ A retro cable-TV style weather info-screen built only on open data (FMI, MET Nor
 aviationweather.gov, NOAA SWPC, …). Finland and the Nordics first.
 
 - `backend/`: the **baker**, a Python CLI that fetches upstream data and writes static JSON to `/opt/wx/html/wx/data/`
-- `frontend/`: the info-screen SPA (not yet built)
+- `frontend/`: the info-screen SPA (Svelte 5 + TypeScript + Vite), served at https://wx.fi/
+- `music/`: background music playlist (`playlist.json` + audio files), served at `/wx/music/`
 - `deploy/`: deploy script and systemd *user* units for the `wx` account
 
 ## Baker
@@ -34,6 +35,26 @@ The timer ticks every 5 min; each job runs when its own interval has elapsed. Af
 failure, a job is retried on the next tick, at most every 5 min. If a job fails, the
 previous output files stay in place.
 
+## Frontend
+
+```sh
+cd frontend
+npm install
+npm run dev        # http://localhost:5173/wx/app/  (data proxied from https://wx.fi; WX_DATA_ORIGIN to override)
+npm test           # vitest: text forecast, config, helpers
+npm run check      # svelte-check / TypeScript
+npm run build      # dist/index.html (site root) + dist/app/ (served at /wx/app/)
+npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot every slide
+```
+
+URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0`,
+or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
+Keys: ← → browse, space pause, M music, F fullscreen, S settings.
+
+Music: put CC0/CC-BY tracks in `music/` and list them in `music/playlist.json`:
+`{"tracks": [{"src": "file.mp3", "title": "…", "artist": "…", "license": "CC BY 4.0", "url": "…"}]}`.
+They are credited on the Data Sources slide automatically.
+
 ## Server (172.16.173.100)
 
 - Code: `/opt/wx/code/backend`, venv `/opt/wx/code/venv`, state `/opt/wx/code/var`
@@ -41,7 +62,7 @@ previous output files stay in place.
 - Scheduler: systemd **user** units of `wx` (lingering), in `/opt/wx/code/.config/systemd/user/`
 
 ```sh
-./deploy/deploy.sh                                              # sync code + units, update venv (no sudo)
+./deploy/deploy.sh                                              # build + sync everything, update venv (no sudo)
 ssh 172.16.173.100 sudo systemctl --user -M wx@ daemon-reload   # only after unit file changes
 ssh 172.16.173.100 sudo systemctl --user -M wx@ list-timers
 ssh 172.16.173.100 sudo journalctl _SYSTEMD_USER_UNIT=wx-bake.service -n 50

@@ -1,0 +1,66 @@
+// Cached fetcher for the baked JSON under /wx/data/.
+// Each file has a max age; stale entries are refetched, and if a refetch fails
+// the last good copy is kept (marked stale) so the screen never goes blank.
+
+import type { AuroraFile, AviationFile, ForecastFile, ObsFile, PlacesFile, WarningsFile } from './types';
+
+export const DATA_BASE = '/wx/data/';
+
+interface Entry<T> {
+  value: T | null;
+  fetched: number;
+  ok: boolean;
+  inflight: Promise<T> | null;
+}
+
+const cache = new Map<string, Entry<unknown>>();
+
+export async function load<T>(path: string, maxAgeS: number): Promise<T> {
+  let e = cache.get(path) as Entry<T> | undefined;
+  const now = Date.now();
+  if (e?.value && now - e.fetched < maxAgeS * 1000) return e.value;
+  if (e?.inflight) return e.inflight;
+  if (!e) {
+    e = { value: null, fetched: 0, ok: false, inflight: null };
+    cache.set(path, e as Entry<unknown>);
+  }
+  const entry = e;
+  // minute-granular cache buster: nginx sends no Cache-Control for these files
+  const url = `${DATA_BASE}${path}?t=${Math.floor(now / 60000)}`;
+  entry.inflight = fetch(url)
+    .then(async (r) => {
+      if (!r.ok) throw new Error(`${r.status} ${path}`);
+      const v = (await r.json()) as T;
+      entry.value = v;
+      entry.fetched = Date.now();
+      entry.ok = true;
+      return v;
+    })
+    .catch((err) => {
+      entry.ok = false;
+      if (entry.value) {
+        // retry in a minute, keep serving the old copy meanwhile
+        entry.fetched = Date.now() - maxAgeS * 1000 + 60_000;
+        return entry.value;
+      }
+      throw err;
+    })
+    .finally(() => {
+      entry.inflight = null;
+    });
+  return entry.inflight;
+}
+
+/** Returns the cached value synchronously if any (for tickers etc.). */
+export function peek<T>(path: string): T | null {
+  return (cache.get(path)?.value as T) ?? null;
+}
+
+export const api = {
+  places: () => load<PlacesFile>('places.json', 3600),
+  obs: () => load<ObsFile>('obs/fi.json', 300),
+  forecast: (id: string) => load<ForecastFile>(`fc/${id}.json`, 1800),
+  aviation: () => load<AviationFile>('aviation.json', 300),
+  warnings: () => load<WarningsFile>('warnings/fi.json', 300),
+  aurora: () => load<AuroraFile>('aurora.json', 600),
+};

@@ -1,0 +1,52 @@
+/* Modern: calm dark dashboard with rounded cards. Same layout, different tokens. */
+
+:root[data-theme='modern'] {
+  --font-main: 'Inter', system-ui, sans-serif;
+  --font-logo: 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --c-text: #e8edf6;
+  --c-value: #ffffff;
+  --c-label: #93a1b8;
+  --c-accent: #5ec2ff;
+  --c-warm: #ff9f5a;
+  --c-cold: #6fc8ff;
+  --c-text-stroke: rgba(10, 16, 28, 0.9);
+
+  --letterbox: #05080f;
+  --stage-bg: radial-gradient(120% 90% at 20% 0%, #1d2a44 0%, #0d1424 60%, #090e19 100%);
+
+  --hdr-bg: transparent;
+  --hdr-border: 1px solid rgba(255, 255, 255, 0.08);
+  --title-c: #ffffff;
+  --subtitle-c: #93a1b8;
+  --title-transform: none;
+  --logo-bg: rgba(94, 194, 255, 0.12);
+  --logo-border: 1px solid rgba(94, 194, 255, 0.35);
+  --logo-radius: 10px;
+  --logo-c: #ffffff;
+
+  --panel-bg: rgba(255, 255, 255, 0.05);
+  --panel-border: 1px solid rgba(255, 255, 255, 0.09);
+  --panel-radius: 16px;
+  --panel-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --text-shadow: none;
+
+  --ticker-bg: rgba(255, 255, 255, 0.04);
+  --ticker-border: 1px solid rgba(255, 255, 255, 0.08);
+  --ticker-c: #c9d3e3;
+  --ticker-tag-bg: transparent;
+  --ticker-tag-c: #5ec2ff;
+  --progress-track: rgba(255, 255, 255, 0.08);
+
+  --icon-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --h3-size: 30px;
+}
+
+:root[data-theme='modern'] .title {
+  font-weight: 600;
+  font-size: 40px;
+}
+:root[data-theme='modern'] .ticker {
+  font-size: 24px;
+}

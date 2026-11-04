@@ -1,0 +1,71 @@
+<script lang="ts">
+  import { t } from '../i18n';
+  import type { Track } from '../engine/audio';
+  import type { SlideProps } from '../engine/types';
+
+  let { ctx, data }: SlideProps<{ tracks: Track[] }> = $props();
+  const L = $derived(ctx.lang);
+
+  const SOURCES = [
+    { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, varoitukset, magnetometrit', en: 'observations, forecasts, warnings, magnetometers' }, lic: 'CC BY 4.0' },
+    { name: 'MET Norway', what: { fi: 'ennusteet Suomen ulkopuolella', en: 'forecasts outside Finland' }, lic: 'CC BY 4.0' },
+    { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },
+    { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli', en: 'Kp index, auroral oval, solar wind' }, lic: 'public domain' },
+  ];
+</script>
+
+<div class="panel credits">
+  <p class="lead">{t(L, 'credits')}</p>
+  <ul>
+    {#each SOURCES as s (s.name)}
+      <li><b>{s.name}</b> — {s.what[L]} <span class="lic">({s.lic})</span></li>
+    {/each}
+  </ul>
+  {#if data.tracks.length}
+    <h3>{t(L, 'music')}</h3>
+    <ul class="music">
+      {#each data.tracks as tr (tr.src)}
+        <li>“{tr.title}” — {tr.artist} <span class="lic">({tr.license})</span></li>
+      {/each}
+    </ul>
+  {/if}
+  <p class="foot">wx.fi</p>
+</div>
+
+<style>
+  .credits {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 27px;
+  }
+  .lead {
+    font-size: 36px;
+    color: var(--c-accent);
+    margin: 0 0 6px;
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.1em;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .music {
+    font-size: 22px;
+  }
+  h3 {
+    margin: 12px 0 0;
+    font-size: 28px;
+    color: var(--c-accent);
+  }
+  .lic {
+    color: var(--c-label);
+  }
+  .foot {
+    margin-top: auto;
+    text-align: right;
+    color: var(--c-label);
+  }
+</style>

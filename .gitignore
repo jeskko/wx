@@ -6,3 +6,4 @@ backend/out/
 backend/var/
 node_modules/
 frontend/dist/
+frontend/shots/

@@ -15,7 +15,7 @@ rsync -rlt --delete --chmod=D2775,F664 \
   "$ROOT/backend/" "$HOST:$CODE/backend/"
 
 echo ">> systemd user units -> ~wx/.config/systemd/user"
-ssh "$HOST" "umask 002; mkdir -p $CODE/.config/systemd/user; chgrp -R wx $CODE/.config; find $CODE/.config -type d -exec chmod 2775 {} +"
+ssh "$HOST" "umask 002; mkdir -p $CODE/.config/systemd/user; find $CODE/.config -user \$(id -un) -exec chgrp wx {} + ; find $CODE/.config -user \$(id -un) -type d -exec chmod 2775 {} +"
 rsync -t --chmod=F664 "$ROOT/deploy/wx-bake.service" "$ROOT/deploy/wx-bake.timer" "$HOST:$CODE/.config/systemd/user/"
 
 echo ">> venv + dirs"
@@ -32,9 +32,14 @@ chgrp -R wx "$CODE/venv" "$CODE/backend" 2>/dev/null || true
 echo "baker installed: \$("$CODE/venv/bin/python" -c 'import wx; print(wx.__version__)')"
 EOF
 
-if [ -d "$ROOT/frontend/dist" ]; then
-  echo ">> sync frontend"
+if [ "${SKIP_FRONTEND:-0}" != 1 ]; then
+  echo ">> build frontend"
+  (cd "$ROOT/frontend" && npm run --silent build)
+  echo ">> sync frontend -> /opt/wx/html/wx/app + /opt/wx/html/index.html"
   rsync -rlt --delete --chmod=D2775,F664 "$ROOT/frontend/dist/app/" "$HOST:/opt/wx/html/wx/app/"
-  rsync -lt --chmod=F664 "$ROOT/frontend/dist/index.html" "$HOST:/opt/wx/html/index.html"
+  # only this one file at the webroot level is ours; overwrite in place (keeps wx owner/group)
+  ssh "$HOST" "cat > /opt/wx/html/index.html" < "$ROOT/frontend/dist/index.html"
+  echo ">> sync music -> /opt/wx/html/wx/music"
+  rsync -rlt --delete --chmod=D2775,F664 "$ROOT/music/" "$HOST:/opt/wx/html/wx/music/"
 fi
 echo ">> done"
