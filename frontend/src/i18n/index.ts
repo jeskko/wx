@@ -9,7 +9,7 @@ const fi = {
 
   'slide.current': 'Sää nyt',
   'slide.regional': 'Säähavainnot',
-  'slide.next36': 'Lähituntien sää',
+  'slide.next36': 'Seuraavat 36 tuntia',
   'slide.extended': 'Ennuste',
   'slide.chart': 'Tuntiennuste',
   'slide.aviation': 'Ilmailusää',
