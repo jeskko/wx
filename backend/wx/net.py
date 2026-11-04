@@ -20,12 +20,12 @@ def client() -> httpx.Client:
     return _client
 
 
-def get(url: str, params=None, retries: int = 2) -> httpx.Response:
+def get(url: str, params=None, retries: int = 2, headers: dict | None = None) -> httpx.Response:
     """GET with retries on network errors and 5xx. Raises on final failure."""
     last: Exception | None = None
     for attempt in range(retries + 1):
         try:
-            r = client().get(url, params=params)
+            r = client().get(url, params=params, headers=headers)
             if r.status_code >= 500:
                 raise httpx.HTTPStatusError(f"{r.status_code} from {url}", request=r.request, response=r)
             r.raise_for_status()
@@ -40,8 +40,8 @@ def get(url: str, params=None, retries: int = 2) -> httpx.Response:
     raise last
 
 
-def get_json(url: str, params=None):
-    return get(url, params).json()
+def get_json(url: str, params=None, headers: dict | None = None):
+    return get(url, params, headers=headers).json()
 
 
 def get_bytes(url: str, params=None) -> bytes:

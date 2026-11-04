@@ -9,6 +9,7 @@ Output layout (all JSON, relative to DATA_DIR):
   aurora.json            Kp, OVATION Nordic grid, solar wind, FI magnetometers
   radar/fi/index.json    radar frame list (+ radar/fi/<time>.png, last hour, 5-min steps)
   grid/fi.json           24 h of wind/cloud/precip/temperature on a map-space grid
+  roads/fi.json          road condition forecasts per road section (+ road weather stations)
   health.json            job freshness (written by the runner)
 """
 
@@ -21,7 +22,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, fmi, grid, metno, radar, swpc
+from .sources import aviation, cap, digitraffic, fmi, grid, metno, radar, swpc
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -175,6 +176,29 @@ def job_grid() -> dict:
     return {"nodes": data["nx"] * data["ny"], "times": len(data["times"])}
 
 
+def job_roads() -> dict:
+    secs = digitraffic.sections("fi")
+    try:
+        stations = digitraffic.stations()
+    except Exception as e:
+        log.warning("road stations failed: %s", e)
+        stations = []
+    write_json(
+        "roads/fi.json",
+        {
+            "updated": iso(utcnow()),
+            "source": "digitraffic",
+            "extent": list(EXTENTS["fi"]),
+            "steps": digitraffic.STEPS,
+            "times": digitraffic.forecast_times(),
+            "sections": secs,
+            "stations": stations,
+        },
+    )
+    poor = sum(1 for s in secs if any(c in "PX" for c in s["cond"]))
+    return {"sections": len(secs), "poor": poor, "stations": len(stations)}
+
+
 JOBS: list[Job] = [
     Job("places", 24 * 3600, job_places),
     Job("obs", 10 * 60, job_obs),
@@ -184,4 +208,5 @@ JOBS: list[Job] = [
     Job("forecast", 60 * 60, job_forecast),
     Job("radar", 5 * 60, job_radar),
     Job("grid", 60 * 60, job_grid),
+    Job("roads", 15 * 60, job_roads),
 ]

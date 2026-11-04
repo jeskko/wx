@@ -5,7 +5,7 @@ import { api } from '../lib/data';
 import { outlook } from '../lib/aurora';
 import { next36Periods, summarize, type PeriodSummary } from '../lib/textfc';
 import type { Day, Metar, Taf } from '../lib/types';
-import { currentFor, isNight, nearestStation, obsSymbol, pointInPolygon, stepAt, tzFor } from '../lib/wx';
+import { currentFor, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, stepAt, tzFor } from '../lib/wx';
 import { loadPlaylist } from './audio';
 import type { SlideDef } from './types';
 
@@ -25,6 +25,7 @@ import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
 import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
+import RoadMap, { type RoadData } from '../slides/RoadMap.svelte';
 import { loadBasemap } from '../map/basemap';
 import { Grid, type GridFile } from '../map/grid';
 import type { MapLabel } from '../map/MapView.svelte';
@@ -381,8 +382,35 @@ const auroraMap: SlideDef<AuroraMapData> = {
   },
 };
 
+const roadMap: SlideDef<RoadData> = {
+  id: 'roadmap',
+  title: 'slide.roadmap',
+  scope: 'global',
+  component: RoadMap,
+  async prepare({ lang, places }) {
+    const [base, roads, labels] = await Promise.all([loadBasemap('fi'), soft(api.roads()), labelsFor(FI_LABELS, lang)]);
+    if (!roads?.sections.length) return null;
+    // road surface at the nearest road weather station to each configured place (within 25 km)
+    const cities = places
+      .filter((p) => p.country === 'FI')
+      .slice(0, 6)
+      .map((p) => {
+        let best: (typeof roads.stations)[number] | null = null;
+        let bd = 25;
+        for (const s of roads.stations) {
+          if (s.rt == null) continue;
+          const d = haversineKm(p.lat, p.lon, s.lat, s.lon);
+          if (d < bd) [best, bd] = [s, d];
+        }
+        return best ? { name: p.name[lang], rt: best.rt ?? null, cond: best.cond ?? null } : null;
+      })
+      .filter((x): x is { name: string; rt: number | null; cond: number | null } => !!x);
+    return { base, roads, labels, cities };
+  },
+};
+
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, aurora, auroraMap, aviation, taf, almanac, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, aurora, auroraMap, aviation, taf, almanac, credits].map(
     (s) => [s.id, s],
   ),
 );

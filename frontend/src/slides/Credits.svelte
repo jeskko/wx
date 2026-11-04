@@ -18,7 +18,9 @@
   });
 
   const SOURCES = [
+    { name: 'Natural Earth', what: { fi: 'karttapohjat', en: 'base maps' }, lic: 'public domain' },
     { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, varoitukset, magnetometrit', en: 'observations, forecasts, warnings, magnetometers' }, lic: 'CC BY 4.0' },
+    { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli ja tiesääasemat', en: 'road conditions and road weather stations' }, lic: 'CC BY 4.0' },
     { name: 'MET Norway', what: { fi: 'ennusteet Suomen ulkopuolella', en: 'forecasts outside Finland' }, lic: 'CC BY 4.0' },
     { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },
     { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli', en: 'Kp index, auroral oval, solar wind' }, lic: 'public domain' },

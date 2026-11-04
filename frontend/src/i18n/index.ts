@@ -23,6 +23,7 @@ const fi = {
   'slide.tempmap': 'Lämpötilat',
   'slide.windmap': 'Tuulet',
   'slide.auroramap': 'Revontuliovaali',
+  'slide.roadmap': 'Ajokeli',
 
   temperature: 'Lämpötila',
   feelsLike: 'Tuntuu kuin',
@@ -118,6 +119,7 @@ const en: Record<Key, string> = {
   'slide.tempmap': 'Temperatures',
   'slide.windmap': 'Wind Flow',
   'slide.auroramap': 'Auroral Oval',
+  'slide.roadmap': 'Driving Conditions',
 
   temperature: 'Temperature',
   feelsLike: 'Feels like',
