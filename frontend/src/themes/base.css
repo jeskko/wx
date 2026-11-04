@@ -182,6 +182,22 @@ body {
     opacity: 0.55;
   }
 }
+/* music off: the note with a diagonal strike */
+.controls button.off {
+  position: relative;
+  color: rgba(255, 255, 255, 0.55);
+}
+.controls button.off::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 2px;
+  background: #fff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
 .controls button.blocked {
   opacity: 1;
   border-color: var(--c-accent);
@@ -275,7 +291,11 @@ body {
   font-size: 20px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(8, 12, 30, 0.92);
   color: #fff;
   cursor: pointer;
+  line-height: 1;
+}
+.controls button[title='M'] {
+  font-size: 24px;
 }

@@ -264,9 +264,13 @@
   </div>
   {#if !config.kiosk}
     <div class="controls">
-      <button title="M" class:blocked={musicState === 'blocked'} onclick={() => void toggleMusic()}>
-        {musicWanted && musicState !== 'unavailable' ? '♪' : '♪̸'}
-      </button>
+      <button
+        title="M"
+        class:blocked={musicState === 'blocked'}
+        class:off={!musicWanted || musicState === 'unavailable'}
+        aria-pressed={musicWanted && musicState !== 'unavailable'}
+        onclick={() => void toggleMusic()}>♫</button
+      >
       {#if musicWanted && musicState === 'playing'}
         <button title="N" onclick={skipTrack}>⏭</button>
       {/if}
@@ -275,10 +279,10 @@
     </div>
   {/if}
   {#if nowPlaying}
-    <div class="nowplaying">♪ {nowPlaying}</div>
+    <div class="nowplaying">♫ {nowPlaying}</div>
   {/if}
   {#if musicState === 'blocked' && !config.kiosk}
-    <div class="musichint">♪ {t(config.lang, 'musicHint')}</div>
+    <div class="musichint">♫ {t(config.lang, 'musicHint')}</div>
   {/if}
 </div>
 
