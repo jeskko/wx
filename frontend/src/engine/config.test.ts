@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CONFIG, decodeConfig, encodeConfig, fromQuery, merge } from './config';
+import { DEFAULT_CONFIG, DEFAULT_SLIDES, decodeConfig, encodeConfig, fromQuery, merge, type Config } from './config';
 
 describe('config', () => {
   it('round-trips through base64url with non-ascii', () => {
@@ -34,5 +34,14 @@ describe('per-place slide matrix', () => {
     expect(slideOnFor(c, 'oulu', 'aurora')).toBe(false);
     expect(slideOnFor(c, 'oulu', 'current')).toBe(true);
     expect(slideOnFor(c, 'helsinki', 'aurora')).toBe(true);
+  });
+});
+
+describe('new slides in saved configs', () => {
+  it('are inserted before the credits', () => {
+    const saved = { slides: [{ id: 'current', enabled: true, duration: 12 }, { id: 'credits', enabled: true, duration: 8 }] };
+    const c = merge(DEFAULT_CONFIG, saved as Partial<Config>);
+    expect(c.slides[c.slides.length - 1].id).toBe('credits');
+    expect(c.slides.length).toBe(DEFAULT_SLIDES.length);
   });
 });

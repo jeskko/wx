@@ -53,7 +53,6 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: true, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },
-  { id: 'credits', enabled: true, duration: 8 },
   { id: 'map-scandinavia', enabled: true, duration: 12 },
   { id: 'map-europe', enabled: true, duration: 12 },
   { id: 'map-namerica', enabled: true, duration: 12 },
@@ -62,6 +61,7 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'map-africa', enabled: true, duration: 12 },
   { id: 'map-oceania', enabled: true, duration: 12 },
   { id: 'capital', enabled: true, duration: 12 },
+  { id: 'credits', enabled: true, duration: 8 },
 ];
 
 /** Defaults for a first-time viewer (no saved settings, no #c= link). */
@@ -114,8 +114,13 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
       seen.add(s.id);
       slides.push({ id: s.id, enabled: s.enabled !== false, duration: clamp(Number(s.duration) || known.get(s.id)!.duration, 4, 120) });
     }
-    // new slides added in later versions appear at the end, with their defaults
-    for (const s of DEFAULT_SLIDES) if (!seen.has(s.id)) slides.push({ ...s });
+    // new slides added in later versions appear at the end (before the credits), with their defaults
+    for (const s of DEFAULT_SLIDES) {
+      if (seen.has(s.id)) continue;
+      const credits = slides.findIndex((x) => x.id === 'credits');
+      if (credits >= 0) slides.splice(credits, 0, { ...s });
+      else slides.push({ ...s });
+    }
     out.slides = slides;
   }
   if (p.off && typeof p.off === 'object') {
