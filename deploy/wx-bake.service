@@ -1,0 +1,15 @@
+# systemd *user* unit for the "wx" account: ~wx/.config/systemd/user/wx-bake.service
+# (~wx = /opt/wx/code). Requires `loginctl enable-linger wx`.
+[Unit]
+Description=wx.fi data baker (fetch open weather data -> static JSON)
+
+[Service]
+Type=oneshot
+UMask=0002
+WorkingDirectory=/opt/wx/code
+Environment=WX_DATA_DIR=/opt/wx/html/wx/data
+Environment=WX_STATE_DIR=/opt/wx/code/var
+ExecStart=/opt/wx/code/venv/bin/python -m wx bake
+TimeoutStartSec=240
+Nice=10
+NoNewPrivileges=yes
