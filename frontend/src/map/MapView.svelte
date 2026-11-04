@@ -13,7 +13,7 @@
 
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { Basemap } from './basemap';
+  import { projector, type Basemap } from './basemap';
   import { pixel, type Extent } from './proj';
 
   let {
@@ -23,6 +23,7 @@
     labels = [],
     night = false,
     view,
+    outline = false,
     children,
   }: {
     base: Basemap;
@@ -32,11 +33,13 @@
     night?: boolean;
     /** visible window in map metres (default: the whole basemap) */
     view?: Extent;
+    /** redraw coastlines and borders above the overlay (for opaque data layers) */
+    outline?: boolean;
     children?: Snippet;
   } = $props();
 
   const v = $derived(view ?? base.extent);
-  const px = $derived(pixel(v, w, h));
+  const px = $derived(pixel(v, w, h, projector(base)));
   const viewBox = $derived(
     `${(v[0] - base.extent[0]) / 1000} ${(base.extent[3] - v[3]) / 1000} ${(v[2] - v[0]) / 1000} ${(v[3] - v[1]) / 1000}`,
   );
@@ -57,6 +60,12 @@
   <div class="overlay">
     {@render children?.()}
   </div>
+  {#if outline}
+    <svg class="outline" {viewBox} width={w} height={h} preserveAspectRatio="none">
+      <path class="coast" d={base.land} />
+      <path class="border" d={base.borders} />
+    </svg>
+  {/if}
   <svg class="labels" width={w} height={h}>
     {#each placed as l (l.text)}
       {@const [x, y] = l.xy}
@@ -84,6 +93,7 @@
   }
   .base,
   .overlay,
+  .outline,
   .labels {
     position: absolute;
     inset: 0;
@@ -116,6 +126,15 @@
     stroke: var(--map-coast, #0f2d12);
     stroke-width: 0.6;
     vector-effect: non-scaling-stroke;
+  }
+  .coast {
+    fill: none;
+    stroke: rgba(10, 20, 30, 0.75);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+  .outline .border {
+    opacity: 0.7;
   }
   .border {
     fill: none;

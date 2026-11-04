@@ -54,8 +54,10 @@ export const EXTENTS: Record<ExtentName, Extent> = {
   nordic: [-900000, 6150000, 1500000, 8050000],
 };
 
-/** Pixel transform for an extent drawn into a w x h box (y down). */
-export function pixel(ext: Extent, w: number, h: number) {
+export type Forward = (lat: number, lon: number) => [number, number];
+
+/** Pixel transform for an extent drawn into a w x h box (y down). `fwd` defaults to EPSG:3067. */
+export function pixel(ext: Extent, w: number, h: number, fwd: Forward = forward) {
   const [x0, y0, x1, y1] = ext;
   const sx = w / (x1 - x0);
   const sy = h / (y1 - y0);
@@ -63,7 +65,7 @@ export function pixel(ext: Extent, w: number, h: number) {
     fromMap: (e: number, nm: number): [number, number] => [(e - x0) * sx, (y1 - nm) * sy],
     toMap: (px: number, py: number): [number, number] => [x0 + px / sx, y1 - py / sy],
     fromLatLon(lat: number, lon: number): [number, number] {
-      const [e, nm] = forward(lat, lon);
+      const [e, nm] = fwd(lat, lon);
       return [(e - x0) * sx, (y1 - nm) * sy];
     },
   };

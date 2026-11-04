@@ -70,3 +70,27 @@ def test_harmonie_netcdf_to_rasters(fixture_bytes):
     assert all(v <= 250 for v in r)  # whole extent covered: no "no data" cells
     temps = [v / 2 - 50 for v in b]
     assert -40 < min(temps) and max(temps) < 30
+
+
+def test_world_views_and_laea():
+    from wx.laea import Laea
+    from wx.sources import world
+
+    vs = world.views()
+    ids = [v["id"] for v in vs]
+    assert len(ids) == len(set(ids))
+    assert {"europe", "asia", "cap-tokyo"} <= set(ids)
+    caps = {c["id"] for c in world.WORLD["capitals"]}
+    regions = {r["id"] for r in world.WORLD["regions"]}
+    for r in world.WORLD["regions"]:
+        for c in r["cities"]:
+            assert isinstance(c, dict) or c in caps, c
+    assert all(c["region"] in regions for c in world.WORLD["capitals"])
+    p = Laea(-28, 148)
+    for la, lo in [(-41.29, 174.78), (-12.46, 130.84)]:
+        x, y = p.forward(la, lo)
+        la2, lo2 = p.inverse(x, y)
+        assert abs(la2 - la) < 1e-9 and abs(lo2 - lo) < 1e-9
+    # Oceania crosses the antimeridian: its lon box continues past 180
+    oc = next(v for v in vs if v["id"] == "oceania")
+    assert world.latlon_box(oc)[2] > 180

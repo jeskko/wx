@@ -27,6 +27,8 @@ export interface Config {
   auroraPlaces: string[];
   /** Cities listed on the almanac; empty = the configured places. */
   almanacPlaces: string[];
+  /** World capitals with their own slide (ids from map/world.json). */
+  capitals: string[];
   music: { enabled: boolean; volume: number; streamUrl: string | null };
   kiosk: boolean;
 }
@@ -50,6 +52,14 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: false, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },
+  { id: 'map-scandinavia', enabled: true, duration: 12 },
+  { id: 'map-europe', enabled: true, duration: 12 },
+  { id: 'map-namerica', enabled: true, duration: 12 },
+  { id: 'map-samerica', enabled: false, duration: 12 },
+  { id: 'map-asia', enabled: true, duration: 12 },
+  { id: 'map-africa', enabled: false, duration: 12 },
+  { id: 'map-oceania', enabled: false, duration: 12 },
+  { id: 'capital', enabled: true, duration: 12 },
   { id: 'credits', enabled: true, duration: 8 },
 ];
 
@@ -62,6 +72,7 @@ export const DEFAULT_CONFIG: Config = {
   off: {},
   auroraPlaces: [],
   almanacPlaces: [],
+  capitals: ['stockholm', 'london', 'washington', 'tokyo'],
   music: { enabled: true, volume: 0.5, streamUrl: null },
   kiosk: false,
 };
@@ -108,6 +119,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
     out.off = off;
   }
   if (Array.isArray(p.almanacPlaces)) out.almanacPlaces = p.almanacPlaces.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
+  if (Array.isArray(p.capitals)) out.capitals = p.capitals.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
   if (Array.isArray(p.auroraPlaces)) out.auroraPlaces = p.auroraPlaces.filter((x) => typeof x === 'string').map((x) => x.toLowerCase());
   if (p.music && typeof p.music === 'object') {
     if (typeof p.music.enabled === 'boolean') out.music.enabled = p.music.enabled;

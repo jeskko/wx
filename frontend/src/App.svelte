@@ -11,6 +11,7 @@
   import { api } from './lib/data';
   import type { Place } from './lib/types';
   import { tzFor } from './lib/wx';
+  import { capitalPlaces } from './lib/world';
 
   const initial = loadConfig();
   let config = $state<Config>(initial.config);
@@ -60,7 +61,12 @@
     for (const p of ps)
       for (const s of enabled)
         if (SLIDES[s.id].scope === 'place' && slideOnFor(config, p.id, s.id)) seq.push({ id: s.id, duration: s.duration, place: p });
-    for (const s of enabled) if (SLIDES[s.id].scope === 'global') seq.push({ id: s.id, duration: s.duration, place: ps[0] });
+    for (const s of enabled) {
+      const scope = SLIDES[s.id].scope;
+      if (scope === 'global') seq.push({ id: s.id, duration: s.duration, place: ps[0] });
+      else if (scope === 'capital')
+        for (const c of capitalPlaces(config.capitals)) seq.push({ id: s.id, duration: s.duration, place: c });
+    }
     return seq;
   });
 
@@ -210,7 +216,9 @@
   });
 
   const title = $derived(shown ? t(config.lang, shown.def.title) : 'wx.fi');
-  const subtitle = $derived(shown && (shown.def.scope === 'place' || places.length <= 1) ? shown.ctx.place.name[config.lang] : '');
+  const subtitle = $derived(
+    shown && (shown.def.scope !== 'global' || places.length <= 1) ? shown.ctx.place.name[config.lang] : '',
+  );
   const tz = $derived(tzFor(shown?.ctx.place.country ?? places[0]?.country ?? 'FI'));
 </script>
 

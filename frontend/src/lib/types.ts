@@ -218,3 +218,8 @@ export interface AirQualityFile {
   updated: string;
   stations: AirQualityStation[];
 }
+
+export interface CapitalsFile {
+  updated: string;
+  capitals: Record<string, { metar: Metar | null; daily: Day[]; now: Step | null }>;
+}

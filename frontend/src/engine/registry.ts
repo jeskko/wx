@@ -9,6 +9,7 @@ import { currentFor, haversineKm, isNight, nearestStation, obsSymbol, pointInPol
 import { loadPlaylist } from './audio';
 import { upcoming } from '../lib/nowcast';
 import type { SlideDef } from './types';
+import type { Key } from '../i18n';
 
 import Almanac, { type AlmanacData } from '../slides/Almanac.svelte';
 import Aurora, { type AuroraData } from '../slides/Aurora.svelte';
@@ -29,8 +30,13 @@ import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
 import RoadMap, { type RoadData } from '../slides/RoadMap.svelte';
 import Sea, { type SeaData, type SeaWind } from '../slides/Sea.svelte';
+import WorldMap, { type WorldMapData } from '../slides/WorldMap.svelte';
+import Capital, { type CapitalData } from '../slides/Capital.svelte';
+import { allWorldCities, capitalById, REGIONS, regionCities, type WorldRegion } from '../lib/world';
+import { loadWorldGrid } from '../map/raster';
+import { laea } from '../map/laea';
 import AirQuality, { type AirQualityData, type AqRow } from '../slides/AirQuality.svelte';
-import { loadBasemap } from '../map/basemap';
+import { loadBasemap, loadWorldBasemap } from '../map/basemap';
 import { Grid, type GridFile } from '../map/grid';
 import { loadFields } from '../map/raster';
 import type { MapLabel } from '../map/MapView.svelte';
@@ -583,8 +589,65 @@ const airQuality: SlideDef<AirQualityData> = {
   },
 };
 
+/** A world region map: ECMWF fields for the next 48 h. Skipped while the data is stale. */
+function regionSlide(r: WorldRegion): SlideDef<WorldMapData> {
+  return {
+    id: `map-${r.id}`,
+    title: `slide.map-${r.id}` as Key,
+    scope: 'global',
+    component: WorldMap,
+    async prepare({ lang, now }) {
+      const [base, idx] = await Promise.all([loadWorldBasemap(r.id), soft(api.world())]);
+      const view = idx?.views[r.id];
+      if (!base || !view || !idx) return null;
+      if (now.getTime() - Date.parse(view.times[view.times.length - 1]) > 0) return null; // forecast ran out
+      const grid = await soft(loadWorldGrid(r.id, view, idx.origin, now.getTime()), 15000);
+      if (!grid) return null;
+      return { base, grid, cities: regionCities(r).map((c) => ({ name: c[lang], lat: c.lat, lon: c.lon })), name: r[lang] };
+    },
+  };
+}
+
+const capital: SlideDef<CapitalData> = {
+  id: 'capital',
+  title: 'slide.capital',
+  scope: 'capital',
+  component: Capital,
+  async prepare({ lang, place, now }) {
+    const c = capitalById(place.id.replace(/^cap-/, ''));
+    if (!c) return null;
+    const vid = `cap-${c.id}`;
+    const [base, idx, caps] = await Promise.all([loadWorldBasemap(vid), soft(api.world()), soft(api.capitals())]);
+    if (!base) return null;
+    const row = caps?.capitals[c.id];
+    const view = idx?.views[vid];
+    const grid = view && idx && now.getTime() < Date.parse(view.times[view.times.length - 1]) ? await soft(loadWorldGrid(vid, view, idx.origin, now.getTime()), 10000) : null;
+    if (!row && !grid) return null;
+    // other named places inside the 900 km window
+    const p = laea({ lat0: c.lat, lon0: c.lon });
+    const [x0, y0, x1, y1] = base.extent;
+    const cities = allWorldCities()
+      .filter((w) => {
+        const [x, y] = p.forward(w.lat, w.lon);
+        return x > x0 + 40_000 && x < x1 - 40_000 && y > y0 + 30_000 && y < y1 - 30_000;
+      })
+      .map((w) => ({ name: w[lang], lat: w.lat, lon: w.lon }));
+    return {
+      name: c[lang],
+      tz: c.tz,
+      base,
+      grid,
+      cities,
+      metar: row?.metar ?? null,
+      now: row?.now ?? null,
+      daily: row?.daily ?? [],
+      night: isNight(now, c.lat, c.lon),
+    };
+  },
+};
+
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

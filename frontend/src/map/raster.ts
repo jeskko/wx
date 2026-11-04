@@ -90,3 +90,87 @@ export async function loadFields(index: FieldsIndex, fromMs: number, extent = 'f
   cache = { key, grid };
   return grid;
 }
+
+// ---------------------------------------------------------------- world views (ECMWF)
+
+export interface WorldView {
+  proj: { type: 'laea'; lat0: number; lon0: number };
+  extent: [number, number, number, number];
+  step: number;
+  nx: number;
+  ny: number;
+  times: string[];
+  files: string[];
+}
+
+export interface WorldIndex {
+  updated: string;
+  origin: string;
+  views: Record<string, WorldView>;
+}
+
+/** Decode a double-height world frame (see backend/wx/sources/world.py). South row first. */
+export function decodeWorldFrame(rgba: Uint8ClampedArray, nx: number, ny: number): Record<'t' | 'pr' | 'u' | 'v', Float32Array> {
+  const n = nx * ny;
+  const t = new Float32Array(n);
+  const pr = new Float32Array(n);
+  const u = new Float32Array(n);
+  const v = new Float32Array(n);
+  for (let j = 0; j < ny; j++) {
+    const row = ny - 1 - j;
+    for (let i = 0; i < nx; i++) {
+      const o = (row * nx + i) * 4;
+      const w = ((row + ny) * nx + i) * 4;
+      const k = j * nx + i;
+      if (rgba[o] === 255) {
+        t[k] = NaN;
+        continue;
+      }
+      t[k] = rgba[o] / 2 - 60;
+      const g = rgba[o + 1] / 50;
+      pr[k] = g * g;
+      u[k] = rgba[w] / 2 - 64;
+      v[k] = rgba[w + 1] / 2 - 64;
+    }
+  }
+  return { t, pr, u, v };
+}
+
+const worldGrids = new Map<string, { key: string; grid: Grid }>();
+
+/** Frames of a world view from the step before `fromMs` on, as a Grid with t, pr, u, v. */
+export async function loadWorldGrid(id: string, view: WorldView, origin: string, fromMs: number): Promise<Grid | null> {
+  let first = 0;
+  view.times.forEach((t, i) => {
+    if (Date.parse(t) <= fromMs) first = i;
+  });
+  const keep = view.times.map((t, i) => ({ t, f: view.files[i] })).slice(first);
+  if (keep.length < 2) return null;
+  const key = `${origin}:${keep[0].t}`;
+  const hit = worldGrids.get(id);
+  if (hit?.key === key) return hit.grid;
+  const imgs = await Promise.all(keep.map(({ f }) => loadImage(`${DATA_BASE}world/${id}/${f}`)));
+  const cv = document.createElement('canvas');
+  cv.width = view.nx;
+  cv.height = view.ny * 2;
+  const c2d = cv.getContext('2d', { willReadFrequently: true })!;
+  const frames = imgs.map((img) => {
+    c2d.clearRect(0, 0, cv.width, cv.height);
+    c2d.drawImage(img, 0, 0);
+    return decodeWorldFrame(c2d.getImageData(0, 0, cv.width, cv.height).data, view.nx, view.ny);
+  });
+  const half = view.step / 2;
+  const [x0, y0, x1, y1] = view.extent;
+  const grid = new Grid(
+    { extent: [x0 + half, y0 + half, x1 - half, y1 - half], step: view.step, nx: view.nx, ny: view.ny, times: keep.map(({ t }) => t) },
+    (name: FieldName, ti: number) => {
+      if (name === 'cloud') throw new Error('no cloud in world fields');
+      return frames[ti][name];
+    },
+    ['t', 'pr', 'u', 'v'],
+  );
+  // keep a handful of views decoded; drop the oldest
+  if (worldGrids.size > 6) worldGrids.delete(worldGrids.keys().next().value!);
+  worldGrids.set(id, { key, grid });
+  return grid;
+}

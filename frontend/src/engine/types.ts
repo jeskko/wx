@@ -22,8 +22,9 @@ export interface SlideProps<D> {
 export interface SlideDef<D = unknown> {
   id: string;
   title: Key;
-  /** 'place' slides repeat for each configured place; 'global' slides show once per loop. */
-  scope: 'place' | 'global';
+  /** 'place' slides repeat for each configured place; 'global' slides show once per loop;
+   *  'capital' slides repeat for each selected world capital (ctx.place is the capital). */
+  scope: 'place' | 'global' | 'capital';
   /** Load everything the slide needs. Return null to skip the slide (no data / nothing to show). */
   prepare: (ctx: SlideCtx) => Promise<D | null>;
   component: Component<SlideProps<D>>;

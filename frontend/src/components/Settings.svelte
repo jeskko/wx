@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { CAPITALS, REGIONS } from '../lib/world';
   import { untrack } from 'svelte';
   import { t } from '../i18n';
   import type { Place } from '../lib/types';
@@ -37,6 +38,10 @@
     else delete off[placeId];
     c.off = off;
   }
+  function toggleCapital(id: string) {
+    c.capitals = c.capitals.includes(id) ? c.capitals.filter((x) => x !== id) : [...c.capitals, id];
+  }
+
   function toggleIn(key: 'auroraPlaces' | 'almanacPlaces', id: string) {
     const cur = c[key];
     c[key] = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
@@ -124,6 +129,24 @@
     {@render picker('auroraPlaces', L === 'fi' ? 'Revontulikatsaus' : 'Aurora summary')}
     {@render picker('almanacPlaces', L === 'fi' ? 'Almanakka' : 'Almanac')}
 
+    <h3>{L === 'fi' ? 'Maailman pääkaupungit' : 'World capitals'}</h3>
+    <p class="hint">
+      {L === 'fi'
+        ? 'Valituista pääkaupungeista näytetään oma sivu: paikallinen aika, säähavainto, kolmen päivän ennuste ja kartta.'
+        : 'Each selected capital gets its own slide: local time, latest observation, 3-day forecast and a map.'}
+    </p>
+    {#each REGIONS as r (r.id)}
+      {@const list = CAPITALS.filter((x) => x.region === r.id)}
+      {#if list.length}
+        <div class="chips">
+          <span class="grp">{r[L]}</span>
+          {#each list as cp (cp.id)}
+            <button class="chip" class:on={c.capitals.includes(cp.id)} onclick={() => toggleCapital(cp.id)}>{cp[L]}</button>
+          {/each}
+        </div>
+      {/if}
+    {/each}
+
     <h3>{L === 'fi' ? 'Lentoasemat (ICAO, pilkulla erotettuna)' : 'Airports (ICAO, comma separated)'}</h3>
     <input class="wide" value={c.airports.join(', ')} oninput={(e) => (c.airports = e.currentTarget.value.split(/[ ,]+/).filter(Boolean).map((x) => x.toUpperCase()))} />
 
@@ -163,7 +186,15 @@
                   </td>
                 {/each}
               {:else}
-                <td class="once" colspan={Math.max(1, chosen.length)}>{L === 'fi' ? 'kerran kierroksessa' : 'once per loop'}</td>
+                <td class="once" colspan={Math.max(1, chosen.length)}>
+                  {SLIDES[s.id]?.scope === 'capital'
+                    ? L === 'fi'
+                      ? `jokaiselle valitulle pääkaupungille (${c.capitals.length})`
+                      : `for each selected capital (${c.capitals.length})`
+                    : L === 'fi'
+                      ? 'kerran kierroksessa'
+                      : 'once per loop'}
+                </td>
               {/if}
               <td class="c"><input type="number" min="4" max="120" bind:value={s.duration} /></td>
               <td class="c nowrap">
@@ -342,5 +373,10 @@
     font-size: 13px;
     color: #555;
     margin: 12px 0 0;
+  }
+  .grp {
+    width: 100%;
+    font-size: 0.8em;
+    opacity: 0.7;
   }
 </style>

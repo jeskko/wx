@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeFrame } from './raster';
+import { decodeFrame, decodeWorldFrame } from './raster';
 
 describe('decodeFrame', () => {
   it('decodes channels and flips rows to south-first', () => {
@@ -13,5 +13,17 @@ describe('decodeFrame', () => {
     expect(f.cloud[1]).toBeCloseTo(100);
     expect(f.pr[1]).toBeCloseTo(1);
     expect(f.t[1]).toBeCloseTo(0);
+  });
+});
+
+describe('decodeWorldFrame', () => {
+  it('reads the top half as t/pr and the bottom half as wind', () => {
+    // nx=1, ny=1: row 0 = fields, row 1 = wind
+    const px = new Uint8ClampedArray([130, 100, 0, 255, 138, 118, 0, 255]);
+    const f = decodeWorldFrame(px, 1, 1);
+    expect(f.t[0]).toBeCloseTo(5);
+    expect(f.pr[0]).toBeCloseTo(4);
+    expect(f.u[0]).toBeCloseTo(5);
+    expect(f.v[0]).toBeCloseTo(-5);
   });
 });

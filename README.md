@@ -37,6 +37,8 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | airquality | 30 min | `airquality/fi.json`: FMI hourly air quality index + PM2.5/PM10/NO2/O3 per station |
 | grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
 | fields | 30 min (re-bakes only on a new model run, every 3 h) | `fields/fi/index.json` + hourly PNGs: HARMONIE cloud/precipitation/temperature at 5 km from FMI's download service (NetCDF, read with `wx/netcdf3.py`), packed in RGB |
+| world | 60 min (re-bakes on a new ECMWF run) | `world/index.json` + `world/<view>/<time>.png`: ECMWF temperature/precipitation/wind via FMI, 6-hourly for 60 h, resampled into each region and capital view (Lambert azimuthal equal-area, see `wx/world.json`) |
+| capitals | 60 min | `world/capitals.json`: latest METAR + 3-day MET Norway forecast for each world capital |
 | (runner) | each run | `health.json`: freshness and errors per job |
 
 The timer ticks every 5 min; each job runs when its own interval has elapsed. After a
@@ -79,16 +81,20 @@ curl -s https://wx.fi/wx/data/health.json
 
 ## Maps
 
-All maps use ETRS-TM35FIN (EPSG:3067); the projection exists in `backend/wx/proj.py` and
-`frontend/src/map/proj.ts` (kept in sync, both tested against the same values). Basemaps are
-built once from Natural Earth 10m GeoJSON (public domain) and committed:
+Finnish maps use ETRS-TM35FIN (EPSG:3067); the projection exists in `backend/wx/proj.py` and
+`frontend/src/map/proj.ts` (kept in sync, both tested against the same values). World views
+(regions and capitals, defined in `backend/wx/world.json`) use a spherical Lambert azimuthal
+equal-area projection centred on each view (`wx/laea.py`, `map/laea.ts`). Basemaps are built
+once from Natural Earth GeoJSON (public domain) and committed:
 
 ```sh
 python3 tools/build_basemap.py <dir with ne_10m_admin_0_countries/lakes/boundary_lines_land .geojson>
+# world views: 50m data for regions, 10m for capitals; also copies world.json to the frontend
+python3 tools/build_world.py <dir with ne_10m_* and ne_50m_* .geojson> [view id ...]
 ```
 
 ## Data licences
 
-FMI, MET Norway, Fintraffic: CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain.
+FMI, MET Norway, Fintraffic, ECMWF (via FMI): CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain.
 Natural Earth: public domain.
 The info-screen has a credits slide listing them.

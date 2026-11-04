@@ -12,6 +12,8 @@ Output layout (all JSON, relative to DATA_DIR):
   nowcast/<place>.json   MET Norway radar nowcast, 5-min precipitation for the next 90 min
   grid/fi.json           24 h of wind/cloud/precip/temperature on a 50 km map-space grid
   fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
+  world/index.json       ECMWF temperature/precip/wind rasters per world view (world/<view>/<time>.png)
+  world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
   roads/fi.json          road condition forecasts per road section (+ road weather stations)
   sea/fi.json            wave buoys + sea level / water temperature (FMI)
   lightning/fi.json      lightning strikes in the last hour (FMI)
@@ -20,6 +22,7 @@ Output layout (all JSON, relative to DATA_DIR):
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Callable
@@ -28,7 +31,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, fields, fmi, grid, metno, radar, swpc
+from .sources import aviation, cap, digitraffic, fields, fmi, grid, metno, radar, swpc, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -250,6 +253,87 @@ def job_fields() -> dict:
     return {"frames": len(frames), "origin": iso(origin), "bytes": sum(len(p) for _, p in frames)}
 
 
+def job_world() -> dict:
+    """ECMWF rasters for every world view; re-baked when a new ECMWF run appears (twice a day)."""
+    import json
+
+    idx_path = settings.DATA_DIR / "world/index.json"
+    origin = world.latest_origin()
+    start = world.first_step()
+    old: dict = {}
+    if idx_path.exists():
+        try:
+            old = json.loads(idx_path.read_text())
+        except ValueError:
+            old = {}
+    if old.get("origin") == iso(origin) and old.get("start") == iso(start):
+        return {"skipped": "same run", "origin": iso(origin)}
+    out_views: dict = dict(old.get("views", {})) if old.get("origin") == iso(origin) else {}
+    failed = []
+
+    def make(v):
+        try:
+            return v, world.rasters(world.download(v, origin, start), v)
+        except Exception as e:
+            log.warning("world %s: %s", v["id"], e)
+            return v, None
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(make, world.views()))
+    for v, res in results:
+        if res is None:
+            failed.append(v["id"])
+            continue
+        meta, frames = res
+        rel = f"world/{v['id']}"
+        names = []
+        for t, png in frames:
+            name = t.strftime("%Y%m%dT%HZ") + ".png"
+            write_bytes(f"{rel}/{name}", png)
+            names.append(name)
+        for f in (settings.DATA_DIR / rel).glob("*.png"):
+            if f.name not in names:
+                f.unlink(missing_ok=True)
+        out_views[v["id"]] = {**meta, "times": [iso(t) for t, _ in frames], "files": names}
+    if not out_views:
+        raise RuntimeError("no world views produced")
+    write_json(
+        "world/index.json",
+        {"updated": iso(utcnow()), "source": "ecmwf-via-fmi", "origin": iso(origin), "start": iso(start), "views": out_views},
+    )
+    return {"views": len(out_views), "failed": failed, "origin": iso(origin)}
+
+
+def job_capitals() -> dict:
+    caps = world.WORLD["capitals"]
+    try:
+        metars = aviation.metars([c["icao"] for c in caps])
+    except Exception as e:
+        log.warning("capital metars: %s", e)
+        metars = {}
+    hour = iso(utcnow().replace(minute=0, second=0))
+
+    def fc(c):
+        try:
+            steps = metno.forecast(c["lat"], c["lon"])
+            return c["id"], daily_mod.daily(steps, c["tz"])[:4], next((s for s in steps if s["time"] >= hour), None)
+        except Exception as e:
+            log.info("capital forecast %s: %s", c["id"], e)
+            return c["id"], None, None
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        fcs = list(pool.map(fc, caps))
+    out, fc_ok = {}, 0
+    for cid, days, now_step in fcs:
+        c = next(x for x in caps if x["id"] == cid)
+        out[cid] = {"metar": metars.get(c["icao"]), "daily": days or [], "now": now_step}
+        fc_ok += days is not None
+    if fc_ok == 0 and not metars:
+        raise RuntimeError("no capital data")
+    write_json("world/capitals.json", {"updated": iso(utcnow()), "capitals": out})
+    return {"metar": len(metars), "forecasts": fc_ok}
+
+
 def job_roads() -> dict:
     secs = digitraffic.sections("fi")
     try:
@@ -324,6 +408,8 @@ JOBS: list[Job] = [
     Job("radar", 5 * 60, job_radar),
     Job("grid", 60 * 60, job_grid),
     Job("fields", 30 * 60, job_fields),
+    Job("world", 60 * 60, job_world),
+    Job("capitals", 60 * 60, job_capitals),
     Job("roads", 15 * 60, job_roads),
     Job("nowcast", 10 * 60, job_nowcast),
     Job("sea", 30 * 60, job_sea),
