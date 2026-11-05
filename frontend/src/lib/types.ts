@@ -184,6 +184,8 @@ export interface AuroraFile {
   updated: string;
   kp: { observed: KpRow[]; forecast: KpRow[] } | null;
   ovation: Ovation | null;
+  /** both polar caps as a PNG (aurora/ovation.png) */
+  ovationGlobal?: { file: string; observed: string; forecast: string };
   solarwind: { time: string; bz: number | null; bt: number | null; speed: number | null } | null;
   mag: MagStation[] | null;
 }

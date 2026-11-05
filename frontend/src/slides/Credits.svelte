@@ -20,6 +20,7 @@
 
   const SOURCES = $derived([
     { name: 'Natural Earth', what: { fi: 'karttapohjat', en: 'base maps' }, lic: 'public domain' },
+    { name: 'GeoNames', what: { fi: 'paikkahaku', en: 'place search' }, lic: 'CC BY 4.0' },
     { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, tutka, salamat, merisää, ilmanlaatu, varoitukset, magnetometrit', en: 'observations, forecasts, radar, lightning, sea, air quality, warnings, magnetometers' }, lic: 'CC BY 4.0' },
     { name: 'SMHI', what: { fi: 'havainnot Ruotsista', en: 'observations in Sweden' }, lic: 'CC BY 4.0' },
     { name: 'DMI', what: { fi: 'havainnot Tanskasta ja Färsaarilta', en: 'observations in Denmark and the Faroe Islands' }, lic: 'CC BY 4.0' },
@@ -27,7 +28,7 @@
     { name: 'Veðurstofa Íslands / Icelandic Met Office', what: { fi: 'havainnot Islannista', en: 'observations in Iceland' }, lic: L === 'fi' ? 'avoin data' : 'open data' },
     { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli, tiesääasemat ja kelikamerat', en: 'road conditions, road weather stations and weather cameras' }, lic: 'CC BY 4.0' },
     { name: 'ECMWF', what: { fi: 'maailmankartat (Ilmatieteen laitoksen avoimen datan kautta)', en: 'world maps (via FMI open data)' }, lic: 'CC BY 4.0' },
-    { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolella', en: 'precipitation nowcast, forecasts outside Finland' }, lic: 'CC BY 4.0' },
+    { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolelle ja haetuille paikoille', en: 'precipitation nowcast, forecasts outside Finland and for searched places' }, lic: 'CC BY 4.0' },
     { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },
     { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli', en: 'Kp index, auroral oval, solar wind' }, lic: 'public domain' },
   ]);

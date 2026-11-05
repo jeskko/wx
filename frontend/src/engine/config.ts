@@ -52,6 +52,7 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'airquality', enabled: true, duration: 12 },
   { id: 'aurora', enabled: true, duration: 14 },
   { id: 'auroramap', enabled: true, duration: 12 },
+  { id: 'auroraglobe', enabled: true, duration: 12 },
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: true, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },

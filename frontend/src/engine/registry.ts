@@ -27,6 +27,7 @@ import Regional, { type RegionalRow } from '../slides/Regional.svelte';
 import Taf_ from '../slides/Taf.svelte';
 import Warnings, { type WarningsData } from '../slides/Warnings.svelte';
 import AuroraMap, { type AuroraMapData } from '../slides/AuroraMap.svelte';
+import AuroraGlobe, { type AuroraGlobeData } from '../slides/AuroraGlobe.svelte';
 import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
 import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
@@ -570,6 +571,68 @@ const auroraMap: SlideDef<AuroraMapData> = {
   },
 };
 
+// cities on the polar aurora maps (Finnish/English names)
+const POLAR_LABELS: { n: [string, string, number, number, 'left' | 'right'][]; s: [string, string, number, number, 'left' | 'right'][] } = {
+  n: [
+    ['Helsinki', 'Helsinki', 60.17, 24.94, 'right'],
+    ['Reykjavík', 'Reykjavík', 64.15, -21.94, 'left'],
+    ['Fairbanks', 'Fairbanks', 64.84, -147.72, 'right'],
+    ['Yellowknife', 'Yellowknife', 62.45, -114.37, 'left'],
+    ['Edinburgh', 'Edinburgh', 55.95, -3.19, 'left'],
+    ['Toronto', 'Toronto', 43.65, -79.38, 'right'],
+    ['Novosibirsk', 'Novosibirsk', 55.03, 82.92, 'left'],
+  ],
+  s: [
+    ['Hobart', 'Hobart', -42.88, 147.33, 'left'],
+    ['Invercargill', 'Invercargill', -46.41, 168.35, 'left'],
+    ['Ushuaia', 'Ushuaia', -54.8, -68.3, 'right'],
+    ['Stanley', 'Stanley', -51.7, -57.85, 'right'],
+  ],
+};
+
+async function loadOvationImage(file: string, stamp: string): Promise<Uint8Array> {
+  const img = new Image();
+  img.src = `${DATA_BASE}${file}?v=${encodeURIComponent(stamp)}`;
+  await img.decode();
+  const cv = document.createElement('canvas');
+  cv.width = img.width;
+  cv.height = img.height;
+  const c2d = cv.getContext('2d', { willReadFrequently: true })!;
+  c2d.drawImage(img, 0, 0);
+  const rgba = c2d.getImageData(0, 0, img.width, img.height).data;
+  const out = new Uint8Array(img.width * img.height);
+  for (let k = 0; k < out.length; k++) out[k] = rgba[k * 4];
+  return out;
+}
+
+const auroraGlobe: SlideDef<AuroraGlobeData> = {
+  id: 'auroraglobe',
+  title: 'slide.auroraglobe',
+  scope: 'global',
+  component: AuroraGlobe,
+  async prepare({ lang, place, now }) {
+    const [north, south, a] = await Promise.all([loadWorldBasemap('pole-n'), loadWorldBasemap('pole-s'), soft(api.aurora())]);
+    const g = a?.ovationGlobal;
+    if (!north || !south || !a || !g) return null;
+    if (now.getTime() - Date.parse(g.observed) > 3 * 3600_000) return null;
+    const ov = await soft(loadOvationImage(g.file, g.forecast), 6000);
+    if (!ov) return null;
+    const o = outlook(a, place.lat, place.lon, null, now);
+    const t = now.getTime();
+    const next = (a.kp?.forecast ?? []).filter((r) => Date.parse(r.time) >= t - 3 * 3600_000 && Date.parse(r.time) <= t + 24 * 3600_000);
+    const lab = (xs: [string, string, number, number, 'left' | 'right'][]): MapLabel[] => xs.map(([fi, en, lat, lon, side]) => ({ lat, lon, side, text: lang === 'fi' ? fi : en }));
+    return {
+      north,
+      south,
+      ov,
+      labels: { n: lab(POLAR_LABELS.n), s: lab(POLAR_LABELS.s) },
+      kpNow: o.kpNow,
+      kpMax24: next.length ? Math.max(...next.map((r) => r.kp)) : null,
+      forecast: g.forecast,
+    };
+  },
+};
+
 const roadMap: SlideDef<RoadData> = {
   id: 'roadmap',
   title: 'slide.roadmap',
@@ -729,7 +792,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, auroraGlobe, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

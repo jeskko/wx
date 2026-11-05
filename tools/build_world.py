@@ -112,7 +112,7 @@ def main():
     only = set(sys.argv[2:])
     OUT.mkdir(parents=True, exist_ok=True)
     cache: dict = {}
-    for v in world.views():
+    for v in world.views() + world.polar_views():
         if only and v["id"] not in only:
             continue
         data = build(v, ne_dir, cache)

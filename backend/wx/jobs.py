@@ -8,6 +8,7 @@ Output layout (all JSON, relative to DATA_DIR):
   aviation.json          METAR + TAF for configured airports
   warnings/fi.json       FMI CAP warnings with polygons and fi/sv/en texts
   aurora.json            Kp, OVATION Nordic grid, solar wind, FI magnetometers
+  aurora/ovation.png     OVATION probabilities for both polar caps (see swpc.ovation_png)
   radar/fi/index.json    radar frame list (+ radar/fi/<time>.png, last hour, 5-min steps)
   radar/local/<place>/   500 m radar windows (250 km) around each Finnish place
   nowcast/<place>.json   MET Norway radar nowcast, 5-min precipitation for the next 90 min
@@ -136,7 +137,14 @@ def job_warnings() -> dict:
 def job_aurora() -> dict:
     out: dict = {"updated": iso(utcnow())}
     errors = []
-    for key, fn in (("kp", swpc.kp), ("ovation", swpc.ovation), ("solarwind", swpc.solar_wind), ("mag", fmi.magnetometer)):
+    def ovation() -> dict:
+        raw = swpc.ovation_raw()
+        write_bytes("aurora/ovation.png", swpc.ovation_png(raw))
+        ov = swpc.parse_ovation(raw)
+        out["ovationGlobal"] = {"file": "aurora/ovation.png", "observed": ov["observed"], "forecast": ov["forecast"]}
+        return ov
+
+    for key, fn in (("kp", swpc.kp), ("ovation", ovation), ("solarwind", swpc.solar_wind), ("mag", fmi.magnetometer)):
         try:
             out[key] = fn()
         except Exception as e:

@@ -151,3 +151,16 @@ def test_geonames_helpers():
     assert geonames.shard("Ähtäri") == "ah" and geonames.shard("Ii") == "ii" and geonames.shard("Ö") == "_"
     assert geonames.finnish_name("Jakobstad", ["Pietarsaari", "Pietasaari"]) == "Pietarsaari"
     assert geonames.finnish_name("Jätkäsaari", ["Busis", "Jätkäsaari"]) == ""
+
+
+def test_ovation_png(fixture_json):
+    import io
+
+    from PIL import Image
+
+    raw = fixture_json("ovation.json")
+    img = Image.open(io.BytesIO(swpc.ovation_png(raw)))
+    assert img.size == (360, 92) and img.mode == "L"
+    want = {(int(lon) % 360, swpc.OV_ROWS.index(int(lat))): int(v) for lon, lat, v in raw["coordinates"] if int(lat) in swpc.OV_ROWS}
+    (x, y), v = max(want.items(), key=lambda kv: kv[1])
+    assert img.getpixel((x, y)) == v > 0

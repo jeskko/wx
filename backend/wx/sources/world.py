@@ -49,6 +49,11 @@ def views() -> list[dict]:
     return out
 
 
+def polar_views() -> list[dict]:
+    """Hemisphere views centred on the poles (aurora); basemaps only, no model rasters."""
+    return [{**v, "kind": "region"} for v in WORLD.get("polar", [])]
+
+
 def extent(v: dict) -> tuple[float, float, float, float]:
     return (-v["hw"] * 1000.0, -v["hh"] * 1000.0, v["hw"] * 1000.0, v["hh"] * 1000.0)
 
@@ -70,6 +75,11 @@ def latlon_box(v: dict, margin: float = 1.0) -> tuple[float, float, float, float
     # a pole inside the view: all longitudes needed
     if p.inverse(0, 0)[0] + v["hh"] / 111 > 89 or lo1 - lo0 > 300:
         lo0, lo1 = -180.0, 180.0
+    # ... and that pole's latitude (only the pole on the view's side: the antipode is degenerate)
+    pole = 90.0 if v["lat0"] >= 0 else -90.0
+    x, y = p.forward(pole, v["lon0"])
+    if x0 <= x <= x1 and y0 <= y <= y1:
+        la0, la1 = (la0, 90.0) if pole > 0 else (-90.0, la1)
     return lo0, la0, lo1, la1  # may extend past ±180 (see download)
 
 

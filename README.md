@@ -1,7 +1,8 @@
 # wx.fi
 
 A cable-TV style weather info-screen built only on open data (FMI, Fintraffic, MET Norway,
-ECMWF via FMI, aviationweather.gov, NOAA SWPC, Natural Earth). An auto-advancing loop of
+SMHI, DMI, the Estonian and Icelandic weather services, ECMWF via FMI, aviationweather.gov,
+NOAA SWPC, GeoNames, Natural Earth). An auto-advancing loop of
 slides with background music, in Finnish and English, with a retro and a modern theme.
 Finland first, with Nordic, continental and world-capital views.
 
@@ -13,7 +14,9 @@ Finland first, with Nordic, continental and world-capital views.
 
 Everything shared is fetched centrally by the baker (one request per interval regardless of
 viewer count, identifying User-Agent, last good data survives outages, viewers' IPs stay
-with wx.fi). Browsers only load wx.fi itself.
+with wx.fi). Browsers only load wx.fi itself, with one exception: the forecast for a place
+added with the place search (outside the curated list) is fetched by the browser from MET
+Norway's locationforecast (CORS-enabled, cached 45 min in localStorage).
 
 ## Slides
 
@@ -22,7 +25,7 @@ them off per place):
 
 | id | Slide |
 |---|---|
-| `current` | Current conditions: nearest FMI station (gaps filled from stations within 50 km, METAR outside Finland); for Finnish places also a 500 m local radar loop with lightning, a 90-min MET Norway precipitation nowcast and a random nearby Digitraffic road weather camera |
+| `current` | Current conditions: nearest station from FMI, SMHI, DMI, Estonia or Iceland (gaps filled from stations within 50 km), else METAR, else the forecast for this hour; for Finnish places also a 500 m local radar loop with lightning, a 90-min MET Norway precipitation nowcast and a random nearby Digitraffic road weather camera |
 | `next36` | Seuraavat 36 tuntia / The Next 36 Hours: generated text forecast for three periods |
 | `chart` | Hourly temperature / precipitation / wind chart |
 | `extended` | Multi-day forecast |
@@ -42,15 +45,22 @@ Once per loop:
 | `airquality` | FMI air quality index on a map + table |
 | `aurora` | Aurora summary: Kp now/forecast, solar wind, FMI magnetometer traffic lights, chance per city |
 | `auroramap` | OVATION auroral oval over the Nordics |
+| `auroraglobe` | Revontulet maapallolla / Aurora Worldwide: both auroral ovals on polar maps with the night side shaded, Kp now and in 24 h |
 | `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long) |
 | `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun) |
 | `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers |
-| `map-<region>` | ECMWF temperature + precipitation, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
-| `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map |
+| `map-<region>` | ECMWF temperature + precipitation + wind particles, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
+| `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map with wind |
 | `credits` | Data sources and the tracks of the selected playlists |
 
 Long lists hold still for 2.5 s, then scroll to the bottom before the slide ends
 (`lib/autoscroll.ts`). Slides whose data is missing or stale are skipped.
+
+Places: the curated list (`backend/wx/places.yaml`, everything baked) plus any town found
+with the place search in the settings (GeoNames: every city of 15 000+ inhabitants, every
+place of 1 000+ in the Nordic and Baltic countries, Finnish names for Finnish places). Added
+places are stored in the configuration (`custom`, ids `geo-<geonameid>`) and get the
+per-place slides with a MET Norway forecast.
 
 The default configuration (what a first-time viewer gets) is `DEFAULT_CONFIG` in
 `frontend/src/engine/config.ts`: Finnish, modern theme, places Helsinki, Oulu, Kuopio,
@@ -74,9 +84,11 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 |---|---|---|
 | places | 24 h | `places.json` (curated places in `backend/wx/places.yaml`, airports) |
 | obs | 10 min | `obs/fi.json`: latest values from all FMI stations, plus 3 h pressure tendency |
+| nordic | 20 min | `obs/nordic.json`: same shape from SMHI (Sweden), DMI (Denmark, Faroes), the Estonian Environment Agency and the Icelandic Met Office; Norway (MET Norway Frost) only if a client id is put in `$WX_STATE_DIR/frost_client_id`. A failing service keeps its stations for up to 3 h |
+| geonames | 7 days | `geo/<aa>.json`: GeoNames cities for the place search, split by the first two letters of the folded name |
 | warnings | 10 min | `warnings/fi.json`: FMI CAP warnings, fi/sv/en text, polygons |
 | aviation | 10 min | `aviation.json`: METAR and TAF |
-| aurora | 15 min | `aurora.json`: Kp observed and forecast, OVATION Nordic grid, solar wind, FI magnetometers |
+| aurora | 15 min | `aurora.json`: Kp observed and forecast, OVATION Nordic grid, solar wind, FI magnetometers; `aurora/ovation.png`: OVATION for both polar caps (8-bit, 360 × 92) |
 | forecast | 60 min | `fc/<place>.json`: hourly and daily (FMI edited forecast; MET Norway outside FMI's area) |
 | radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured; fetched at the native 500 m, saved at 2 km nationally + 250 km windows at 500 m per Finnish place in `radar/local/<place>/` |
 | roads | 15 min | `roads/fi.json`: Digitraffic road condition forecast per road section (projected paths) + road weather stations |
@@ -101,7 +113,7 @@ previous output files stay in place.
 cd frontend
 npm install
 npm run dev        # http://localhost:5173/wx/app/  (data proxied from https://wx.fi; WX_DATA_ORIGIN to override)
-npm test           # vitest: text forecast, config, projections, rasters, nowcast, sky (vs. JPL Horizons)
+npm test           # vitest: text forecast, config, projections, rasters, nowcast, sky (vs. JPL Horizons), place search, MET Norway port
 npm run check      # svelte-check / TypeScript
 npm run build      # dist/index.html (site root) + dist/app/ (served at /wx/app/)
 npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot every slide
@@ -141,8 +153,8 @@ curl -s https://wx.fi/wx/data/health.json
 
 Finnish maps use ETRS-TM35FIN (EPSG:3067); the projection exists in `backend/wx/proj.py` and
 `frontend/src/map/proj.ts` (kept in sync, both tested against the same values). World views
-(regions and capitals, defined in `backend/wx/world.json`) use a spherical Lambert azimuthal
-equal-area projection centred on each view (`wx/laea.py`, `map/laea.ts`). Basemaps are built
+(regions, capitals and the two polar aurora views, defined in `backend/wx/world.json`) use a
+spherical Lambert azimuthal equal-area projection centred on each view (`wx/laea.py`, `map/laea.ts`). Basemaps are built
 once from Natural Earth GeoJSON (public domain) and committed:
 
 ```sh
@@ -153,8 +165,10 @@ python3 tools/build_world.py <dir with ne_10m_* and ne_50m_* .geojson> [view id 
 
 ## Data licences
 
-FMI, MET Norway, Fintraffic/Digitraffic (incl. weather camera images), ECMWF (via FMI):
-CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain. Natural Earth: public domain.
+FMI, MET Norway, SMHI, DMI, Fintraffic/Digitraffic (incl. weather camera images), ECMWF
+(via FMI), GeoNames: CC BY 4.0. Estonian Environment Agency and Icelandic Met Office: open
+data, credited by name (no licence stated for these feeds). aviationweather.gov and NOAA
+SWPC: US public domain. Natural Earth: public domain.
 Music: CC BY 4.0 (credited per track). Planet positions use JPL's published approximate
 Keplerian elements; sun and moon via suncalc (2.x returns degrees, azimuth from north).
 The info-screen has a credits slide listing them.

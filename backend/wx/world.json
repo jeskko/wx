@@ -1,5 +1,9 @@
 {
   "_comment": "Map views outside Finland. Regions and capitals use a spherical Lambert azimuthal equal-area projection centred on lat0/lon0; extents are +-half sizes in km. tools/build_world.py builds basemaps from this and copies it to frontend/src/map/world.json.",
+  "polar": [
+    {"id": "pole-n", "lat0": 90, "lon0": 25, "hw": 5600, "hh": 5600, "tol": 20000},
+    {"id": "pole-s", "lat0": -90, "lon0": 155, "hw": 5600, "hh": 5600, "tol": 20000}
+  ],
   "regions": [
     {
       "id": "scandinavia", "fi": "Pohjoismaat", "en": "Nordic Countries",

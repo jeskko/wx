@@ -39,7 +39,7 @@
 
 <div class="wm">
   <div class="mapbox">
-    <FieldMap base={data.base} grid={data.grid} w={size.w} h={size.h} cities={data.cities} startMs={ctx.now.getTime()} bind:time={t} bind:progress />
+    <FieldMap base={data.base} grid={data.grid} w={size.w} h={size.h} cities={data.cities} startMs={ctx.now.getTime()} wind bind:time={t} bind:progress />
   </div>
   <div class="panel side">
     <div class="region">{data.name}</div>
@@ -59,6 +59,7 @@
       {/each}
       <li class="unit">mm/h</li>
     </ul>
+    <p class="windnote"><i></i>{L === 'fi' ? 'tuuli (10 m)' : 'wind (10 m)'}</p>
     <p class="note">{L === 'fi' ? 'Seuraavat 48 tuntia · ECMWF · Ilmatieteen laitoksen avoin data' : 'Next 48 hours · ECMWF · Finnish Meteorological Institute open data'}</p>
   </div>
 </div>
@@ -141,6 +142,19 @@
   }
   .unit {
     color: var(--c-label);
+  }
+  .windnote {
+    margin: 4px 0 0;
+    font-size: 18px;
+    color: var(--c-label);
+  }
+  .windnote i {
+    display: inline-block;
+    width: 26px;
+    height: 0;
+    border-top: 2px solid rgba(255, 255, 255, 0.85);
+    vertical-align: middle;
+    margin-right: 8px;
   }
   .note {
     margin-top: auto;

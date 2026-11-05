@@ -65,8 +65,34 @@ def kp() -> dict:
     }
 
 
+def ovation_raw() -> dict:
+    return net.get_json(f"{BASE}/json/ovation_aurora_latest.json")
+
+
 def ovation() -> dict:
-    return parse_ovation(net.get_json(f"{BASE}/json/ovation_aurora_latest.json"))
+    return parse_ovation(ovation_raw())
+
+
+# global grid as an 8-bit greyscale PNG (value = probability %): 360 columns = longitude 0..359 E,
+# rows 0..45 = latitude 90..45 N, rows 46..91 = latitude 45..90 S
+OV_ROWS = [90 - i for i in range(46)] + [-45 - i for i in range(46)]
+
+
+def ovation_png(d: dict) -> bytes:
+    import io
+
+    from PIL import Image
+
+    row = {lat: i for i, lat in enumerate(OV_ROWS)}
+    img = Image.new("L", (360, len(OV_ROWS)), 0)
+    px = img.load()
+    for lon, lat, v in d["coordinates"]:
+        i = row.get(int(lat))
+        if i is not None:
+            px[int(lon) % 360, i] = max(0, min(255, int(v)))
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
 
 
 def solar_wind() -> dict | None:

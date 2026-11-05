@@ -27,6 +27,7 @@
     duration = 10000,
     time = $bindable(0),
     progress = $bindable(0),
+    wind = false,
   }: {
     base: Basemap;
     grid: Grid;
@@ -40,6 +41,8 @@
     duration?: number;
     time?: number;
     progress?: number;
+    /** animate wind particles from the grid's u/v fields (m/s along map axes) */
+    wind?: boolean;
   } = $props();
 
   // precipitation mm/h -> colour (same family as the radar palette)
@@ -67,6 +70,7 @@
   });
   let labels = $state<MapLabel[]>([]);
   let canvas: HTMLCanvasElement | undefined = $state();
+  let pcanvas: HTMLCanvasElement | undefined = $state();
 
   $effect(() => {
     if (!canvas) return;
@@ -87,6 +91,45 @@
     let t0 = performance.now();
     let raf = 0;
     let lastBadge = -1;
+
+    // wind particles: short white trails; pixel speed is visual (10 m/s ~ 1.3 px per frame)
+    const pc = wind && pcanvas ? pcanvas.getContext('2d') : null;
+    if (pcanvas) {
+      pcanvas.width = w;
+      pcanvas.height = h;
+    }
+    const px = pixel(base.extent, w, h, fwd);
+    const K = 0.13;
+    const spawn = () => ({ x: Math.random() * w, y: Math.random() * h, age: 40 + Math.floor(Math.random() * 80) });
+    const parts = pc ? Array.from({ length: Math.round((w * h) / 320) }, spawn) : [];
+    const moveParticles = (tf: number) => {
+      if (!pc) return;
+      pc.globalCompositeOperation = 'destination-out';
+      pc.fillStyle = 'rgba(0,0,0,0.09)';
+      pc.fillRect(0, 0, w, h);
+      pc.globalCompositeOperation = 'source-over';
+      pc.lineWidth = 1.2;
+      pc.lineCap = 'round';
+      pc.strokeStyle = 'rgba(255,255,255,0.7)';
+      pc.beginPath();
+      for (const p of parts) {
+        const [e, n] = px.toMap(p.x, p.y);
+        const u = g.sample('u', tf, e, n);
+        const v = g.sample('v', tf, e, n);
+        if (Number.isNaN(u) || Number.isNaN(v) || p.age-- <= 0) {
+          Object.assign(p, spawn());
+          continue;
+        }
+        const nx2 = p.x + u * K;
+        const ny2 = p.y - v * K;
+        pc.moveTo(p.x, p.y);
+        pc.lineTo(nx2, ny2);
+        p.x = nx2;
+        p.y = ny2;
+        if (p.x < 0 || p.y < 0 || p.x > w || p.y > h) Object.assign(p, spawn());
+      }
+      pc.stroke();
+    };
 
     const draw = (now: number) => {
       let el = now - t0;
@@ -135,6 +178,7 @@
       sctx.putImageData(img, 0, 0);
       c2d.clearRect(0, 0, w, h);
       drawGridImage(c2d, small, g, base.extent, w, h);
+      moveParticles(tf);
       // badges: refresh a few times per second, not every frame
       const bucket = Math.floor(el / 250);
       if (bucket !== lastBadge) {
@@ -157,4 +201,5 @@
 
 <MapView {base} {w} {h} {labels} outline>
   <canvas bind:this={canvas}></canvas>
+  {#if wind}<canvas bind:this={pcanvas}></canvas>{/if}
 </MapView>
