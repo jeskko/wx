@@ -48,6 +48,7 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'regional', enabled: true, duration: 14 },
   { id: 'windmap', enabled: true, duration: 12 },
   { id: 'roadmap', enabled: true, duration: 12 },
+  { id: 'traffic', enabled: true, duration: 14 },
   { id: 'sea', enabled: true, duration: 14 },
   { id: 'airquality', enabled: true, duration: 12 },
   { id: 'aurora', enabled: true, duration: 14 },

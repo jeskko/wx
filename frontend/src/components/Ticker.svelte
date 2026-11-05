@@ -6,6 +6,7 @@
   import { num, temp } from '../lib/format';
   import type { Lang, Place } from '../lib/types';
   import { nearestStation } from '../lib/wx';
+  import { featureText, titleText } from '../lib/traffic';
 
   let { lang, place }: { lang: Lang; place: Place | null } = $props();
 
@@ -22,6 +23,7 @@
         api.warnings().catch(() => null),
         api.aurora().catch(() => null),
       ]);
+      const tr = await api.traffic().catch(() => null);
       if (w) {
         const active = w.warnings.filter((x) => !x.expires || Date.parse(x.expires) > Date.now());
         const severe = active.filter((x) => x.color === 'orange' || x.color === 'red');
@@ -29,6 +31,11 @@
           const tx = x.text[lang] ?? x.text.fi;
           if (tx?.headline) out.push(`⚠ ${tx.headline}`);
         }
+      }
+      // accidents and closures from the last 6 hours
+      for (const m of (tr?.messages ?? []).filter((x) => (x.kind === 'accident' || x.kind === 'closed') && x.start && Date.now() - Date.parse(x.start) < 6 * 3600_000).slice(0, 3)) {
+        const f = m.features[0] ? `: ${featureText(lang, m.features[0])}` : '';
+        out.push(`${lang === 'fi' ? 'Liikenne' : 'Traffic'} – ${titleText(lang, m.title)}${f}`);
       }
       if (pf && obs) {
         const temps = CITIES.map((id) => pf.places.find((p) => p.id === id))

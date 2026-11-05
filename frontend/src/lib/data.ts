@@ -5,6 +5,7 @@
 import { customForecast } from './customfc';
 import type { Place } from './types';
 import type { PassesFile } from './types';
+import type { TrafficFile } from './traffic';
 import type { CamsFile, CapitalsFile, AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
 import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
@@ -92,6 +93,7 @@ export const api = {
   cams: () => load<CamsFile>('cams/fi/index.json', 300),
   world: () => load<WorldIndex>('world/index.json', 1800),
   capitals: () => load<CapitalsFile>('world/capitals.json', 900),
+  traffic: () => load<TrafficFile>('roads/messages.json', 240),
   passes: () => load<PassesFile>('sky/passes.json', 3600),
   airquality: () => load<AirQualityFile>('airquality/fi.json', 900),
 };

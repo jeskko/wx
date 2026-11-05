@@ -26,7 +26,7 @@
     { name: 'DMI', what: { fi: 'havainnot Tanskasta ja Färsaarilta', en: 'observations in Denmark and the Faroe Islands' }, lic: 'CC BY 4.0' },
     { name: 'Keskkonnaagentuur / Estonian Environment Agency', what: { fi: 'havainnot Virosta', en: 'observations in Estonia' }, lic: L === 'fi' ? 'avoin data' : 'open data' },
     { name: 'Veðurstofa Íslands / Icelandic Met Office', what: { fi: 'havainnot Islannista', en: 'observations in Iceland' }, lic: L === 'fi' ? 'avoin data' : 'open data' },
-    { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli, tiesääasemat ja kelikamerat', en: 'road conditions, road weather stations and weather cameras' }, lic: 'CC BY 4.0' },
+    { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli, tiesääasemat, kelikamerat ja liikennetiedotteet', en: 'road conditions, road weather stations, weather cameras and traffic announcements' }, lic: 'CC BY 4.0' },
     { name: 'ECMWF', what: { fi: 'maailmankartat (Ilmatieteen laitoksen avoimen datan kautta)', en: 'world maps (via FMI open data)' }, lic: 'CC BY 4.0' },
     { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolelle ja haetuille paikoille', en: 'precipitation nowcast, forecasts outside Finland and for searched places' }, lic: 'CC BY 4.0' },
     { name: 'CelesTrak', what: { fi: 'avaruusasemien ratatiedot (ylilennot lasketaan SGP4-mallilla)', en: 'space station orbital elements (passes computed with SGP4)' }, lic: L === 'fi' ? 'avoin data' : 'open data' },

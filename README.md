@@ -41,6 +41,7 @@ Once per loop:
 | `regional` | Regional observations table |
 | `windmap` | Wind particles (50 km HARMONIE grid) |
 | `roadmap` | Digitraffic driving conditions per road section, now → +12 h |
+| `traffic` | Liikennetiedotteet / Traffic Announcements: active Digitraffic announcements (accidents, closures, congestion …) on a map + list; recent accidents and closures also run in the ticker. The feed is Finnish only; English uses our own translations of the fixed feature vocabulary |
 | `sea` | Merisää / Sea Conditions: coastal winds, wave buoys, sea level and water temperature |
 | `airquality` | FMI air quality index on a map + table |
 | `aurora` | Aurora summary: Kp now/forecast, solar wind, FMI magnetometer traffic lights, chance per city |
@@ -93,6 +94,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | forecast | 60 min | `fc/<place>.json`: hourly and daily (FMI edited forecast; MET Norway outside FMI's area) |
 | radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured; fetched at the native 500 m, saved at 2 km nationally + 250 km windows at 500 m per Finnish place in `radar/local/<place>/` |
 | roads | 15 min | `roads/fi.json`: Digitraffic road condition forecast per road section (projected paths) + road weather stations |
+| traffic | 5 min | `roads/messages.json`: active Digitraffic traffic announcements (title, features, location, kind: accident / closed / lane / other), accidents and the last 24 h first |
 | cams | 15 min | `cams/fi/index.json` + `cams/fi/<preset>.jpg`: up to 3 Digitraffic road weather cameras within 30 km of each Finnish place, 640 px; each run refreshes the oldest image per place |
 | nowcast | 10 min | `nowcast/<place>.json`: MET Norway radar nowcast, 5-min precipitation rate for ~90 min (Nordic coverage) |
 | sea | 30 min | `sea/fi.json`: FMI wave buoys (Hs, direction, water temp) + mareographs (sea level vs. theoretical mean, trend) |

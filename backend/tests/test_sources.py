@@ -185,3 +185,16 @@ def test_satellite_geometry(fixture_bytes):
     # half lit at 1000 km = the standard magnitude; full phase is ~1.2 mag brighter
     assert abs(s.magnitude(-1.8, np.array([1000.0]), np.array([np.pi / 2]))[0] + 1.8) < 1e-9
     assert s.magnitude(-1.8, np.array([1000.0]), np.array([0.0]))[0] < -2.9
+
+
+def test_traffic_messages(fixture_json):
+    from wx.sources import digitraffic
+
+    ms = digitraffic.parse_messages(fixture_json("dt_messages.json"))
+    assert len(ms) == 11
+    jamsa = next(m for m in ms if m["title"] == "Tie 56, Jämsä")
+    assert jamsa["kind"] == "lane" and jamsa["road"] == 56 and jamsa["municipality"] == "Jämsä"
+    assert "Ajokaista suljettu liikenteeltä" in jamsa["features"]
+    assert all("Liikennetiedote" not in m["title"] and m["title"] for m in ms)
+    assert next(m for m in ms if m["road"] == 6050)["title"] == "Tie 6050, Jämsä"
+    assert digitraffic.message_kind("ACCIDENT_REPORT", []) == "accident"

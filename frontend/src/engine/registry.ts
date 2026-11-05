@@ -33,6 +33,7 @@ import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
 import RoadMap, { type RoadData } from '../slides/RoadMap.svelte';
+import Traffic, { type TrafficData } from '../slides/Traffic.svelte';
 import Sea, { type SeaData, type SeaWind } from '../slides/Sea.svelte';
 import WorldMap, { type WorldMapData } from '../slides/WorldMap.svelte';
 import Capital, { type CapitalData } from '../slides/Capital.svelte';
@@ -654,6 +655,18 @@ const auroraGlobe: SlideDef<AuroraGlobeData> = {
   },
 };
 
+const traffic: SlideDef<TrafficData> = {
+  id: 'traffic',
+  title: 'slide.traffic',
+  scope: 'global',
+  component: Traffic,
+  async prepare({ lang, now }) {
+    const [base, f, labels] = await Promise.all([loadBasemap('fi'), soft(api.traffic()), labelsFor(FI_LABELS, lang)]);
+    if (!f || now.getTime() - Date.parse(f.updated) > 60 * 60_000) return null;
+    return { base, labels, messages: f.messages, updated: f.updated };
+  },
+};
+
 const roadMap: SlideDef<RoadData> = {
   id: 'roadmap',
   title: 'slide.roadmap',
@@ -813,7 +826,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, sea, airQuality, aurora, auroraMap, auroraGlobe, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

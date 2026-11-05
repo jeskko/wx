@@ -1,0 +1,766 @@
+{
+  "type" : "FeatureCollection",
+  "dataUpdatedTime" : "2026-11-05T09:08:11Z",
+  "features" : [ {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 24.860332, 61.985418 ]
+    },
+    "properties" : {
+      "situationId" : "GUID50473235",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-11-05T09:07:57.477Z",
+      "versionTime" : "2026-11-05T09:07:57.450Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 56, Jämsä. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 56 välillä Jämsä - Mänttä, Jämsä.\nTarkempi paikka: Paikasta Kantolan silta 8,6 km, suuntaan Vedenpää."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Jämsä",
+              "province" : "Keski-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 56,
+                "roadSection" : 5,
+                "distance" : 2922
+              },
+              "alertCLocation" : {
+                "locationCode" : 2972,
+                "name" : "Kantolan silta",
+                "distance" : 8573
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Jämsä",
+              "province" : "Keski-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 56,
+                "roadSection" : 5,
+                "distance" : 2922
+              },
+              "alertCLocation" : {
+                "locationCode" : 2975,
+                "name" : "Vedenpää",
+                "distance" : 4417
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "locationOpenLr" : {
+          "binary" : "IxGtsCwUGg=="
+        },
+        "features" : [ {
+          "name" : "Raskaan ajoneuvon nostotyö"
+        }, {
+          "name" : "Ajokaista suljettu liikenteeltä"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "",
+        "timeAndDuration" : {
+          "startTime" : "2026-11-05T09:06:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "tampere.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-11-05T09:08:11Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "MultiLineString",
+      "coordinates" : [ [ [ 25.255566, 61.949595 ], [ 25.255413, 61.949611 ], [ 25.255376, 61.949616 ], [ 25.254900, 61.949680 ], [ 25.254425, 61.949755 ], [ 25.254404, 61.949759 ], [ 25.253944, 61.949845 ], [ 25.253883, 61.949856 ], [ 25.253649, 61.949917 ], [ 25.253619, 61.949925 ], [ 25.253358, 61.949999 ], [ 25.253343, 61.950003 ], [ 25.253115, 61.950069 ], [ 25.253108, 61.950071 ], [ 25.252824, 61.950162 ], [ 25.252814, 61.950166 ], [ 25.252476, 61.950283 ], [ 25.252466, 61.950286 ], [ 25.252099, 61.950415 ], [ 25.252079, 61.950422 ], [ 25.251748, 61.950543 ], [ 25.251740, 61.950545 ], [ 25.251540, 61.950616 ], [ 25.251527, 61.950621 ], [ 25.251510, 61.950628 ], [ 25.251360, 61.950690 ], [ 25.251137, 61.950769 ], [ 25.251107, 61.950780 ], [ 25.250865, 61.950867 ], [ 25.250843, 61.950875 ], [ 25.250336, 61.951065 ], [ 25.250308, 61.951076 ], [ 25.249795, 61.951262 ], [ 25.249786, 61.951265 ], [ 25.249241, 61.951462 ], [ 25.249229, 61.951467 ], [ 25.249022, 61.951547 ], [ 25.248994, 61.951557 ], [ 25.248324, 61.951795 ], [ 25.248305, 61.951801 ], [ 25.247760, 61.951997 ], [ 25.247748, 61.952001 ], [ 25.247348, 61.952139 ], [ 25.247330, 61.952145 ], [ 25.246929, 61.952282 ], [ 25.246907, 61.952289 ], [ 25.246574, 61.952409 ], [ 25.246552, 61.952417 ], [ 25.246335, 61.952490 ], [ 25.246090, 61.952576 ], [ 25.245744, 61.952692 ], [ 25.245731, 61.952696 ], [ 25.245399, 61.952816 ], [ 25.245388, 61.952820 ], [ 25.245141, 61.952904 ], [ 25.245111, 61.952913 ], [ 25.244856, 61.952991 ], [ 25.244830, 61.952999 ], [ 25.244418, 61.953129 ], [ 25.244386, 61.953139 ], [ 25.244329, 61.953155 ] ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50473234",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-11-05T08:51:55.793Z",
+      "versionTime" : "2026-11-05T08:51:55.775Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 6050, Jämsä. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 6050 välillä Jämsänkoski - Juokslahti, Jämsä.\nTarkempi paikka: Paikasta Savio 2,7 km, vaikutusalue 700 m, suuntaan Harjunkangas."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Jämsä",
+              "province" : "Keski-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 6050,
+                "roadSection" : 2,
+                "distance" : 2132
+              },
+              "alertCLocation" : {
+                "locationCode" : 21398,
+                "name" : "Savio",
+                "distance" : 2697
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Jämsä",
+              "province" : "Keski-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 6050,
+                "roadSection" : 2,
+                "distance" : 1416
+              },
+              "alertCLocation" : {
+                "locationCode" : 21397,
+                "name" : "Harjunkangas",
+                "distance" : 2859
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "locationOpenLr" : {
+          "binary" : "CxH1rywNlBt5DPtcAXEbagQH",
+          "secondaryBinary" : "CxHzhiwOQBtqDASk/o8beQcE"
+        },
+        "features" : [ {
+          "name" : "Tie on suljettu liikenteeltä"
+        }, {
+          "name" : "Raskaan ajoneuvon nostotyö"
+        } ],
+        "roadWorkPhases" : [ ],
+        "timeAndDuration" : {
+          "startTime" : "2026-11-05T08:46:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "tampere.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-11-05T08:52:11Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : null,
+    "properties" : {
+      "situationId" : "GUID50473210",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 32,
+      "releaseTime" : "2026-11-05T03:20:52.472Z",
+      "versionTime" : "2026-11-05T06:26:29.994Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Liikennetiedote. Tilanne jatkuu. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Maan keskiosa, Maan pohjoisosa"
+        },
+        "locationDetails" : {
+          "areaLocation" : {
+            "areas" : [ {
+              "name" : "Maan keskiosa",
+              "locationCode" : 36996,
+              "type" : "WEATHER_REGION"
+            }, {
+              "name" : "Maan pohjoisosa",
+              "locationCode" : 36988,
+              "type" : "WEATHER_REGION"
+            } ]
+          }
+        },
+        "features" : [ {
+          "name" : "Huono ajokeli"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Tienpinnat ovat paikoin liukkaita",
+        "timeAndDuration" : {
+          "startTime" : "2026-11-05T03:00:00Z",
+          "endTime" : "2026-11-05T10:00:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "tampere.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-11-05T06:27:21Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "MultiLineString",
+      "coordinates" : [ [ [ 22.240094, 60.431264 ], [ 22.240096, 60.431283 ], [ 22.240123, 60.431408 ], [ 22.240193, 60.431621 ], [ 22.240199, 60.431638 ], [ 22.240310, 60.431919 ], [ 22.240374, 60.432025 ], [ 22.240402, 60.432069 ], [ 22.240406, 60.432074 ], [ 22.240561, 60.432275 ], [ 22.240574, 60.432292 ], [ 22.240722, 60.432494 ], [ 22.240947, 60.432817 ], [ 22.240952, 60.432824 ], [ 22.241145, 60.433095 ], [ 22.241398, 60.433434 ], [ 22.241405, 60.433443 ], [ 22.241474, 60.433526 ], [ 22.241480, 60.433533 ], [ 22.241524, 60.433577 ], [ 22.241528, 60.433582 ], [ 22.241738, 60.433770 ], [ 22.241905, 60.433909 ], [ 22.241920, 60.433921 ], [ 22.241940, 60.433936 ], [ 22.242025, 60.433994 ], [ 22.242140, 60.434063 ], [ 22.242152, 60.434070 ], [ 22.242350, 60.434175 ], [ 22.242368, 60.434185 ], [ 22.242601, 60.434298 ], [ 22.242627, 60.434310 ], [ 22.242654, 60.434322 ], [ 22.242905, 60.434426 ], [ 22.242924, 60.434433 ], [ 22.243153, 60.434522 ], [ 22.243454, 60.434623 ], [ 22.243481, 60.434632 ], [ 22.243897, 60.434775 ], [ 22.243907, 60.434778 ], [ 22.244393, 60.434936 ], [ 22.244398, 60.434937 ], [ 22.244661, 60.435033 ] ], [ [ 22.237935, 60.423663 ], [ 22.237957, 60.423675 ], [ 22.238416, 60.423953 ], [ 22.238540, 60.424041 ], [ 22.238653, 60.424133 ], [ 22.238661, 60.424140 ], [ 22.238696, 60.424172 ], [ 22.238793, 60.424268 ], [ 22.238934, 60.424433 ], [ 22.239095, 60.424653 ], [ 22.239105, 60.424669 ], [ 22.239164, 60.424773 ], [ 22.239212, 60.424877 ], [ 22.239214, 60.424881 ], [ 22.239238, 60.424952 ], [ 22.239291, 60.425165 ], [ 22.239293, 60.425176 ], [ 22.239437, 60.425781 ], [ 22.239560, 60.426275 ], [ 22.239562, 60.426284 ], [ 22.239773, 60.427121 ], [ 22.239829, 60.427328 ], [ 22.239871, 60.427484 ], [ 22.239963, 60.427821 ], [ 22.240083, 60.428285 ], [ 22.240087, 60.428302 ], [ 22.240178, 60.428658 ], [ 22.240181, 60.428672 ], [ 22.240261, 60.429065 ], [ 22.240266, 60.429101 ], [ 22.240288, 60.429405 ], [ 22.240286, 60.429515 ], [ 22.240256, 60.429802 ], [ 22.240164, 60.430213 ], [ 22.240086, 60.430424 ], [ 22.240040, 60.430596 ], [ 22.240009, 60.430775 ], [ 22.240008, 60.430782 ], [ 22.239984, 60.430925 ], [ 22.239982, 60.430979 ], [ 22.239982, 60.430997 ], [ 22.239983, 60.431010 ], [ 22.239993, 60.431100 ], [ 22.239994, 60.431108 ], [ 22.239995, 60.431144 ], [ 22.239998, 60.431162 ], [ 22.240005, 60.431181 ], [ 22.240016, 60.431198 ], [ 22.240031, 60.431215 ], [ 22.240049, 60.431230 ], [ 22.240089, 60.431260 ], [ 22.240094, 60.431264 ] ], [ [ 22.238049, 60.423620 ], [ 22.238450, 60.423852 ], [ 22.238461, 60.423859 ], [ 22.238682, 60.424001 ], [ 22.238785, 60.424075 ], [ 22.238800, 60.424086 ], [ 22.238950, 60.424208 ], [ 22.238968, 60.424225 ], [ 22.239085, 60.424336 ], [ 22.239159, 60.424418 ], [ 22.239198, 60.424469 ], [ 22.239201, 60.424473 ], [ 22.239257, 60.424558 ], [ 22.239328, 60.424698 ], [ 22.239343, 60.424733 ], [ 22.239441, 60.425016 ], [ 22.239445, 60.425033 ], [ 22.239549, 60.425426 ], [ 22.239711, 60.426031 ], [ 22.239712, 60.426034 ], [ 22.239850, 60.426568 ], [ 22.239853, 60.426579 ], [ 22.240034, 60.427309 ], [ 22.240036, 60.427317 ], [ 22.240081, 60.427475 ], [ 22.240180, 60.427939 ], [ 22.240183, 60.427951 ], [ 22.240287, 60.428396 ], [ 22.240291, 60.428410 ], [ 22.240394, 60.428819 ], [ 22.240394, 60.428822 ], [ 22.240458, 60.429072 ], [ 22.240460, 60.429079 ], [ 22.240493, 60.429294 ], [ 22.240494, 60.429298 ], [ 22.240517, 60.429584 ], [ 22.240518, 60.429599 ], [ 22.240450, 60.429921 ], [ 22.240445, 60.429938 ], [ 22.240342, 60.430239 ], [ 22.240341, 60.430244 ], [ 22.240287, 60.430434 ], [ 22.240238, 60.430618 ], [ 22.240165, 60.430849 ], [ 22.240161, 60.430862 ], [ 22.240117, 60.431095 ], [ 22.240095, 60.431256 ], [ 22.240094, 60.431264 ] ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50471971",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-10-07T07:16:37.191Z",
+      "versionTime" : "2026-10-07T07:16:37.173Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 1821, Turku. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 1821 välillä Uudenmaankatu - Kakskerta, Turku.\nTarkempi paikka: Välillä Hirvensalon silta - Perämiehenkatu. Hirvensalon puistotien ja Vähäheikkiläntien risteys."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Turku",
+              "province" : "Varsinais-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 1821,
+                "roadSection" : 2,
+                "distance" : 0
+              },
+              "alertCLocation" : {
+                "locationCode" : 18043,
+                "name" : "Hirvensalon silta",
+                "distance" : 0
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Turku",
+              "province" : "Varsinais-Suomi",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 1821,
+                "roadSection" : 1,
+                "distance" : 2542
+              },
+              "alertCLocation" : {
+                "locationCode" : 27463,
+                "name" : "Perämiehenkatu",
+                "distance" : 0
+              }
+            },
+            "direction" : "BOTH"
+          }
+        },
+        "locationOpenLr" : {
+          "binary" : "Iw/QTSr3yw=="
+        },
+        "features" : [ {
+          "name" : "Liikennejärjestelyt ovat muuttuneet"
+        }, {
+          "name" : "Liikenne ruuhkautuu"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Tienrakennustyö.",
+        "timeAndDuration" : {
+          "startTime" : "2026-10-07T07:00:00Z",
+          "endTime" : "2026-11-30T13:00:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "turku.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-10-07T07:16:51Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "MultiLineString",
+      "coordinates" : [ [ [ 24.799014, 60.590026 ], [ 24.798887, 60.590033 ], [ 24.798859, 60.590034 ], [ 24.798679, 60.590048 ], [ 24.798656, 60.590050 ], [ 24.798620, 60.590051 ], [ 24.798583, 60.590052 ], [ 24.798547, 60.590052 ], [ 24.798510, 60.590051 ], [ 24.798365, 60.590047 ], [ 24.798350, 60.590046 ], [ 24.797695, 60.590025 ], [ 24.797669, 60.590024 ], [ 24.797014, 60.590001 ], [ 24.796982, 60.590000 ], [ 24.796763, 60.589994 ], [ 24.796734, 60.589993 ], [ 24.796444, 60.589979 ], [ 24.796431, 60.589978 ] ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50470228",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-09-06T02:03:04.191Z",
+      "versionTime" : "2026-09-06T02:03:04.150Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 11443, eli Nopontie, Hyvinkää. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 11443, eli Nopontie, Hyvinkää.\nTarkempi paikka: Paikasta Tervamäki, vaikutusalue 100 m, suuntaan Nopontien tasoristeys."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Hyvinkää",
+              "province" : "Uusimaa",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 11443,
+                "roadSection" : 1,
+                "distance" : 3634
+              },
+              "roadName" : "Nopontie",
+              "alertCLocation" : {
+                "locationCode" : 42146,
+                "name" : "Tervamäki",
+                "distance" : 1
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Hyvinkää",
+              "province" : "Uusimaa",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 11443,
+                "roadSection" : 1,
+                "distance" : 3492
+              },
+              "roadName" : "Nopontie",
+              "alertCLocation" : {
+                "locationCode" : 42714,
+                "name" : "Nopontien tasoristeys",
+                "distance" : 2697
+              }
+            },
+            "direction" : "BOTH"
+          }
+        },
+        "locationOpenLr" : {
+          "binary" : "IzXSoQGbCQ=="
+        },
+        "features" : [ {
+          "name" : "Tie on suljettu liikenteeltä"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Siltatyö",
+        "timeAndDuration" : {
+          "startTime" : "2026-09-06T02:00:00Z",
+          "endTime" : "2026-11-30T21:00:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "helsinki.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-09-06T02:03:31Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 28.727701, 61.820359 ]
+    },
+    "properties" : {
+      "situationId" : "GUID50467543",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-07-19T07:32:51.038Z",
+      "versionTime" : "2026-07-19T07:32:51.027Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 15358, eli Pihlajaniementie, Savonlinna. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 15358, eli Pihlajaniementie, Savonlinna.\nTarkempi paikka: Koivukannan lossi."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Savonlinna",
+              "province" : "Etelä-Savo",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 15358,
+                "roadSection" : 2,
+                "distance" : 5600
+              },
+              "roadName" : "Pihlajaniementie",
+              "alertCLocation" : {
+                "locationCode" : 36973,
+                "name" : "Koivukannan lossi",
+                "distance" : 0
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "features" : [ {
+          "name" : "Lautan kantavuus on muuttunut"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Lautan kantavuus 44 tonnia.",
+        "timeAndDuration" : {
+          "startTime" : "2026-07-19T07:31:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus Tampere"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "tampere.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-07-19T07:33:21Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 27.849869, 61.554876 ]
+    },
+    "properties" : {
+      "situationId" : "GUID50465931",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-06-15T10:27:26.930Z",
+      "versionTime" : "2026-06-15T10:27:26.913Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 15147, eli Hirvensalon tie, Mikkeli. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Tie 15147, eli Hirvensalon tie, Mikkeli.\nTarkempi paikka: Kuparovirran lossi."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Mikkeli",
+              "province" : "Etelä-Savo",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 15147,
+                "roadSection" : 2,
+                "distance" : 0
+              },
+              "roadName" : "Hirvensalon tie",
+              "alertCLocation" : {
+                "locationCode" : 28355,
+                "name" : "Kuparovirran lossi",
+                "distance" : 0
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "features" : [ {
+          "name" : "Lautan kantavuus on muuttunut"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Käytössä 44 tonnin lossi. Ajoneuvon max pituus 25 m",
+        "timeAndDuration" : {
+          "startTime" : "2026-06-15T10:30:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus Tampere"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "tampere.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-06-15T10:27:51Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "LineString",
+      "coordinates" : [ [ 23.772666, 61.494956 ], [ 23.771672, 61.498554 ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50465150",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-06-01T04:15:05.563Z",
+      "versionTime" : "2026-06-01T04:15:05.504Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Rautatienkatu, Tampere. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Rautatienkatu, Tampere.\nTarkempi paikka: Välillä Vuolteenkatu - Itsenäisyydenkatu."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Rautatienkatu",
+              "alertCLocation" : {
+                "locationCode" : 11797,
+                "name" : "Vuolteenkatu",
+                "distance" : 0
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Rautatienkatu",
+              "alertCLocation" : {
+                "locationCode" : 38639,
+                "name" : "Itsenäisyydenkatu",
+                "distance" : 0
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "features" : [ {
+          "name" : "Liikennejärjestelyt ovat muuttuneet"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Ajokaistoja on suljettu liikenteeltä. \n\nLiikenne ohjataan Verkatehtaankadun risteyksen kohdalla vastakkaisen ajosuunnan kaistojen kautta kaksisuuntaisena.\n\nJalankulun ja pyöräilyn kulkuyhteyksiä on siirretty korvaaville reiteille. ",
+        "timeAndDuration" : {
+          "startTime" : "2026-06-01T04:00:00Z"
+        },
+        "sender" : "Tampereen kaupunki"
+      } ],
+      "contact" : { },
+      "dataUpdatedTime" : "2026-06-01T04:15:11Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "LineString",
+      "coordinates" : [ [ 23.775850, 61.498877 ], [ 23.779568, 61.498920 ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50465148",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-06-01T03:55:14.264Z",
+      "versionTime" : "2026-06-01T03:55:14.246Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Itsenäisyydenkatu, Tampere. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Itsenäisyydenkatu, Tampere.\nTarkempi paikka: Välillä Murtokatu - Yliopistonkatu."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Itsenäisyydenkatu",
+              "alertCLocation" : {
+                "locationCode" : 38625,
+                "name" : "Murtokatu",
+                "distance" : 0
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Itsenäisyydenkatu",
+              "alertCLocation" : {
+                "locationCode" : 38626,
+                "name" : "Yliopistonkatu",
+                "distance" : 0
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "features" : [ {
+          "name" : "Liikennejärjestelyt ovat muuttuneet"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Itsenäisyydenkatu on muutettu yksisuuntaiseksi ajosuunnassa itä (Kaleva) välillä Murtokatu - Yliopistonkatu/Tammelan puistokatu. \n\nAjoyhteys Murtokadulle Tammelan puistokadun ja Vellamonkadun kautta.\n\nTammelan puistokadulla oikealle kääntyvä kaista on suljettu.\n",
+        "timeAndDuration" : {
+          "startTime" : "2026-06-01T03:00:00Z"
+        },
+        "sender" : "Tampereen kaupunki"
+      } ],
+      "contact" : { },
+      "dataUpdatedTime" : "2026-06-01T03:55:21Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "LineString",
+      "coordinates" : [ [ 23.771694, 61.498527 ], [ 23.775850, 61.498877 ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50465147",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 1,
+      "releaseTime" : "2026-06-01T03:38:38.104Z",
+      "versionTime" : "2026-06-01T03:38:38.089Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Itsenäisyydenkatu, Tampere. Liikennetiedote. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.45",
+          "description" : "Itsenäisyydenkatu, Tampere.\nTarkempi paikka: Välillä Rautatienkatu - Murtokatu."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Itsenäisyydenkatu",
+              "alertCLocation" : {
+                "locationCode" : 38624,
+                "name" : "Rautatienkatu",
+                "distance" : 0
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Tampere",
+              "province" : "Pirkanmaa",
+              "country" : "Suomi",
+              "roadAddress" : { },
+              "roadName" : "Itsenäisyydenkatu",
+              "alertCLocation" : {
+                "locationCode" : 38625,
+                "name" : "Murtokatu",
+                "distance" : 0
+              }
+            },
+            "direction" : "UNKNOWN"
+          }
+        },
+        "features" : [ {
+          "name" : "Tie on suljettu liikenteeltä"
+        }, {
+          "name" : "Liikenne saattaa ruuhkautua"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Itsenäisyydenkadun alikulku on suljettu liikenteeltä. Raitiotieliikenne kulkee normaalisti. Rautatienkadulla vasemmalle kääntyvä kaista on suljettu.",
+        "timeAndDuration" : {
+          "startTime" : "2026-06-01T03:00:00Z"
+        },
+        "sender" : "Tampereen kaupunki"
+      } ],
+      "contact" : { },
+      "dataUpdatedTime" : "2026-06-01T03:38:41Z"
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "MultiLineString",
+      "coordinates" : [ [ [ 25.146355, 60.245132 ], [ 25.146425, 60.245092 ], [ 25.146645, 60.244967 ], [ 25.147376, 60.244523 ], [ 25.147882, 60.244215 ], [ 25.148648, 60.243750 ], [ 25.149530, 60.243205 ], [ 25.150174, 60.242821 ], [ 25.150709, 60.242528 ], [ 25.151545, 60.242105 ], [ 25.152320, 60.241726 ], [ 25.153276, 60.241283 ], [ 25.153719, 60.241091 ], [ 25.154496, 60.240754 ], [ 25.155367, 60.240336 ], [ 25.155920, 60.240037 ], [ 25.156418, 60.239768 ], [ 25.157150, 60.239378 ], [ 25.157841, 60.238898 ], [ 25.158201, 60.238658 ], [ 25.158719, 60.238315 ], [ 25.159091, 60.238081 ], [ 25.159437, 60.237868 ], [ 25.159796, 60.237646 ], [ 25.160139, 60.237389 ], [ 25.160411, 60.237166 ], [ 25.160619, 60.236953 ], [ 25.160835, 60.236708 ], [ 25.161078, 60.236391 ], [ 25.161242, 60.236131 ], [ 25.161414, 60.235831 ], [ 25.161552, 60.235508 ], [ 25.161647, 60.235164 ], [ 25.161697, 60.234865 ], [ 25.161700, 60.234611 ], [ 25.161701, 60.234312 ], [ 25.161676, 60.233907 ], [ 25.161597, 60.233501 ], [ 25.161509, 60.233001 ], [ 25.161397, 60.232356 ], [ 25.161350, 60.232068 ], [ 25.161339, 60.231689 ], [ 25.161360, 60.231412 ], [ 25.161425, 60.231149 ], [ 25.161515, 60.230881 ], [ 25.161671, 60.230528 ], [ 25.161870, 60.230224 ], [ 25.162151, 60.229889 ], [ 25.162488, 60.229547 ], [ 25.162907, 60.229143 ], [ 25.163316, 60.228758 ], [ 25.163691, 60.228420 ], [ 25.163981, 60.228161 ], [ 25.164748, 60.227657 ], [ 25.165443, 60.227223 ], [ 25.166037, 60.226898 ] ], [ [ 25.146859, 60.245019 ], [ 25.147327, 60.244753 ], [ 25.148143, 60.244277 ], [ 25.148819, 60.243837 ], [ 25.149444, 60.243438 ], [ 25.149766, 60.243235 ], [ 25.150143, 60.242996 ], [ 25.150757, 60.242648 ], [ 25.151487, 60.242265 ], [ 25.152051, 60.241996 ], [ 25.152579, 60.241751 ], [ 25.153364, 60.241423 ], [ 25.154494, 60.240954 ], [ 25.155169, 60.240667 ], [ 25.155362, 60.240583 ], [ 25.156186, 60.240217 ], [ 25.156238, 60.240188 ], [ 25.156970, 60.239763 ], [ 25.157384, 60.239537 ], [ 25.159017, 60.238538 ], [ 25.160106, 60.237792 ], [ 25.160895, 60.237150 ], [ 25.161536, 60.236368 ], [ 25.161914, 60.235579 ], [ 25.162111, 60.234841 ], [ 25.162140, 60.234236 ], [ 25.161988, 60.233390 ], [ 25.161770, 60.232374 ], [ 25.161725, 60.231971 ], [ 25.161779, 60.231204 ], [ 25.162040, 60.230557 ], [ 25.162535, 60.229927 ], [ 25.163258, 60.229165 ], [ 25.164151, 60.228340 ], [ 25.165236, 60.227623 ], [ 25.166285, 60.227048 ], [ 25.166334, 60.227022 ] ] ]
+    },
+    "properties" : {
+      "situationId" : "GUID50459844",
+      "situationType" : "TRAFFIC_ANNOUNCEMENT",
+      "trafficAnnouncementType" : "GENERAL",
+      "version" : 222,
+      "releaseTime" : "2026-01-05T15:12:43.389Z",
+      "versionTime" : "2026-01-14T13:55:04.140Z",
+      "announcements" : [ {
+        "language" : "FI",
+        "title" : "Tie 103, eli Vuosaaren satamatie, Helsinki. Liikennetiedote. Tilanne jatkuu. ",
+        "location" : {
+          "countryCode" : 6,
+          "locationTableNumber" : 17,
+          "locationTableVersion" : "1.11.44",
+          "description" : "Tie 103, eli Vuosaaren satamatie, Helsinki.\nTarkempi paikka: Välillä Itäväylän liittymä - Vuosaaren tunnelin eteläpää. \n\nVuosaaren maantietunneli."
+        },
+        "locationDetails" : {
+          "roadAddressLocation" : {
+            "primaryPoint" : {
+              "municipality" : "Helsinki",
+              "province" : "Uusimaa",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 103,
+                "roadSection" : 1,
+                "distance" : 1553
+              },
+              "roadName" : "Vuosaaren satamatie",
+              "alertCLocation" : {
+                "locationCode" : 118,
+                "name" : "Itäväylän liittymä",
+                "distance" : 0
+              }
+            },
+            "secondaryPoint" : {
+              "municipality" : "Helsinki",
+              "province" : "Uusimaa",
+              "country" : "Suomi",
+              "roadAddress" : {
+                "road" : 103,
+                "roadSection" : 1,
+                "distance" : 3971
+              },
+              "roadName" : "Vuosaaren satamatie",
+              "alertCLocation" : {
+                "locationCode" : 1777,
+                "name" : "Vuosaaren tunnelin eteläpää",
+                "distance" : 0
+              }
+            },
+            "direction" : "BOTH"
+          }
+        },
+        "features" : [ {
+          "name" : "Tie on suljettu liikenteeltä"
+        }, {
+          "name" : "Paikalla on kiertotieopastus"
+        } ],
+        "roadWorkPhases" : [ ],
+        "comment" : "Tunneli suljetaan 6.1.2026 noin vuoden kestävän remontin ajaksi.\n\nKiertotie: Itäväylä - Kallvikintie - Niinisaarentie - Vuosaaren satama",
+        "timeAndDuration" : {
+          "startTime" : "2026-01-06T04:00:00Z",
+          "endTime" : "2026-12-31T22:00:00Z"
+        },
+        "additionalInformation" : "Liikenne- ja kelitiedot verkossa: https://liikennetilanne.fintraffic.fi/",
+        "sender" : "Fintraffic Tieliikennekeskus Helsinki"
+      } ],
+      "contact" : {
+        "phone" : "02002100",
+        "email" : "helsinki.liikennekeskus@fintraffic.fi"
+      },
+      "dataUpdatedTime" : "2026-01-14T13:55:11Z"
+    }
+  } ]
+}

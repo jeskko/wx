@@ -1,6 +1,7 @@
-"""Fintraffic Digitraffic road weather (CC BY 4.0): road condition forecasts per road
-section, and road weather station observations."""
+"""Fintraffic Digitraffic (CC BY 4.0): road condition forecasts per road section, road
+weather station observations, weather cameras and traffic announcements (Finnish only)."""
 
+import re
 from datetime import datetime, timedelta, timezone
 
 from .. import net, proj
@@ -138,3 +139,99 @@ def cam_image(preset: str, width: int = 640) -> bytes:
     buf = io.BytesIO()
     im.save(buf, format="JPEG", quality=78, optimize=True, progressive=True)
     return buf.getvalue()
+
+
+# ---------------------------------------------------------------- traffic announcements
+
+TM_URL = "https://tie.digitraffic.fi/api/traffic-message/v1/messages"
+_TITLE_NOISE = re.compile(r"\s*(Liikennetiedote|Ensitiedote|Tilanne jatkuu|Tilanne muuttunut|Tilanne ohi|Korjattu tiedote)\.?", re.I)
+
+
+def _point(geom: dict | None) -> tuple[float, float] | None:
+    """A representative (lat, lon): the middle vertex of the first line, or the point."""
+    if not geom:
+        return None
+    t, c = geom.get("type"), geom.get("coordinates")
+    if not c:
+        return None
+    if t == "Point":
+        pts = [c]
+    elif t == "LineString":
+        pts = c
+    elif t == "MultiLineString":
+        pts = c[0]
+    elif t == "MultiPoint":
+        pts = c
+    else:
+        return None
+    lon, lat = pts[len(pts) // 2][:2]
+    return round(lat, 4), round(lon, 4)
+
+
+def message_kind(ann_type: str, features: list[str]) -> str:
+    """accident | closed (road closed) | lane (lane closed / congestion) | other"""
+    fs = [x.split(":")[0].lower() for x in features]
+    has = lambda *ws: any(w in x for x in fs for w in ws)  # noqa: E731
+    if "ACCIDENT" in (ann_type or "").upper() or has("onnettomuus", "onnettomuuspaikan", "palava ajoneuvo", "väärällä ajoradalla"):
+        return "accident"
+    if any(x.startswith(("tie on suljettu", "tie suljettu", "silta", "jäätie suljettu")) for x in fs) or has("lauttaliikenne on keskeytetty"):
+        return "closed"
+    if has("ajokaista", "ajokaistoja", "ajokaistaa", "ajorata", "ruuhka", "jonoutunut", "seisoo", "pysähtelee", "ajoittain suljettu", "pysäytetään"):
+        return "lane"
+    return "other"
+
+
+def parse_messages(doc: dict) -> list[dict]:
+    out = []
+    for f in doc.get("features") or []:
+        p = f["properties"]
+        if p.get("trafficAnnouncementType") in ("ENDED", "RETRACTED"):
+            continue
+        ann = next((a for a in p.get("announcements") or [] if a.get("language") == "FI"), None) or (p.get("announcements") or [None])[0]
+        if not ann:
+            continue
+        # "name" or "name: value" (speed limit, number of vehicles ...)
+        features = [
+            f"{x['name']}: {x['quantity']:g}" if isinstance(x.get("quantity"), (int, float)) else x["name"]
+            for x in ann.get("features") or []
+            if x.get("name")
+        ]
+        loc = ((ann.get("locationDetails") or {}).get("roadAddressLocation") or {}).get("primaryPoint") or {}
+        # "Tie 56, Jämsä. Liikennetiedote. Tilanne muuttunut." -> "Tie 56, Jämsä"
+        first = (ann.get("title") or "").split(". ")[0]
+        title = _TITLE_NOISE.sub("", first).strip(" .")
+        if not title:
+            title = ", ".join(x for x in (loc.get("municipality"), loc.get("province")) if x) or ((ann.get("location") or {}).get("description") or "").split("\n")[0]
+        td = ann.get("timeAndDuration") or {}
+        pt = _point(f.get("geometry"))
+        out.append(
+            {
+                "id": p["situationId"],
+                "kind": message_kind(p.get("trafficAnnouncementType"), features),
+                "title": title,
+                "features": features,
+                "comment": (ann.get("comment") or "").strip(),
+                "road": ((loc.get("roadAddress") or {}).get("road")),
+                "municipality": loc.get("municipality"),
+                "start": td.get("startTime"),
+                "end": td.get("endTime"),
+                "updated": p.get("versionTime") or p.get("releaseTime"),
+                "lat": pt[0] if pt else None,
+                "lon": pt[1] if pt else None,
+            }
+        )
+    # accidents first, then anything from the last 24 h, then the rest; by kind, newest first
+    order = {"accident": 0, "closed": 1, "lane": 2, "other": 3}
+    now = datetime.now(timezone.utc).timestamp()
+
+    def key(m):
+        t = datetime.fromisoformat((m["start"] or "1970-01-01T00:00:00Z").replace("Z", "+00:00")).timestamp()
+        return (m["kind"] != "accident", now - t > 86400, order[m["kind"]], -t)
+
+    out.sort(key=key)
+    return out
+
+
+def traffic_messages() -> list[dict]:
+    doc = net.get_json(TM_URL, {"inactiveHours": 0, "includeAreaGeometry": "false", "situationType": "TRAFFIC_ANNOUNCEMENT"}, headers=HEADERS)
+    return parse_messages(doc)

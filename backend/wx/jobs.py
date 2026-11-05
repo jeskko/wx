@@ -18,6 +18,7 @@ Output layout (all JSON, relative to DATA_DIR):
   world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
   cams/fi/index.json     road weather cameras near each Finnish place (+ cams/fi/<preset>.jpg)
   roads/fi.json          road condition forecasts per road section (+ road weather stations)
+  roads/messages.json    active Digitraffic traffic announcements (accidents, closures, ...)
   sea/fi.json            wave buoys + sea level / water temperature (FMI)
   lightning/fi.json      lightning strikes in the last hour (FMI)
   airquality/fi.json     hourly air quality index per station (FMI)
@@ -91,6 +92,15 @@ def job_satellites() -> dict:
     data = satellites.all_passes(sites)
     write_json("sky/passes.json", data)
     return {"sites": len(sites), "passes": sum(map(len, data["sites"].values()))}
+
+
+def job_traffic() -> dict:
+    msgs = digitraffic.traffic_messages()
+    write_json("roads/messages.json", {"updated": iso(utcnow()), "messages": msgs})
+    kinds: dict[str, int] = {}
+    for m in msgs:
+        kinds[m["kind"]] = kinds.get(m["kind"], 0) + 1
+    return kinds
 
 
 def job_forecast() -> dict:
@@ -526,6 +536,7 @@ JOBS: list[Job] = [
     Job("capitals", 60 * 60, job_capitals),
     Job("roads", 15 * 60, job_roads),
     Job("cams", 15 * 60, job_cams),
+    Job("traffic", 5 * 60, job_traffic),
     Job("nowcast", 10 * 60, job_nowcast),
     Job("sea", 30 * 60, job_sea),
     Job("lightning", 5 * 60, job_lightning),
