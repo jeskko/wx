@@ -6,7 +6,7 @@ import { outlook } from '../lib/aurora';
 import { next36Periods, summarize, type PeriodSummary } from '../lib/textfc';
 import type { Day, Metar, Station, Taf } from '../lib/types';
 import { isCustom } from '../lib/geo';
-import { currentFor, currentFromStep, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, placeTz, stepAt } from '../lib/wx';
+import { currentFor, currentFromStep, fillFromNeighbours, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, placeTz, stepAt } from '../lib/wx';
 import { loadPlaylist } from './audio';
 import { upcoming } from '../lib/nowcast';
 import type { SlideDef } from './types';
@@ -204,7 +204,9 @@ const regional: SlideDef<RegionalRow[]> = {
     // forecasts provide icons where the station reports no present weather / clouds
     const fcs = await Promise.all(ps.map((p) => soft(api.forecast(p.id), 4000)));
     return ps.map((p, i) => {
-      const st = nearestStation(obs.stations, p.lat, p.lon, 30);
+      // missing wind / present weather etc. come from the nearest station that reports them (as on Current)
+      const near = nearestStation(obs.stations, p.lat, p.lon, 30);
+      const st = near ? fillFromNeighbours(near, obs.stations, p.lat, p.lon) : null;
       const fcSym = fcs[i] ? stepAt(fcs[i]!.hourly, now)?.sym ?? null : null;
       return {
         id: p.id,
