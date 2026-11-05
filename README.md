@@ -1,12 +1,61 @@
 # wx.fi
 
-A retro cable-TV style weather info-screen built only on open data (FMI, MET Norway,
-aviationweather.gov, NOAA SWPC, …). Finland and the Nordics first.
+A cable-TV style weather info-screen built only on open data (FMI, Fintraffic, MET Norway,
+ECMWF via FMI, aviationweather.gov, NOAA SWPC, Natural Earth). An auto-advancing loop of
+slides with background music, in Finnish and English, with a retro and a modern theme.
+Finland first, with Nordic, continental and world-capital views.
 
-- `backend/`: the **baker**, a Python CLI that fetches upstream data and writes static JSON to `/opt/wx/html/wx/data/`
+- `backend/`: the **baker**, a Python CLI that fetches upstream data and writes static JSON/PNG/JPEG to `/opt/wx/html/wx/data/`
 - `frontend/`: the info-screen SPA (Svelte 5 + TypeScript + Vite), served at https://wx.fi/
-- `music/`: background music playlist (`playlists.json` + audio files), served at `/wx/music/`
+- `music/`: background music playlists (`playlists.json`; audio files are fetched, not in git), served at `/wx/music/`
+- `tools/`: one-off basemap builders (Natural Earth → SVG path JSON)
 - `deploy/`: deploy script and systemd *user* units for the `wx` account
+
+Everything shared is fetched centrally by the baker (one request per interval regardless of
+viewer count, identifying User-Agent, last good data survives outages, viewers' IPs stay
+with wx.fi). Browsers only load wx.fi itself.
+
+## Slides
+
+Per place (repeat for each configured place; a place × slide matrix in the settings turns
+them off per place):
+
+| id | Slide |
+|---|---|
+| `current` | Current conditions: nearest FMI station (gaps filled from stations within 50 km, METAR outside Finland); for Finnish places also a 500 m local radar loop with lightning, a 90-min MET Norway precipitation nowcast and a random nearby Digitraffic road weather camera |
+| `next36` | Seuraavat 36 tuntia / The Next 36 Hours: generated text forecast for three periods |
+| `chart` | Hourly temperature / precipitation / wind chart |
+| `extended` | Multi-day forecast |
+
+Once per loop:
+
+| id | Slide |
+|---|---|
+| `warnings` | FMI warnings for the whole country, own places first (scrolls when long) |
+| `radar` | Radar loop of Finland, last hour, with lightning |
+| `cloudmap` | HARMONIE clouds and precipitation, next 24 h, 5 km |
+| `tempmap` | Observed temperatures over a 5 km model temperature field |
+| `regional` | Regional observations table |
+| `windmap` | Wind particles (50 km HARMONIE grid) |
+| `roadmap` | Digitraffic driving conditions per road section, now → +12 h |
+| `sea` | Merisää / Sea Conditions: coastal winds, wave buoys, sea level and water temperature |
+| `airquality` | FMI air quality index on a map + table |
+| `aurora` | Aurora summary: Kp now/forecast, solar wind, FMI magnetometer traffic lights, chance per city |
+| `auroramap` | OVATION auroral oval over the Nordics |
+| `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long) |
+| `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun) |
+| `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers |
+| `map-<region>` | ECMWF temperature + precipitation, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
+| `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map |
+| `credits` | Data sources and the tracks of the selected playlists |
+
+Long lists hold still for 2.5 s, then scroll to the bottom before the slide ends
+(`lib/autoscroll.ts`). Slides whose data is missing or stale are skipped.
+
+The default configuration (what a first-time viewer gets) is `DEFAULT_CONFIG` in
+`frontend/src/engine/config.ts`: Finnish, modern theme, places Helsinki, Oulu, Kuopio,
+Tampere, Turku, Rovaniemi and Stockholm, every slide on, credits last. Slides added in later
+versions are inserted before the credits in viewers' saved configurations.
 
 ## Baker
 
@@ -52,19 +101,22 @@ previous output files stay in place.
 cd frontend
 npm install
 npm run dev        # http://localhost:5173/wx/app/  (data proxied from https://wx.fi; WX_DATA_ORIGIN to override)
-npm test           # vitest: text forecast, config, helpers
+npm test           # vitest: text forecast, config, projections, rasters, nowcast, sky (vs. JPL Horizons)
 npm run check      # svelte-check / TypeScript
 npm run build      # dist/index.html (site root) + dist/app/ (served at /wx/app/)
 npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot every slide
 ```
 
-URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0`,
+URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0&playlist=synth`,
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
-Keys: ← → browse, space pause, M music, N next track, F fullscreen, S settings.
+Keys: ← → browse, space pause, M music on/off, N next track, F fullscreen, S settings.
+The corner buttons (♫, ⏭, ⛶, ⚙) are hidden in kiosk mode; music starts on its own when the
+browser allows it, otherwise on the first click or key press.
 
 Music: playlists live in `music/playlists.json`
 (`{"playlists": [{"id", "fi", "en", "tracks": [{"src", "title", "artist", "license", "url", "download"}]}]}`;
-currently smooth jazz, synth classics and synthwave, all CC BY 4.0). `python3 music/fetch.py` downloads
+currently smooth jazz (15), synth classics (18) and synthwave (22): Kevin MacLeod, Scott Buckley
+and Shane Ivers, all CC BY 4.0). `python3 music/fetch.py` downloads
 the audio (not in git). Users pick playlists in the settings or with `?playlist=synth,synthwave`; the
 selected tracks are credited on the Data Sources slide automatically.
 
@@ -73,9 +125,12 @@ selected tracks are credited on the Data Sources slide automatically.
 - Code: `/opt/wx/code/backend`, venv `/opt/wx/code/venv`, state `/opt/wx/code/var`
 - Output: `/opt/wx/html/wx/data` (served by nginx as `https://wx.fi/wx/data/…`)
 - Scheduler: systemd **user** units of `wx` (lingering), in `/opt/wx/code/.config/systemd/user/`
+- Python deps (venv): httpx, pyyaml, pillow, numpy; NetCDF is read by `wx/netcdf3.py` (stdlib only)
+- Disk: data ~20 MB (radar frames, local radar windows, world rasters, cameras), music ~210 MB
 
 ```sh
 ./deploy/deploy.sh                                              # build + sync everything, update venv (no sudo)
+SKIP_FRONTEND=1 ./deploy/deploy.sh                              # backend only
 ssh 172.16.173.100 sudo systemctl --user -M wx@ daemon-reload   # only after unit file changes
 ssh 172.16.173.100 sudo systemctl --user -M wx@ list-timers
 ssh 172.16.173.100 sudo journalctl _SYSTEMD_USER_UNIT=wx-bake.service -n 50
@@ -98,6 +153,8 @@ python3 tools/build_world.py <dir with ne_10m_* and ne_50m_* .geojson> [view id 
 
 ## Data licences
 
-FMI, MET Norway, Fintraffic, ECMWF (via FMI): CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain.
-Natural Earth: public domain.
+FMI, MET Norway, Fintraffic/Digitraffic (incl. weather camera images), ECMWF (via FMI):
+CC BY 4.0. aviationweather.gov and NOAA SWPC: US public domain. Natural Earth: public domain.
+Music: CC BY 4.0 (credited per track). Planet positions use JPL's published approximate
+Keplerian elements; sun and moon via suncalc (2.x returns degrees, azimuth from north).
 The info-screen has a credits slide listing them.
