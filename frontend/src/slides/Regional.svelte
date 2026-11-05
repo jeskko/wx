@@ -32,7 +32,7 @@
               <td class="name">{r.name}</td>
               <td class="icon"><WxIcon sym={r.sym} night={r.night} size={44} /></td>
               <td class="t">{temp(r.t)}</td>
-              <td class="w">{#if r.ws != null}<WindDir lang={L} deg={r.wd} /> {num(r.ws)}{/if}</td>
+              <td class="w">{#if r.ws != null}<WindDir lang={L} deg={r.wd} /> {num(L, r.ws)}{/if}</td>
             </tr>
           {/each}
         </tbody>

@@ -39,14 +39,14 @@
     <div class="kp">
       <div>
         <div class="lbl">{t(L, 'kpNow')}</div>
-        <div class="kpval" style:color={kpColor(data.kpNow ?? 0)}>{num(data.kpNow, 1)}</div>
+        <div class="kpval" style:color={kpColor(data.kpNow ?? 0)}>{num(L, data.kpNow, 1)}</div>
       </div>
       {#if data.file.solarwind}
         {@const sw = data.file.solarwind}
         <div class="sw">
           <div class="lbl">{t(L, 'solarWind')}</div>
-          <div>{num(sw.speed)} km/s</div>
-          <div>Bz <span class:south={(sw.bz ?? 0) < -5}>{num(sw.bz, 1)}</span> nT</div>
+          <div>{num(L, sw.speed)} km/s</div>
+          <div>Bz <span class:south={(sw.bz ?? 0) < -5}>{num(L, sw.bz, 1)}</span> nT</div>
         </div>
       {/if}
     </div>
@@ -69,7 +69,7 @@
     <div class="lights">
       {#each mags as m (m.name)}
         {@const act = activity(m.range)}
-        <span class="light" title={`${num(m.range)} nT`}>
+        <span class="light" title={`${num(L, m.range)} nT`}>
           <i style:background={ACTIVITY_COLOR[act]}></i>{m.name}
         </span>
       {/each}
@@ -95,13 +95,13 @@
             <td class="level l{r.out.level}">{r.out.dark ? t(L, `aurora.${r.out.level}` as 'aurora.0') : L === 'fi' ? 'valoisaa' : 'daylight'}</td>
             <td class="n">{r.out.ovation == null ? '–' : `${r.out.ovation} %`}</td>
             <td class="n">{r.out.cloud == null ? '–' : `${Math.round(r.out.cloud)} %`}</td>
-            <td class="n">{num(r.out.need, 0)}</td>
+            <td class="n">{num(L, r.out.need, 0)}</td>
           </tr>
         {/each}
       </tbody>
     </table>
     <p class="note">
-      {L === 'fi' ? 'Kp tänä yönä' : 'Kp tonight'}: {num(data.rows[0]?.out.kpTonight ?? null, 1)} · NOAA SWPC, Ilmatieteen laitos
+      {L === 'fi' ? 'Kp tänä yönä' : 'Kp tonight'}: {num(L, data.rows[0]?.out.kpTonight ?? null, 1)} · NOAA SWPC, Ilmatieteen laitos
     </p>
   </div>
 </div>

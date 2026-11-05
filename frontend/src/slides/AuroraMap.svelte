@@ -91,7 +91,7 @@
   </MapView>
   <div class="panel side">
     <div class="lbl">Kp {L === 'fi' ? 'nyt' : 'now'}</div>
-    <div class="kp" style:color={kpColor(data.kpNow ?? 0)}>{num(data.kpNow, 1)}</div>
+    <div class="kp" style:color={kpColor(data.kpNow ?? 0)}>{num(L, data.kpNow, 1)}</div>
     {#if data.placeProb != null}
       <div class="lbl">{ctx.place.name[L]}: <b>{Math.round(data.placeProb)} %</b></div>
     {/if}

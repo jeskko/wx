@@ -106,7 +106,7 @@
       {#each buoys as b (b.name)}
         <g transform={`translate(${b.xy[0]} ${b.xy[1]})`}>
           <rect class="wave" x="-29" y="-12" width="58" height="24" rx="12" />
-          <text class="wave-t" y="6" text-anchor="middle">{num(b.hs, 1)} m</text>
+          <text class="wave-t" y="6" text-anchor="middle">{num(L, b.hs, 1)} m</text>
         </g>
       {/each}
       {#each winds as w (w.name)}
@@ -144,7 +144,7 @@
             {#each data.sea.waves as b (b.name)}
               <tr>
                 <td class="name">{buoyName(b.name)}</td>
-                <td class="n">{b.hs == null ? '–' : `${num(b.hs, 1)} m`}</td>
+                <td class="n">{b.hs == null ? '–' : `${num(L, b.hs, 1)} m`}</td>
                 <td class="dir">{#if b.dir != null}<WindDir lang={L} deg={b.dir} />{/if}</td>
                 <td class="n">{temp(b.tw)}</td>
               </tr>

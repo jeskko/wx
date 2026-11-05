@@ -66,9 +66,9 @@
           <tr>
             <td class="name">{r.name}</td>
             <td class="idx"><i style:background={color(s.aqi)}></i>{NAMES[L][s.aqi - 1]}</td>
-            <td class="n">{num(s.pm25)}</td>
-            <td class="n">{num(s.pm10)}</td>
-            <td class="n">{num(s.no2)}</td>
+            <td class="n">{num(L, s.pm25)}</td>
+            <td class="n">{num(L, s.pm10)}</td>
+            <td class="n">{num(L, s.no2)}</td>
           </tr>
         {/each}
       </tbody>

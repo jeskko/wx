@@ -18,9 +18,9 @@
       <div class="t hi"><span>{t(L, 'high')}</span>{temp(d.tmax)}</div>
       <div class="t lo"><span>{t(L, 'low')}</span>{temp(d.tmin)}</div>
       <div class="sub">
-        {#if d.pr >= 0.1}{num(d.pr, d.pr < 10 ? 1 : 0)} mm{:else}&nbsp;{/if}
+        {#if d.pr >= 0.1}{num(L, d.pr, d.pr < 10 ? 1 : 0)} mm{:else}&nbsp;{/if}
       </div>
-      <div class="sub"><WindDir lang={L} deg={d.wd} /> {num(d.wsmax)} m/s</div>
+      <div class="sub"><WindDir lang={L} deg={d.wd} /> {num(L, d.wsmax)} m/s</div>
     </div>
   {/each}
 </div>

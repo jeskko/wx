@@ -111,8 +111,8 @@
           {#each data.strongest as s (s.name)}
             <tr>
               <td>{s.name}</td>
-              <td class="r">{num(s.ws)} m/s</td>
-              <td class="r g">{s.wg != null ? `(${num(s.wg)})` : ''}</td>
+              <td class="r">{num(L, s.ws)} m/s</td>
+              <td class="r g">{s.wg != null ? `(${num(L, s.wg)})` : ''}</td>
             </tr>
           {/each}
         </tbody>

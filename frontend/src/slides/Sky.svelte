@@ -76,7 +76,7 @@
   };
 
   const where = (alt: number, az: number) => `${COMPASS[L][compassIndex(az)]} ${Math.round(alt)}°`;
-  const magText = (m: number) => (m < -6 ? '' : `${L === 'fi' ? 'kirkkaus' : 'mag'} ${num(m, 1).replace('.', L === 'fi' ? ',' : '.')}`);
+  const magText = (m: number) => (m < -6 ? '' : `${L === 'fi' ? 'kirkkaus' : 'mag'} ${num(L, m, 1)}`);
   const day = (d: Date) => d.toLocaleDateString(LOCALE[L], { day: 'numeric', month: 'numeric', timeZone: tz });
 </script>
 

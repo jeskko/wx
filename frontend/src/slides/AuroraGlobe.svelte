@@ -133,9 +133,9 @@
   </div>
   <div class="panel side">
     <div class="kl">Kp</div>
-    <div class="kp">{data.kpNow == null ? '–' : num(data.kpNow, 1)}</div>
+    <div class="kp">{data.kpNow == null ? '–' : num(L, data.kpNow, 1)}</div>
     {#if data.kpMax24 != null}
-      <div class="k24">{L === 'fi' ? 'enintään' : 'up to'} {num(data.kpMax24, 1)} <small>{L === 'fi' ? 'vrk:n sisällä' : 'within 24 h'}</small></div>
+      <div class="k24">{L === 'fi' ? 'enintään' : 'up to'} {num(L, data.kpMax24, 1)} <small>{L === 'fi' ? 'vrk:n sisällä' : 'within 24 h'}</small></div>
     {/if}
     <ul class="legend">
       {#each LEG as v (v)}

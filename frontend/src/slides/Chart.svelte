@@ -58,12 +58,12 @@
         <text class="hour" y={BASE + 36} text-anchor="middle">{time(L, s.time, data.tz)}</text>
         {#if L === 'fi' && s.wd != null}
           <path class="warrow" d="M0 -9 L6 -1 L2 -1 L2 9 L-2 9 L-2 -1 L-6 -1 Z" transform={`translate(-14 ${BASE + 60}) rotate(${(s.wd + 180) % 360})`} />
-          <text class="sub" x="2" y={BASE + 68} text-anchor="start">{num(s.ws)}</text>
+          <text class="sub" x="2" y={BASE + 68} text-anchor="start">{num(L, s.ws)}</text>
         {:else}
-          <text class="sub" y={BASE + 68} text-anchor="middle">{windShort(L, s.wd)} {num(s.ws)}</text>
+          <text class="sub" y={BASE + 68} text-anchor="middle">{windShort(L, s.wd)} {num(L, s.ws)}</text>
         {/if}
         {#if (s.pr ?? 0) >= 0.1}
-          <text class="sub pr" y={BASE + 98} text-anchor="middle">{num(s.pr, 1)} mm</text>
+          <text class="sub pr" y={BASE + 98} text-anchor="middle">{num(L, s.pr, 1)} mm</text>
         {/if}
       </g>
     {/each}

@@ -74,7 +74,7 @@
       <div class="facts">
         <div class="cond">{symLabel(L, sym)}</div>
         {#if ws != null}
-          <div>{t(L, 'wind')} {#if ws < 0.5}{t(L, 'calm')}{:else}<WindDir lang={L} deg={wd} /> {num(ws)} m/s{/if}</div>
+          <div>{t(L, 'wind')} {#if ws < 0.5}{t(L, 'calm')}{:else}<WindDir lang={L} deg={wd} /> {num(L, ws)} m/s{/if}</div>
         {/if}
         {#if data.metar?.time}
           <div class="src">METAR {data.metar.icao} {time(L, data.metar.time, data.tz)}</div>
@@ -87,7 +87,7 @@
           <div class="wd">{capitalize(weekday(L, d.date, data.tz))}</div>
           <WxIcon sym={d.sym} size={64} />
           <div class="hl"><b>{temp(d.tmax)}</b> <span>{temp(d.tmin)}</span></div>
-          <div class="pr">{d.pr >= 0.1 ? `${num(d.pr, 1)} mm` : ''}</div>
+          <div class="pr">{d.pr >= 0.1 ? `${num(L, d.pr, 1)} mm` : ''}</div>
         </div>
       {/each}
     </div>

@@ -12,9 +12,13 @@ export function temp(v: number | null | undefined, sign = true): string {
   return `${sign ? '+' : ''}${r}°`;
 }
 
-export function num(v: number | null | undefined, digits = 0): string {
+/** Number with a fixed number of decimals: decimal comma in Finnish, typographic minus. */
+export function num(lang: Lang, v: number | null | undefined, digits = 0): string {
   if (v == null || Number.isNaN(v)) return '–';
-  return v.toFixed(digits).replace('-', MINUS);
+  const s = v.toFixed(digits);
+  // no "−0" / "−0,0" for values that round to zero
+  const out = Number(s) === 0 ? s.replace('-', '') : s.replace('-', MINUS);
+  return lang === 'fi' ? out.replace('.', ',') : out;
 }
 
 const DIRS: Record<Lang, string[]> = {
@@ -71,6 +75,6 @@ export function visibility(lang: Lang, m: number | null): string {
   if (m == null) return '–';
   if (m >= 9999) return lang === 'fi' ? 'yli 10 km' : '10+ km';
   if (m >= 5000) return `${Math.round(m / 1000)} km`;
-  if (m >= 1000) return `${(m / 1000).toFixed(1).replace('.', lang === 'fi' ? ',' : '.')} km`;
+  if (m >= 1000) return `${num(lang, m / 1000, 1)} km`;
   return `${Math.round(m / 10) * 10} m`;
 }

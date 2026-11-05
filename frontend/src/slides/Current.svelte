@@ -79,16 +79,16 @@
         <dd>{temp(c.feels)}</dd>
         <dt>{t(L, 'wind')}</dt>
         <dd>
-          {#if c.ws == null}–{:else if c.ws < 0.5}{t(L, 'calm')}{:else}<WindDir lang={L} deg={c.wd} /> {num(c.ws)} m/s{/if}
-          {#if c.wg != null && c.wg >= (c.ws ?? 0) + 3}<small> ({t(L, 'gusts')} {num(c.wg)})</small>{/if}
+          {#if c.ws == null}–{:else if c.ws < 0.5}{t(L, 'calm')}{:else}<WindDir lang={L} deg={c.wd} /> {num(L, c.ws)} m/s{/if}
+          {#if c.wg != null && c.wg >= (c.ws ?? 0) + 3}<small> ({t(L, 'gusts')} {num(L, c.wg)})</small>{/if}
         </dd>
         <dt>{t(L, 'humidity')}</dt>
-        <dd>{num(c.rh)} %</dd>
+        <dd>{num(L, c.rh)} %</dd>
         <dt>{t(L, 'dewpoint')}</dt>
         <dd>{temp(c.td)}</dd>
         {#if c.p != null}
           <dt>{t(L, 'pressure')}</dt>
-          <dd>{num(c.p)} hPa <small>{trend}</small></dd>
+          <dd>{num(L, c.p)} hPa <small>{trend}</small></dd>
         {/if}
         {#if c.vis != null}
           <dt>{t(L, 'visibility')}</dt>
@@ -100,7 +100,7 @@
         {/if}
         {#if c.snow != null && c.snow > 0}
           <dt>{t(L, 'snowDepth')}</dt>
-          <dd>{num(c.snow)} cm</dd>
+          <dd>{num(L, c.snow)} cm</dd>
         {/if}
       </dl>
       <p class="foot">
