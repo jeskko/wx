@@ -39,7 +39,7 @@
 
 <div class="wm">
   <div class="mapbox">
-    <FieldMap base={data.base} grid={data.grid} w={size.w} h={size.h} cities={data.cities} startMs={ctx.now.getTime()} wind bind:time={t} bind:progress />
+    <FieldMap base={data.base} grid={data.grid} w={size.w} h={size.h} cities={data.cities} startMs={ctx.now.getTime()} slideSeconds={ctx.duration} wind bind:time={t} bind:progress />
   </div>
   <div class="panel side">
     <div class="region">{data.name}</div>

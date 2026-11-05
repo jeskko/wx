@@ -119,7 +119,7 @@
     {@const rd = data.radar}
     <div class="panel radar">
       <MapView base={rd.base} w={R} h={R} view={rd.view} labels={rd.labels}>
-        <RadarLoop urls={rd.urls} extent={rd.extent} view={rd.view} w={R} h={R} bind:frame />
+        <RadarLoop urls={rd.urls} extent={rd.extent} view={rd.view} w={R} h={R} slideSeconds={ctx.duration} bind:frame />
         <Strikes strikes={rd.strikes} view={rd.view} w={R} h={R} now={ctx.now} />
       </MapView>
       <div class="rtime">{L === 'fi' ? 'Sadetutka' : 'Radar'} {time(L, rd.times[frame] ?? null, tz)}</div>

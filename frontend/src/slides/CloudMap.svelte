@@ -12,6 +12,7 @@
 <script lang="ts">
   // Next 24 h of model cloud cover and precipitation, animated hour by hour (interpolated).
   import MapView from '../map/MapView.svelte';
+  import { fitLoop, loopFraction } from '../lib/loop';
   import { mapSize } from '../map/basemap';
   import { drawGridImage } from '../map/render';
   import { capitalize, time, weekday } from '../lib/format';
@@ -52,18 +53,13 @@
     const start = g.timeIndex(ctx.now.getTime());
     const end = g.times.length - 1;
     const span = Math.max(1, end - start);
-    const DURATION = 9000; // ms for the full 24 h
-    const HOLD = 1500;
-    let t0 = performance.now();
+    // the full 24 h in ~9 s, fitted to the slide length
+    const plan = fitLoop(ctx.duration, 9000, 1500);
+    const t0 = performance.now();
     let raf = 0;
 
     const draw = (now: number) => {
-      let el = now - t0;
-      if (el > DURATION + HOLD) {
-        t0 = now;
-        el = 0;
-      }
-      const f = Math.min(1, el / DURATION);
+      const f = loopFraction(now - t0, plan);
       const tf = start + f * span;
       progress = f;
       tLabel = g.times[0] + tf * 3600_000;

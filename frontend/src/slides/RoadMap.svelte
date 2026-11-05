@@ -20,6 +20,7 @@
 <script lang="ts">
   // Driving conditions: Digitraffic road condition forecast per road section, stepping now -> +12 h.
   import MapView from '../map/MapView.svelte';
+  import { frameLoop } from '../lib/loop';
   import { mapSize } from '../map/basemap';
   import { temp } from '../lib/format';
   import type { SlideProps } from '../engine/types';
@@ -39,11 +40,8 @@
   };
 
   let step = $state(0);
-  $effect(() => {
-    step = 0;
-    const id = setInterval(() => (step = (step + 1) % data.roads.steps.length), 2200);
-    return () => clearInterval(id);
-  });
+  // ~2.2 s per forecast step, passes fitted to the slide length
+  $effect(() => frameLoop(data.roads.steps.length, ctx.duration, 2200, 2200, (k) => (step = k)));
 
   const counts = $derived.by(() => {
     const c = { N: 0, P: 0, X: 0 };

@@ -15,6 +15,7 @@
   import { drawGridImage, tempRgb } from '../map/render';
   import { pixel } from '../map/proj';
   import { temp } from '../lib/format';
+  import { fitLoop, loopFraction } from '../lib/loop';
 
   let {
     base,
@@ -28,6 +29,7 @@
     time = $bindable(0),
     progress = $bindable(0),
     wind = false,
+    slideSeconds,
   }: {
     base: Basemap;
     grid: Grid;
@@ -43,6 +45,8 @@
     progress?: number;
     /** animate wind particles from the grid's u/v fields (m/s along map axes) */
     wind?: boolean;
+    /** slide length: passes are fitted to end exactly when the slide changes */
+    slideSeconds?: number;
   } = $props();
 
   // precipitation mm/h -> colour (same family as the radar palette)
@@ -87,8 +91,8 @@
     const t0i = g.timeIndex(startMs);
     const t1i = g.timeIndex(startMs + hours * 3600_000);
     const span = Math.max(0.001, t1i - t0i);
-    const HOLD = 1500;
-    let t0 = performance.now();
+    const plan = slideSeconds ? fitLoop(slideSeconds, duration, 1500) : { play: duration, hold: 1500, loops: 1e9 };
+    const t0 = performance.now();
     let raf = 0;
     let lastBadge = -1;
 
@@ -132,12 +136,8 @@
     };
 
     const draw = (now: number) => {
-      let el = now - t0;
-      if (el > duration + HOLD) {
-        t0 = now;
-        el = 0;
-      }
-      const f = Math.min(1, el / duration);
+      const el = now - t0;
+      const f = loopFraction(el, plan);
       const tf = t0i + f * span;
       progress = f;
       const i0 = Math.floor(tf);

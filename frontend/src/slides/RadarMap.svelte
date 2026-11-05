@@ -26,6 +26,7 @@
   import Strikes from '../components/Strikes.svelte';
   import { mapSize } from '../map/basemap';
   import { time } from '../lib/format';
+  import { frameLoop } from '../lib/loop';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<RadarData> = $props();
@@ -34,16 +35,8 @@
   const n = $derived(data.urls.length);
 
   let i = $state(0);
-  $effect(() => {
-    let timer: number;
-    const tick = () => {
-      i = (i + 1) % n;
-      timer = window.setTimeout(tick, i === n - 1 ? 2200 : 380);
-    };
-    i = 0;
-    timer = window.setTimeout(tick, 600);
-    return () => clearTimeout(timer);
-  });
+  // ~380 ms per frame, the newest held ~2 s; passes fitted to the slide length
+  $effect(() => frameLoop(n, ctx.duration, 380, 2200, (k) => (i = k)));
 
   const frameTime = $derived(data.index.frames[i]?.time);
   const agoMin = $derived(frameTime ? Math.round((ctx.now.getTime() - Date.parse(frameTime)) / 60000) : 0);

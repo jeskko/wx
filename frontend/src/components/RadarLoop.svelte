@@ -1,6 +1,7 @@
 <script lang="ts">
   // Radar frames (covering `extent`) shown inside a map window `view` of w x h px, looped.
   import type { Extent } from '../map/proj';
+  import { frameLoop } from '../lib/loop';
 
   let {
     urls,
@@ -9,7 +10,8 @@
     w,
     h,
     frame = $bindable(0),
-  }: { urls: string[]; extent: Extent; view: Extent; w: number; h: number; frame?: number } = $props();
+    slideSeconds = 12,
+  }: { urls: string[]; extent: Extent; view: Extent; w: number; h: number; frame?: number; slideSeconds?: number } = $props();
 
   // where the full radar image lands relative to the window
   const box = $derived.by(() => {
@@ -23,17 +25,8 @@
     };
   });
 
-  $effect(() => {
-    const n = urls.length;
-    let timer: number;
-    const tick = () => {
-      frame = (frame + 1) % n;
-      timer = window.setTimeout(tick, frame === n - 1 ? 2200 : 380);
-    };
-    frame = 0;
-    timer = window.setTimeout(tick, 600);
-    return () => clearTimeout(timer);
-  });
+  // passes fitted to the slide length (see lib/loop.ts)
+  $effect(() => frameLoop(urls.length, slideSeconds, 380, 2200, (k) => (frame = k)));
 </script>
 
 <div

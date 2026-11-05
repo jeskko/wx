@@ -52,7 +52,7 @@
 <div class="cap">
   <div class="mapcol">
     {#if data.grid}
-      <FieldMap base={data.base} grid={data.grid} w={M} h={M} cities={data.cities} startMs={ctx.now.getTime()} hours={36} wind bind:time={mt} bind:progress />
+      <FieldMap base={data.base} grid={data.grid} w={M} h={M} cities={data.cities} startMs={ctx.now.getTime()} hours={36} slideSeconds={ctx.duration} wind bind:time={mt} bind:progress />
       <div class="mtime">
         {L === 'fi' ? 'Malli' : 'Model'}: {mt ? `${weekday(L, new Date(mt), data.tz)} ${time(L, new Date(mt), data.tz)}` : ''}
         <span class="bar"><span style:width={`${progress * 100}%`}></span></span>
