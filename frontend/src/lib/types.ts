@@ -195,6 +195,32 @@ export interface HealthFile {
   jobs: Record<string, { last_ok: string | null; age_s: number | null; interval_s: number; stale: boolean; errors: number; last_error: string | null }>;
 }
 
+/** sky/passes.json: visible space station passes per site (backend wx/sources/satellites.py) */
+export interface SatPass {
+  id: number;
+  name: Localized;
+  start: string;
+  end: string;
+  startAz: number;
+  startAlt: number;
+  endAz: number;
+  endAlt: number;
+  max: string;
+  maxAlt: number;
+  maxAz: number;
+  mag: number;
+  /** ends by entering Earth's shadow (fades out mid-sky) */
+  fades: boolean;
+  /** [alt, az] along the visible part */
+  track: [number, number][];
+}
+export interface PassesFile {
+  updated: string;
+  days: number;
+  minAlt: number;
+  sites: Record<string, SatPass[]>;
+}
+
 export interface SeaFile {
   updated: string;
   waves: { name: string; lat: number; lon: number; time: string; hs: number | null; dir: number | null; period: number | null; tw: number | null }[];

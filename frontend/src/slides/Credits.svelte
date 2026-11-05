@@ -29,6 +29,7 @@
     { name: 'Fintraffic / Digitraffic', what: { fi: 'ajokeli, tiesääasemat ja kelikamerat', en: 'road conditions, road weather stations and weather cameras' }, lic: 'CC BY 4.0' },
     { name: 'ECMWF', what: { fi: 'maailmankartat (Ilmatieteen laitoksen avoimen datan kautta)', en: 'world maps (via FMI open data)' }, lic: 'CC BY 4.0' },
     { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolelle ja haetuille paikoille', en: 'precipitation nowcast, forecasts outside Finland and for searched places' }, lic: 'CC BY 4.0' },
+    { name: 'CelesTrak', what: { fi: 'avaruusasemien ratatiedot (ylilennot lasketaan SGP4-mallilla)', en: 'space station orbital elements (passes computed with SGP4)' }, lic: L === 'fi' ? 'avoin data' : 'open data' },
     { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },
     { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli', en: 'Kp index, auroral oval, solar wind' }, lic: 'public domain' },
   ]);

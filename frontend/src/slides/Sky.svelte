@@ -1,5 +1,6 @@
 <script lang="ts" module>
   import type { Visible } from '../lib/sky';
+  import type { SatPass } from '../lib/types';
   export interface SkyStar {
     name: string;
     alt: number;
@@ -16,14 +17,16 @@
     moonPhase: number;
     moonFraction: number;
     showers: { name: string; peak: Date; atPeak: boolean }[];
+    /** visible space station passes from now until tomorrow morning (else the next one) */
+    sats: { place: string; tonight: SatPass[]; next: SatPass | null } | null;
   }
 </script>
 
 <script lang="ts">
   // Tonight's naked-eye sky over central Finland: planets, the Moon, bright stars and
   // constellations on an all-sky chart (north up, east left: as seen lying on your back).
-  import { COMPASS, compassIndex } from '../lib/sky';
-  import { num, time } from '../lib/format';
+  import { COMPASS, COMPASS_FROM, COMPASS_TO, compassIndex } from '../lib/sky';
+  import { num, time, weekday } from '../lib/format';
   import { LOCALE } from '../i18n';
   import type { SlideProps } from '../engine/types';
 
@@ -77,6 +80,25 @@
 
   const where = (alt: number, az: number) => `${COMPASS[L][compassIndex(az)]} ${Math.round(alt)}°`;
   const magText = (m: number) => (m < -6 ? '' : `${L === 'fi' ? 'kirkkaus' : 'mag'} ${num(L, m, 1)}`);
+  const path = (s: SatPass) => {
+    const a = compassIndex(s.startAz);
+    const b = compassIndex(s.endAz);
+    return L === 'fi' ? `${COMPASS_FROM.fi[a]} ${COMPASS_TO.fi[b]}` : `${COMPASS_FROM.en[a]} → ${COMPASS_TO.en[b]}`;
+  };
+  const passLine = (s: SatPass) =>
+    L === 'fi'
+      ? `klo ${time(L, s.start, tz)}–${time(L, s.end, tz)}, ${path(s)}, korkeimmillaan ${s.maxAlt}°, kirkkaus ${num(L, s.mag, 1)}${s.fades ? ', häipyy maan varjoon' : ''}`
+      : `${time(L, s.start, tz)}–${time(L, s.end, tz)}, ${path(s)}, up to ${s.maxAlt}°, mag ${num(L, s.mag, 1)}${s.fades ? ", fades into Earth's shadow" : ''}`;
+  // satellite tracks on the chart: dashed line + arrow head at the end
+  const tracks = $derived(
+    (data.sats?.tonight ?? []).map((s) => {
+      const pts = s.track.map(([alt, az]) => xy(alt, az));
+      const [x1, y1] = pts[pts.length - 1];
+      const [x0, y0] = pts[Math.max(0, pts.length - 2)];
+      const ang = (Math.atan2(y1 - y0, x1 - x0) * 180) / Math.PI;
+      return { s, d: 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L'), start: pts[0], end: [x1, y1] as [number, number], ang };
+    }),
+  );
   const day = (d: Date) => d.toLocaleDateString(LOCALE[L], { day: 'numeric', month: 'numeric', timeZone: tz });
 </script>
 
@@ -110,6 +132,11 @@
         {@const [x, y] = xy(s.alt, s.az)}
         <circle cx={x} cy={y} r={starR(s.mag)} class="star" />
         {#if s.mag < 0.6}<text class="sname" x={x + 5} y={y + 13}>{s.name}</text>{/if}
+      {/each}
+      {#each tracks as tr (tr.s.start + tr.s.id)}
+        <path d={tr.d} class="sat" />
+        <path d="M0 0 L-9 -5 L-9 5Z" class="satarrow" transform={`translate(${tr.end[0]} ${tr.end[1]}) rotate(${tr.ang})`} />
+        <text class="satname" x={tr.start[0] + 6} y={tr.start[1] - 6}>{tr.s.name[L]} {time(L, tr.s.start, tz)}</text>
       {/each}
       {#each up as o (o.id)}
         {@const x = o.x}
@@ -158,6 +185,24 @@
       </ul>
     {:else}
       <p class="none">{L === 'fi' ? 'Tänä yönä ei näy kirkkaita planeettoja.' : 'No bright planets on view tonight.'}</p>
+    {/if}
+    {#if data.sats}
+      <div class="sats">
+        <div class="sh">{L === 'fi' ? 'Avaruusasemat' : 'Space stations'} <small>· {data.sats.place}</small></div>
+        {#each data.sats.tonight.slice(0, 3) as s (s.start + s.id)}
+          <div class="pass"><b>{s.name[L]}</b> {passLine(s)}</div>
+        {:else}
+          <div class="pass dim">
+            {#if data.sats.next}
+              {@const n = data.sats.next}
+              {L === 'fi' ? 'Ei näkyviä ylilentoja tänä yönä. Seuraava:' : 'No visible passes tonight. Next:'}
+              <b>{n.name[L]}</b> {weekday(L, n.start, tz)} {day(new Date(n.start))} {passLine(n)}
+            {:else}
+              {L === 'fi' ? 'Ei näkyviä ylilentoja seuraavaan kolmeen viikkoon.' : 'No visible passes in the next three weeks.'}
+            {/if}
+          </div>
+        {/each}
+      </div>
     {/if}
     {#each data.showers as sh (sh.name)}
       <p class="shower">
@@ -219,15 +264,15 @@
     align-self: stretch;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .when {
-    font-size: 28px;
+    font-size: 26px;
     color: var(--c-label);
   }
   .when b {
     color: var(--c-value);
-    font-size: 34px;
+    font-size: 30px;
   }
   .when small {
     font-size: 0.7em;
@@ -243,7 +288,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
   }
   .objs li {
     display: flex;
@@ -254,12 +299,13 @@
     flex: none;
     width: 16px;
     height: 16px;
-    margin-top: 8px;
+    margin-top: 6px;
     border-radius: 50%;
     border: 1.5px solid #000;
   }
   .oname {
-    font-size: 27px;
+    font-size: 23px;
+    line-height: 1.15;
     color: var(--c-value);
   }
   .oname small {
@@ -267,20 +313,57 @@
     color: var(--c-label);
   }
   .odet {
-    font-size: 19px;
+    font-size: 17px;
     color: var(--c-label);
   }
   .none {
     font-size: 22px;
   }
-  .shower {
-    margin: 0;
+  .sats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sh {
     font-size: 21px;
     color: var(--c-accent);
   }
+  .sh small {
+    color: var(--c-label);
+    font-size: 0.85em;
+  }
+  .pass {
+    font-size: 17px;
+    color: var(--c-label);
+  }
+  .pass b {
+    color: var(--c-value);
+  }
+  .sat {
+    fill: none;
+    stroke: #9fe7ff;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  .satarrow {
+    fill: #9fe7ff;
+  }
+  .satname {
+    font-size: 14px;
+    font-weight: 700;
+    fill: #9fe7ff;
+    paint-order: stroke;
+    stroke: #000;
+    stroke-width: 3px;
+  }
+  .shower {
+    margin: 0;
+    font-size: 19px;
+    color: var(--c-accent);
+  }
   .note {
-    margin-top: auto;
-    font-size: 15px;
+    margin: auto 0 0;
+    font-size: 14px;
     color: var(--c-label);
   }
 </style>

@@ -8,6 +8,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pillow>=11",
     "numpy>=2",
+    "sgp4>=2.23",
 ]
 
 [project.optional-dependencies]

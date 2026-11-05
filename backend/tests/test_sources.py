@@ -164,3 +164,24 @@ def test_ovation_png(fixture_json):
     want = {(int(lon) % 360, swpc.OV_ROWS.index(int(lat))): int(v) for lon, lat, v in raw["coordinates"] if int(lat) in swpc.OV_ROWS}
     (x, y), v = max(want.items(), key=lambda kv: kv[1])
     assert img.getpixel((x, y)) == v > 0
+
+
+def test_satellite_geometry(fixture_bytes):
+    """ISS alt/az for Helsinki agrees with Skyfield 1.55 (same TLE) to 0.05°."""
+    import numpy as np
+    from sgp4.api import Satrec
+
+    from wx.sources import satellites as s
+
+    l1, l2 = s.parse_tle(fixture_bytes("iss.tle").decode())
+    sat = Satrec.twoline2rv(l1, l2)
+    for t, want_alt, want_az in [(1794931571, 12.87, 164.73), (1794931691, 9.99, 128.31)]:
+        jda = np.array([t / 86400 + 2440587.5])
+        jd = np.floor(jda - 0.5) + 0.5
+        _, pos, _ = sat.sgp4_array(jd, jda - jd)
+        obs, th = s.observer(60.17, 24.94, jda)
+        alt, az = s.topocentric(pos - obs, 60.17, th)
+        assert abs(alt[0] - want_alt) < 0.05 and abs(az[0] - want_az) < 0.05
+    # half lit at 1000 km = the standard magnitude; full phase is ~1.2 mag brighter
+    assert abs(s.magnitude(-1.8, np.array([1000.0]), np.array([np.pi / 2]))[0] + 1.8) < 1e-9
+    assert s.magnitude(-1.8, np.array([1000.0]), np.array([0.0]))[0] < -2.9

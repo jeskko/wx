@@ -234,6 +234,15 @@ export const COMPASS = {
   en: ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'],
 };
 export const compassIndex = (az: number) => Math.round(az / 45) % 8;
+/** "from" and "to" forms for satellite paths: "lounaasta kaakkoon" / "from SW to SE" */
+export const COMPASS_FROM = {
+  fi: ['pohjoisesta', 'koillisesta', 'idästä', 'kaakosta', 'etelästä', 'lounaasta', 'lännestä', 'luoteesta'],
+  en: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'],
+};
+export const COMPASS_TO = {
+  fi: ['pohjoiseen', 'koilliseen', 'itään', 'kaakkoon', 'etelään', 'lounaaseen', 'länteen', 'luoteeseen'],
+  en: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'],
+};
 
 export interface NightWindow {
   /** time the chart shows */

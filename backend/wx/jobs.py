@@ -22,6 +22,7 @@ Output layout (all JSON, relative to DATA_DIR):
   lightning/fi.json      lightning strikes in the last hour (FMI)
   airquality/fi.json     hourly air quality index per station (FMI)
   geo/<letter>.json      GeoNames cities for the place search, by first letter of the folded name
+  sky/passes.json        visible ISS / Tiangong passes for 21 days, per Finnish place + central Finland
   health.json            job freshness (written by the runner)
 """
 
@@ -35,7 +36,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, fields, fmi, geonames, grid, metno, nordic, radar, swpc, world
+from .sources import aviation, cap, digitraffic, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -82,6 +83,14 @@ def job_geonames() -> dict:
         write_json(f"geo/{k}.json", rows)
     write_json("geo/index.json", {"updated": iso(utcnow()), "shards": sorted(shards), "count": sum(map(len, shards.values()))})
     return {"cities": sum(map(len, shards.values()))}
+
+
+def job_satellites() -> dict:
+    sites = {"central": satellites.SITE}
+    sites.update({p.id: (p.lat, p.lon) for p in places_mod.places() if p.country == "FI"})
+    data = satellites.all_passes(sites)
+    write_json("sky/passes.json", data)
+    return {"sites": len(sites), "passes": sum(map(len, data["sites"].values()))}
 
 
 def job_forecast() -> dict:
@@ -503,6 +512,7 @@ def job_airquality() -> dict:
 JOBS: list[Job] = [
     Job("places", 24 * 3600, job_places),
     Job("geonames", 7 * 24 * 3600, job_geonames),
+    Job("satellites", 3 * 3600, job_satellites),
     Job("obs", 10 * 60, job_obs),
     Job("nordic", 20 * 60, job_nordic),
     Job("warnings", 10 * 60, job_warnings),

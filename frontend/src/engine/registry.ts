@@ -379,14 +379,32 @@ const almanac: SlideDef<AlmanacData> = {
   },
 };
 
+/** Space station passes for the first configured Finnish place (latitude matters a lot:
+ *  the ISS hardly rises above 10° north of Oulu), else for central Finland. */
+async function satPasses(places: Place[], lang: Lang, now: Date): Promise<SkyData['sats']> {
+  const f = await soft(api.passes(), 4000);
+  if (!f) return null;
+  const p = places.find((x) => x.country === 'FI' && f.sites[x.id]);
+  const list = f.sites[p?.id ?? 'central'] ?? [];
+  const t = now.getTime();
+  const upcoming = list.filter((x) => Date.parse(x.end) >= t);
+  const tonight = upcoming.filter((x) => Date.parse(x.start) <= t + 20 * 3600_000);
+  return {
+    place: p ? p.name[lang] : lang === 'fi' ? 'Keski-Suomi' : 'central Finland',
+    tonight,
+    next: tonight.length ? null : (upcoming[0] ?? null),
+  };
+}
+
 const sky: SlideDef<SkyData> = {
   id: 'sky',
   title: 'slide.sky',
   scope: 'global',
   component: Sky,
-  async prepare({ lang, now }) {
+  async prepare({ lang, now, places }) {
     const win = tonight(now);
     const objects = visibleTonight(win);
+    const sats = await satPasses(places, lang, now);
     const all: (SkyStar & { en: string })[] = STARS.map((st) => {
       const h = horizontal(starEq(st), win.at);
       return { name: lang === 'fi' ? st[0] : st[1], en: st[1], alt: h.alt, az: h.az, mag: st[4] };
@@ -411,6 +429,7 @@ const sky: SlideDef<SkyData> = {
       moonPhase: mi.phase,
       moonFraction: mi.fraction,
       showers: activeShowers(win.at).map((x) => ({ name: x[lang], peak: x.peak, atPeak: x.atPeak })),
+      sats,
     };
   },
 };

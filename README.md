@@ -48,7 +48,7 @@ Once per loop:
 | `auroraglobe` | Revontulet maapallolla / Aurora Worldwide: both auroral ovals on polar maps with the night side shaded, Kp now and in 24 h |
 | `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long) |
 | `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun) |
-| `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers |
+| `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers; visible ISS / Tiangong passes for the first configured Finnish place (tracks drawn on the chart; else the next visible pass) |
 | `map-<region>` | ECMWF temperature + precipitation + wind particles, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
 | `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map with wind |
 | `credits` | Data sources and the tracks of the selected playlists |
@@ -85,6 +85,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | places | 24 h | `places.json` (curated places in `backend/wx/places.yaml`, airports) |
 | obs | 10 min | `obs/fi.json`: latest values from all FMI stations, plus 3 h pressure tendency |
 | nordic | 20 min | `obs/nordic.json`: same shape from SMHI (Sweden), DMI (Denmark, Faroes), the Estonian Environment Agency and the Icelandic Met Office; Norway (MET Norway Frost) only if a client id is put in `$WX_STATE_DIR/frost_client_id`. A failing service keeps its stations for up to 3 h |
+| satellites | 3 h | `sky/passes.json`: visible ISS and Tiangong passes for 21 days, per Finnish place and central Finland (CelesTrak elements cached 12 h, SGP4 via `sgp4`; at least 10° up, observer's sun below −6°, satellite sunlit; magnitude from a standard magnitude and phase angle). Positions checked against Skyfield |
 | geonames | 7 days | `geo/<aa>.json`: GeoNames cities for the place search, split by the first two letters of the folded name |
 | warnings | 10 min | `warnings/fi.json`: FMI CAP warnings, fi/sv/en text, polygons |
 | aviation | 10 min | `aviation.json`: METAR and TAF |
@@ -137,7 +138,7 @@ selected tracks are credited on the Data Sources slide automatically.
 - Code: `/opt/wx/code/backend`, venv `/opt/wx/code/venv`, state `/opt/wx/code/var`
 - Output: `/opt/wx/html/wx/data` (served by nginx as `https://wx.fi/wx/data/…`)
 - Scheduler: systemd **user** units of `wx` (lingering), in `/opt/wx/code/.config/systemd/user/`
-- Python deps (venv): httpx, pyyaml, pillow, numpy; NetCDF is read by `wx/netcdf3.py` (stdlib only)
+- Python deps (venv): httpx, pyyaml, pillow, numpy, sgp4; NetCDF is read by `wx/netcdf3.py` (stdlib only)
 - Disk: data ~20 MB (radar frames, local radar windows, world rasters, cameras), music ~210 MB
 
 ```sh
