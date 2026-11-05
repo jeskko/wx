@@ -19,16 +19,21 @@
     nextFull: Date;
     nextNew: Date;
     moonPlace: { name: string; tz: string; rise: Date | null; set: Date | null; always: 'up' | 'down' | null };
+    /** special days in the next two weeks (Finnish calendar) */
+    special: import('../lib/specialdays').SpecialDay[];
   }
 </script>
 
 <script lang="ts">
   // Almanac, once per loop: moon (same everywhere) + sun times for selected cities.
   import { t } from '../i18n';
-  import { duration, time } from '../lib/format';
+  import { capitalize, duration, time } from '../lib/format';
   import { LOCALE } from '../i18n';
   import type { SlideProps } from '../engine/types';
 
+  /** "su 8.11." / "Sun 8 Nov" from YYYY-MM-DD */
+  const sdate = (ymd: string) =>
+    capitalize(new Date(`${ymd}T12:00:00Z`).toLocaleDateString(LOCALE[ctx.lang], { weekday: 'short', day: 'numeric', month: ctx.lang === 'fi' ? 'numeric' : 'short', timeZone: 'UTC' }));
   let { ctx, data }: SlideProps<AlmanacData> = $props();
   const L = $derived(ctx.lang);
 
@@ -130,6 +135,22 @@
         {/each}
       </tbody>
     </table>
+    {#if data.special.length}
+      <div class="special">
+        <div class="sh">{L === 'fi' ? 'Tulevat merkkipäivät' : 'Coming up'}</div>
+        <ul>
+          {#each data.special as s (s.date + s.name.fi)}
+            <li class:holiday={s.holiday}>
+              <span class="sd">{sdate(s.date)}</span>
+              {#if s.flag}<svg viewBox="0 0 18 11" width="21" height="13" aria-label={L === 'fi' ? 'liputuspäivä' : 'flag day'}
+                  ><rect width="18" height="11" fill="#fff" /><rect x="5" width="3" height="11" fill="#002f6c" /><rect y="4" width="18" height="3" fill="#002f6c" /></svg
+                >{/if}
+              <span class="sn">{s.name[L]}</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -221,6 +242,52 @@
     text-align: center;
     color: var(--c-accent);
     white-space: nowrap;
+  }
+  .special {
+    margin-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 8px;
+  }
+  .sh {
+    font-size: 20px;
+    color: var(--c-accent);
+    margin-bottom: 4px;
+  }
+  .special ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: 24px;
+    font-size: 19px;
+  }
+  .special li {
+    break-inside: avoid;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    line-height: 1.45;
+  }
+  .special li svg {
+    flex: none;
+    align-self: center;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  }
+  .sd {
+    flex: none;
+    min-width: 64px;
+    color: var(--c-label);
+    font-variant-numeric: tabular-nums;
+  }
+  .sn {
+    color: var(--c-value);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .holiday .sn,
+  .holiday .sd {
+    color: var(--c-holiday, #ff8a8a);
   }
   .polar small {
     font-size: 0.72em;

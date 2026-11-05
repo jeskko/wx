@@ -1,6 +1,7 @@
 <script lang="ts">
   import { capitalize } from '../lib/format';
-  import { flagDaysOn, type ElectionsFile } from '../lib/flagdays';
+  import type { ElectionsFile } from '../lib/flagdays';
+  import { specialDaysOn } from '../lib/specialdays';
   import { api } from '../lib/data';
   import { LOCALE } from '../i18n';
   import type { Lang } from '../lib/types';
@@ -23,11 +24,12 @@
   const fiDate = $derived(now.toLocaleDateString('en-CA', { timeZone: 'Europe/Helsinki' }));
   const flag = $derived.by(() => {
     void fiDate;
-    const f = flagDaysOn(now, wd)[0];
+    // flag days first, then holidays, then other special days
+    const f = specialDaysOn(now, wd)[0];
     if (!f) return null;
     // header shows the short form: "Mikael Agricolan päivä, suomen kielen päivä" -> first part
     const n = f.name[lang];
-    return { short: n.split(', ')[0], full: n };
+    return { short: n.split(/, |: /)[0], full: n, flag: f.flag, holiday: f.holiday };
   });
   const date = $derived(capitalize(now.toLocaleDateString(LOCALE[lang], { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz })));
 </script>
@@ -41,10 +43,10 @@
     <div class="time">{clock}</div>
     <div class="date">
       {#if flag}
-        <span class="flagday" title={flag.full}>
-          <svg viewBox="0 0 18 11" width="29" height="18" aria-hidden="true"
-            ><rect width="18" height="11" fill="#fff" /><rect x="5" width="3" height="11" fill="#002f6c" /><rect y="4" width="18" height="3" fill="#002f6c" /></svg
-          >{flag.short}</span
+        <span class="flagday" class:holiday={flag.holiday} title={flag.full}>
+          {#if flag.flag}<svg viewBox="0 0 18 11" width="29" height="18" aria-hidden="true"
+              ><rect width="18" height="11" fill="#fff" /><rect x="5" width="3" height="11" fill="#002f6c" /><rect y="4" width="18" height="3" fill="#002f6c" /></svg
+            >{/if}{flag.short}</span
         ><span class="sep">·</span>
       {/if}{date}
     </div>
@@ -56,6 +58,9 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+  }
+  .flagday.holiday {
+    color: var(--c-holiday, #ff8a8a);
   }
   .flagday svg {
     flex: none;

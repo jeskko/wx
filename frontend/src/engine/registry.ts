@@ -6,6 +6,7 @@ import { outlook } from '../lib/aurora';
 import { next36Periods, summarize, type PeriodSummary } from '../lib/textfc';
 import type { Day, Metar, Station, Taf } from '../lib/types';
 import { isCustom } from '../lib/geo';
+import { upcomingSpecialDays } from '../lib/specialdays';
 import { currentFor, currentFromStep, fillFromNeighbours, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, placeTz, stepAt } from '../lib/wx';
 import { loadPlaylist } from './audio';
 import { upcoming } from '../lib/nowcast';
@@ -363,7 +364,9 @@ const almanac: SlideDef<AlmanacData> = {
     const ftz = placeTz(first);
     const fymd = new Intl.DateTimeFormat('en-CA', { timeZone: ftz }).format(now);
     const mt = getMoonTimes(new Date(`${fymd}T12:00:00Z`), first.lat, first.lon);
+    const wd = (await soft(api.elections(), 3000))?.elections ?? [];
     return {
+      special: upcomingSpecialDays(now, 14, wd),
       rows,
       moonPhase: mi.phase,
       moonFraction: mi.fraction,

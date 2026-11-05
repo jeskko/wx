@@ -48,13 +48,17 @@ Once per loop:
 | `auroramap` | OVATION auroral oval over the Nordics |
 | `auroraglobe` | Revontulet maapallolla / Aurora Worldwide: both auroral ovals on polar maps with the night side shaded, Kp now and in 24 h |
 | `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long) |
-| `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun) |
+| `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun); flag days, holidays and other special days of the next two weeks |
 | `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers; visible ISS / Tiangong passes for the first configured Finnish place (tracks drawn on the chart; else the next visible pass) |
 | `map-<region>` | ECMWF temperature + precipitation + wind particles, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
 | `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map with wind |
 | `credits` | Data sources and the tracks of the selected playlists |
 
-On Finnish flag days the header shows a flag and the day's name next to the date. The days
+Next to the date the header shows the day's Finnish flag day (with a flag), public holiday
+(in red) or other special day; the almanac lists those of the next two weeks. Holidays,
+traditional days (laskiainen, kynttilänpäivä …), the summer time changes and the equinoxes /
+solstices are computed in `frontend/src/lib/specialdays.ts` (no name days: that list is
+copyrighted). Flag days The days
 are computed in `frontend/src/lib/flagdays.ts` from the Ministry of the Interior's list
 (official and established days, election days by the election act). Elections the rules can't
 predict (European Parliament elections, early elections, referendums, second presidential
