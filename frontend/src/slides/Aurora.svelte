@@ -93,8 +93,8 @@
           <tr>
             <td class="name">{r.name}</td>
             <td class="level l{r.out.level}">{r.out.dark ? t(L, `aurora.${r.out.level}` as 'aurora.0') : L === 'fi' ? 'valoisaa' : 'daylight'}</td>
-            <td class="n">{r.out.ovation == null ? '–' : `${r.out.ovation} %`}</td>
-            <td class="n">{r.out.cloud == null ? '–' : `${Math.round(r.out.cloud)} %`}</td>
+            <td class="n">{r.out.ovation == null ? '–' : `${r.out.ovation}\u00a0%`}</td>
+            <td class="n">{r.out.cloud == null ? '–' : `${Math.round(r.out.cloud)}\u00a0%`}</td>
             <td class="n">{num(L, r.out.need, 0)}</td>
           </tr>
         {/each}
@@ -177,16 +177,19 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 27px;
+    font-size: 24px;
   }
   th {
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 400;
     color: var(--c-label);
     text-align: right;
+    white-space: nowrap;
+    padding: 0 6px 0 14px;
   }
   td {
     padding: 4px 6px;
+    white-space: nowrap;
   }
   .name {
     color: var(--c-value);
