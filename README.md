@@ -54,6 +54,11 @@ Once per loop:
 | `capital` | Repeats for each selected world capital: local time, METAR, 3-day forecast, 900 km map with wind |
 | `credits` | Data sources and the tracks of the selected playlists |
 
+On Finnish flag days the header shows a flag and the day's name next to the date. The days
+are computed in `frontend/src/lib/flagdays.ts` from the Ministry of the Interior's list
+(official and established days, election days by the election act); announced one-off days
+such as early or European Parliament elections go into its `EXTRA` list.
+
 Long lists hold still for 2.5 s, then scroll to the bottom before the slide ends
 (`lib/autoscroll.ts`). Slides whose data is missing or stale are skipped.
 
