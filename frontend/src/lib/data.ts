@@ -2,6 +2,8 @@
 // Each file has a max age; stale entries are refetched, and if a refetch fails
 // the last good copy is kept (marked stale) so the screen never goes blank.
 
+import { customForecast } from './customfc';
+import type { Place } from './types';
 import type { CamsFile, CapitalsFile, AirQualityFile, AuroraFile, AviationFile, ForecastFile, LightningFile, ObsFile, PlacesFile, SeaFile, WarningsFile } from './types';
 import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
@@ -61,10 +63,21 @@ export function peek<T>(path: string): T | null {
   return (cache.get(path)?.value as T) ?? null;
 }
 
+/** Places added with the place search: forecasts come from MET Norway via the browser. */
+const customPlaces = new Map<string, Place>();
+export function setCustomPlaces(ps: Place[]) {
+  customPlaces.clear();
+  for (const p of ps) customPlaces.set(p.id, p);
+}
+
 export const api = {
   places: () => load<PlacesFile>('places.json', 3600),
   obs: () => load<ObsFile>('obs/fi.json', 300),
-  forecast: (id: string) => load<ForecastFile>(`fc/${id}.json`, 1800),
+  nordicObs: () => load<ObsFile>('obs/nordic.json', 600),
+  forecast: (id: string): Promise<ForecastFile> => {
+    const p = customPlaces.get(id);
+    return p ? customForecast(p, p.tz ?? 'UTC') : load<ForecastFile>(`fc/${id}.json`, 1800);
+  },
   aviation: () => load<AviationFile>('aviation.json', 300),
   warnings: () => load<WarningsFile>('warnings/fi.json', 300),
   aurora: () => load<AuroraFile>('aurora.json', 600),

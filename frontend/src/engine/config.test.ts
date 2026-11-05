@@ -45,3 +45,13 @@ describe('new slides in saved configs', () => {
     expect(c.slides.length).toBe(DEFAULT_SLIDES.length);
   });
 });
+
+describe('custom places', () => {
+  it('keeps valid search places and drops junk', () => {
+    const ok = { id: 'geo-656130', name: { fi: 'Pietarsaari', en: 'Jakobstad' }, lat: 63.67, lon: 22.7, country: 'FI', region: 'x', icao: 'X', tz: 'Europe/Helsinki' };
+    const c = merge(DEFAULT_CONFIG, { custom: [ok, { id: 'helsinki' }, { ...ok, id: 'geo-1', tz: '../../etc' }] as never });
+    expect(c.custom.map((p) => p.id)).toEqual(['geo-656130', 'geo-1']);
+    expect(c.custom[0]).toMatchObject({ region: 'custom', icao: null, tz: 'Europe/Helsinki' });
+    expect(c.custom[1].tz).toBeUndefined();
+  });
+});

@@ -4,8 +4,9 @@ import { getMoonIllumination, getMoonTimes, getTimes } from 'suncalc';
 import { api } from '../lib/data';
 import { outlook } from '../lib/aurora';
 import { next36Periods, summarize, type PeriodSummary } from '../lib/textfc';
-import type { Day, Metar, Taf } from '../lib/types';
-import { currentFor, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, stepAt, tzFor } from '../lib/wx';
+import type { Day, Metar, Station, Taf } from '../lib/types';
+import { isCustom } from '../lib/geo';
+import { currentFor, currentFromStep, haversineKm, isNight, nearestStation, obsSymbol, pointInPolygon, placeTz, stepAt } from '../lib/wx';
 import { loadPlaylist } from './audio';
 import { upcoming } from '../lib/nowcast';
 import type { SlideDef } from './types';
@@ -59,15 +60,23 @@ async function soft<T>(p: Promise<T>, ms = 8000): Promise<T | null> {
   }
 }
 
+/** Observation stations for a place: FMI in Finland, plus the neighbouring services
+ *  (SMHI, DMI, Estonia, Iceland, MET Norway when enabled) elsewhere and near borders. */
+async function stationsFor(place: Pick<Place, 'country'>): Promise<Station[] | null> {
+  const [fi, nordic] = await Promise.all([soft(api.obs()), place.country === 'FI' ? null : soft(api.nordicObs(), 5000)]);
+  if (!fi && !nordic) return null;
+  return [...(fi?.stations ?? []), ...(nordic?.stations ?? [])];
+}
+
 const current: SlideDef<CurrentData> = {
   id: 'current',
   title: 'slide.current',
   scope: 'place',
   component: Current,
   async prepare({ place, now, lang }) {
-    const [obs, av, fc] = await Promise.all([soft(api.obs()), soft(api.aviation()), soft(api.forecast(place.id))]);
-    const cur = currentFor(place, obs?.stations ?? null, av ? Object.values(av.metar) : null);
+    const [obs, av, fc] = await Promise.all([stationsFor(place), soft(api.aviation()), soft(api.forecast(place.id))]);
     const step = fc ? stepAt(fc.hourly, now) : null;
+    const cur = currentFor(place, obs, av ? Object.values(av.metar) : null) ?? (step && fc ? currentFromStep(step, fc.source === 'fmi' ? 'FMI' : 'MET Norway') : null);
     if (!cur && !step) return null;
     const [radar, cam] = await Promise.all([soft(localRadar(place, lang, now), 6000), soft(randomCam(place, now), 5000)]);
     return { cur, sym: cur?.sym ?? step?.sym ?? null, night: isNight(now, place.lat, place.lon), fcT: step?.t ?? null, radar, cam };
@@ -94,7 +103,7 @@ async function localRadar(place: Place, lang: Lang, now: Date): Promise<LocalRad
     soft(api.radar()),
     soft(api.places()),
     soft(api.lightning(), 4000),
-    soft(api.nowcast(place.id), 4000),
+    isCustom(place.id) ? null : soft(api.nowcast(place.id), 4000),
   ]);
   if (!index?.frames.length) return null;
   if (now.getTime() - Date.parse(index.frames[index.frames.length - 1].time) > 30 * 60_000) return null;
@@ -242,7 +251,7 @@ const aurora: SlideDef<AuroraData> = {
     const [a, pf] = await Promise.all([soft(api.aurora()), soft(api.places())]);
     if (!a || !a.kp || !pf) return null;
     // north to south reads naturally for aurora
-    const chosen = [...pickPlaces(config.auroraPlaces, places, pf.places)].sort((x, y) => y.lat - x.lat);
+    const chosen = [...pickPlaces(config.auroraPlaces, places, [...pf.places, ...config.custom])].sort((x, y) => y.lat - x.lat);
     if (!chosen.length) return null;
     const fcs = await Promise.all(chosen.map((p) => soft(api.forecast(p.id), 4000)));
     const rows = chosen.map((p, i) => ({ id: p.id, name: p.name[lang], out: outlook(a, p.lat, p.lon, fcs[i]?.hourly ?? null, now) }));
@@ -309,10 +318,10 @@ const almanac: SlideDef<AlmanacData> = {
   component: Almanac,
   async prepare({ config, places, lang, now }) {
     const pf = await soft(api.places());
-    const chosen = pickPlaces(config.almanacPlaces, places, pf?.places ?? places);
+    const chosen = pickPlaces(config.almanacPlaces, places, [...(pf?.places ?? places), ...config.custom]);
     if (!chosen.length) return null;
     const rows = chosen.map((p) => {
-      const tz = tzFor(p.country);
+      const tz = placeTz(p);
       // local calendar day; noon UTC of that date is within the day everywhere in Europe
       const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now);
       const noon = new Date(`${ymd}T12:00:00Z`);
@@ -347,7 +356,7 @@ const almanac: SlideDef<AlmanacData> = {
     rows.sort((a, b) => chosen.find((p) => p.id === b.id)!.lat - chosen.find((p) => p.id === a.id)!.lat);
     const mi = getMoonIllumination(now);
     const first = chosen[0];
-    const ftz = tzFor(first.country);
+    const ftz = placeTz(first);
     const fymd = new Intl.DateTimeFormat('en-CA', { timeZone: ftz }).format(now);
     const mt = getMoonTimes(new Date(`${fymd}T12:00:00Z`), first.lat, first.lon);
     return {

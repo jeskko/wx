@@ -6,7 +6,7 @@
 //   /?playlist=synth,synthwave   (music playlists, see music/playlists.json)
 //   /#c=eyJwbGFjZXMiOlsib3VsdSJdfQ   (full config, base64url JSON; see encodeConfig)
 
-import type { Lang } from '../lib/types';
+import type { Lang, Place } from '../lib/types';
 
 export type Theme = 'retro' | 'modern';
 
@@ -20,6 +20,8 @@ export interface Config {
   lang: Lang;
   theme: Theme;
   places: string[];
+  /** Places added with the place search (GeoNames, ids 'geo-<id>'); forecasts from MET Norway. */
+  custom: Place[];
   airports: string[];
   slides: SlideConf[];
   /** Per-place exceptions: place id -> slide ids switched off for that place (place-scoped slides only). */
@@ -70,6 +72,7 @@ export const DEFAULT_CONFIG: Config = {
   lang: 'fi',
   theme: 'modern',
   places: ['helsinki', 'oulu', 'kuopio', 'tampere', 'turku', 'rovaniemi', 'stockholm'],
+  custom: [],
   airports: ['EFHK', 'EFTU', 'EFTP', 'EFJY', 'EFKU', 'EFOU', 'EFRO', 'EFKT', 'EFIV'],
   slides: DEFAULT_SLIDES,
   // the city slides (36 h, chart, 10 days) only for Oulu; current conditions everywhere
@@ -98,6 +101,25 @@ function safeStorage(): Storage | null {
   }
 }
 
+function validCustom(x: unknown): x is Place {
+  const p = x as Place;
+  return (
+    !!p &&
+    typeof p.id === 'string' &&
+    /^geo-\d+$/.test(p.id) &&
+    typeof p.name?.fi === 'string' &&
+    typeof p.name?.en === 'string' &&
+    Number.isFinite(p.lat) &&
+    Number.isFinite(p.lon) &&
+    typeof p.country === 'string'
+  );
+}
+
+function cleanCustom(p: Place): Place {
+  const tz = typeof p.tz === 'string' && /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/.test(p.tz) ? p.tz : undefined;
+  return { id: p.id, name: { fi: p.name.fi.slice(0, 60), en: p.name.en.slice(0, 60) }, lat: p.lat, lon: p.lon, country: p.country.slice(0, 2), region: 'custom', icao: null, ...(tz ? { tz } : {}) };
+}
+
 /** Merge a partial config onto a base, validating shapes and keeping unknown slides out. */
 export function merge(base: Config, p: Partial<Config> | null | undefined): Config {
   if (!p || typeof p !== 'object') return base;
@@ -105,6 +127,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
   if (p.lang === 'fi' || p.lang === 'en') out.lang = p.lang;
   if (p.theme === 'retro' || p.theme === 'modern') out.theme = p.theme;
   if (Array.isArray(p.places) && p.places.length) out.places = p.places.filter((x) => typeof x === 'string');
+  if (Array.isArray(p.custom)) out.custom = p.custom.filter(validCustom).slice(0, 30).map(cleanCustom);
   if (Array.isArray(p.airports)) out.airports = p.airports.filter((x) => typeof x === 'string').map((x) => x.toUpperCase());
   if (Array.isArray(p.slides)) {
     const known = new Map(DEFAULT_SLIDES.map((s) => [s.id, s]));

@@ -97,3 +97,57 @@ def test_radar_downsample_keeps_echo_and_nodata():
     assert small.getpixel((1, 1)) == 0
     full = Image.new("L", (4, 4), 255)
     assert radar.downsample(full, (2, 2)).getpixel((0, 0)) == 255
+
+
+def test_nordic_codes():
+    from wx.sources import nordic
+
+    assert nordic.present_weather(181) == 81  # automatic: 4680 + 100
+    assert nordic.present_weather(45) == 30  # manual fog -> 4680 fog
+    assert nordic.present_weather(None) is None
+    assert nordic.octas(100) == 8 and nordic.octas(0) == 0 and nordic.octas(113) == 9
+    assert nordic.smhi_name("Adelsö A") == "Adelsö" and nordic.smhi_name("Abisko Aut") == "Abisko"
+
+
+def test_smhi(fixture_json):
+    from wx.sources import nordic
+
+    docs = {int(k): v for k, v in fixture_json("smhi_all.json").items()}
+    st = {s["name"]: s for s in nordic.parse_smhi(docs)}
+    assert "Göteborg" in st and "Luleå-Kallax Flygplats" in st
+    g = st["Göteborg"]
+    assert g["src"] == "smhi" and g["id"].startswith("smhi:")
+    assert g["t"] is not None and g["p"] is not None and g["time"].endswith("Z")
+    assert all(s["n"] is None or 0 <= s["n"] <= 9 for s in st.values())
+
+
+def test_dmi(fixture_json):
+    from wx.sources import nordic
+
+    names = nordic.dmi_station_names(fixture_json("dmi_stations.json"))
+    assert names["06180"][0] == "Københavns Lufthavn"
+    st = {s["name"]: s for s in nordic.parse_dmi(fixture_json("dmi_obs.json"), names)}
+    cph = st["Københavns Lufthavn"]
+    assert cph["t"] == 3.7 and cph["ws"] == 2.6 and cph["wd"] == 242 and cph["wawa"] == 81
+    assert "H. C. Andersen Airport" not in st  # precipitation-only station has no temperature
+
+
+def test_estonia_iceland(fixture_bytes):
+    from wx.sources import nordic
+
+    ee = {s["name"]: s for s in nordic.parse_estonia(fixture_bytes("ee_obs.xml"))}
+    h = ee["Tallinn-Harku"]
+    assert h["t"] == 8.6 and h["vis"] == 31000 and h["n"] == 0 and h["wd"] == 334
+    ic = {s["name"]: s for s in nordic.parse_iceland(fixture_bytes("vedur_obs.xml"))}
+    r = ic["Reykjavík"]
+    assert r["lat"] > 64 and r["lon"] < -21 and r["t"] is not None
+    assert r["wd"] is None or 0 <= r["wd"] < 360
+
+
+def test_geonames_helpers():
+    from wx.sources import geonames
+
+    assert geonames.fold("Jyväskylä") == "jyvaskyla" and geonames.fold("Tórshavn") == "torshavn"
+    assert geonames.shard("Ähtäri") == "ah" and geonames.shard("Ii") == "ii" and geonames.shard("Ö") == "_"
+    assert geonames.finnish_name("Jakobstad", ["Pietarsaari", "Pietasaari"]) == "Pietarsaari"
+    assert geonames.finnish_name("Jätkäsaari", ["Busis", "Jätkäsaari"]) == ""

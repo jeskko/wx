@@ -11,6 +11,8 @@ export interface Place {
   country: string;
   region: string;
   icao: string | null;
+  /** IANA time zone (custom places from the place search); else derived from country */
+  tz?: string;
 }
 
 export interface PlacesFile {
@@ -21,6 +23,8 @@ export interface PlacesFile {
 
 export interface Station {
   id: string | null;
+  /** service for non-FMI stations: smhi, dmi, ee, is, frost */
+  src?: string;
   name: string | null;
   region: string | null;
   lat: number;

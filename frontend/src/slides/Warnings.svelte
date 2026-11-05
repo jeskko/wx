@@ -10,13 +10,13 @@
 <script lang="ts">
   import { t } from '../i18n';
   import { capitalize, time, weekday } from '../lib/format';
-  import { tzFor } from '../lib/wx';
+  import { placeTz } from '../lib/wx';
   import { autoscroll } from '../lib/autoscroll';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<WarningsData> = $props();
   const L = $derived(ctx.lang);
-  const tz = $derived(tzFor(ctx.place.country));
+  const tz = $derived(placeTz(ctx.place));
   const multi = $derived(ctx.places.length > 1);
 
   function txt(w: Warning) {

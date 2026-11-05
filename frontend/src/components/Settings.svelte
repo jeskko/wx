@@ -4,6 +4,9 @@
   import { untrack } from 'svelte';
   import { t } from '../i18n';
   import type { Place } from '../lib/types';
+  import { LOCALE } from '../i18n';
+  import { fold, rowToPlace, searchPlaces, type GeoRow } from '../lib/geo';
+  import { haversineKm } from '../lib/wx';
   import { DEFAULT_CONFIG, shareUrl, slideOnFor, type Config } from '../engine/config';
   import { SLIDES } from '../engine/registry';
 
@@ -55,7 +58,48 @@
     const cur = c[key];
     c[key] = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
   }
-  const chosen = $derived(c.places.map((id) => allPlaces.find((p) => p.id === id)).filter((p): p is Place => !!p));
+  // curated places + places added with the search
+  const everyPlace = $derived([...allPlaces, ...c.custom]);
+  const chosen = $derived(c.places.map((id) => everyPlace.find((p) => p.id === id)).filter((p): p is Place => !!p));
+
+  // place search (GeoNames)
+  let q = $state('');
+  let results = $state<GeoRow[]>([]);
+  let searchTimer = 0;
+  function onSearch() {
+    clearTimeout(searchTimer);
+    const query = q;
+    searchTimer = window.setTimeout(async () => {
+      const rows = await searchPlaces(query);
+      if (query === q) results = rows;
+    }, 200);
+  }
+  function addFound(r: GeoRow) {
+    const p = rowToPlace(r);
+    // a curated place of the same name nearby is the better choice (baked forecast, radar, cameras)
+    const twin = allPlaces.find((x) => haversineKm(x.lat, x.lon, p.lat, p.lon) < 15 && [fold(x.name.fi), fold(x.name.en)].some((n) => n === fold(p.name.fi) || n === fold(p.name.en)));
+    const id = twin?.id ?? p.id;
+    if (!twin && !c.custom.some((x) => x.id === p.id)) c.custom = [...c.custom, p];
+    if (!c.places.includes(id)) c.places = [...c.places, id];
+    q = '';
+    results = [];
+  }
+  function removeCustom(id: string) {
+    c.custom = c.custom.filter((p) => p.id !== id);
+    c.places = c.places.filter((x) => x !== id);
+    c.auroraPlaces = c.auroraPlaces.filter((x) => x !== id);
+    c.almanacPlaces = c.almanacPlaces.filter((x) => x !== id);
+    const off = { ...c.off };
+    delete off[id];
+    c.off = off;
+  }
+  const countryName = (cc: string) => {
+    try {
+      return new Intl.DisplayNames([LOCALE[L]], { type: 'region' }).of(cc) ?? cc;
+    } catch {
+      return cc;
+    }
+  };
 
   async function copyLink() {
     try {
@@ -126,11 +170,49 @@
         {/each}
       </div>
     {/each}
+    <div class="chips">
+      <span class="glabel">{L === 'fi' ? 'Muut paikat' : 'Other places'}</span>
+      {#each c.custom as p (p.id)}
+        <span class="pair">
+          <button class="chip" class:on={c.places.includes(p.id)} onclick={() => togglePlace(p.id)}>{p.name[L]}</button><button
+            class="chip x"
+            onclick={() => removeCustom(p.id)}
+            aria-label={L === 'fi' ? 'poista' : 'remove'}>×</button
+          >
+        </span>
+      {/each}
+      <input
+        class="search"
+        type="search"
+        placeholder={L === 'fi' ? 'Hae paikkakuntaa maailmalta…' : 'Search any town…'}
+        bind:value={q}
+        oninput={onSearch}
+      />
+    </div>
+    {#if results.length}
+      <ul class="results">
+        {#each results as r (r[0])}
+          <li>
+            <button onclick={() => addFound(r)}>
+              {L === 'fi' && r[8] ? r[8] : r[1]}
+              <small>{[r[5], countryName(r[4])].filter(Boolean).join(', ')}</small>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+    {#if c.custom.length}
+      <p class="hint">
+        {L === 'fi'
+          ? 'Muiden paikkojen ennuste haetaan selaimella suoraan MET Norwaylta; havainto tulee lähimmältä asemalta, jos sellainen on.'
+          : 'Forecasts for other places are fetched by the browser from MET Norway; observations come from the nearest station when there is one.'}
+      </p>
+    {/if}
 
     {#snippet picker(key: 'auroraPlaces' | 'almanacPlaces', title: string)}
       <h3>{title}</h3>
       <div class="chips">
-        {#each allPlaces as p (p.id)}
+        {#each everyPlace as p (p.id)}
           <button
             class="chip"
             class:on={c[key].includes(p.id)}
@@ -317,6 +399,49 @@
     background: #1a3fb8;
     border-color: #1a3fb8;
     color: #fff;
+  }
+  .pair {
+    display: inline-flex;
+  }
+  .pair .chip:first-child {
+    border-radius: 14px 0 0 14px;
+  }
+  .chip.x {
+    border-left: none;
+    border-radius: 0 14px 14px 0;
+    padding: 3px 8px;
+    color: #a22;
+  }
+  .search {
+    flex: 1;
+    min-width: 220px;
+    padding: 4px 10px;
+    border: 1px solid #99a;
+    border-radius: 14px;
+  }
+  .results {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    border: 1px solid #ccd;
+    border-radius: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .results button {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .results button:hover {
+    background: #e8edff;
+  }
+  .results small {
+    color: #667;
+    margin-left: 6px;
   }
   .matrix-wrap {
     overflow-x: auto;

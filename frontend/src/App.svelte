@@ -8,14 +8,17 @@
   import { SLIDES } from './engine/registry';
   import type { SlideCtx, SlideDef } from './engine/types';
   import { t } from './i18n';
-  import { api } from './lib/data';
+  import { api, setCustomPlaces } from './lib/data';
   import type { Place } from './lib/types';
-  import { tzFor } from './lib/wx';
+  import { placeTz } from './lib/wx';
   import { capitalPlaces } from './lib/world';
 
   const initial = loadConfig();
   let config = $state<Config>(initial.config);
-  let allPlaces = $state<Place[]>([]);
+  let curated = $state<Place[]>([]);
+  setCustomPlaces(initial.config.custom);
+  // curated places (places.json) + places the viewer added with the place search
+  const allPlaces = $derived(curated.length ? [...curated, ...config.custom.filter((p) => !curated.some((q) => q.id === p.id))] : []);
   let started = $state(false);
   let paused = $state(false);
   let showSettings = $state(false);
@@ -192,6 +195,7 @@
   }
 
   function saveSettings(c: Config) {
+    setCustomPlaces(c.custom);
     config = c;
     saveConfig(c);
     showSettings = false;
@@ -208,7 +212,7 @@
   $effect(() => {
     api
       .places()
-      .then((pf) => (allPlaces = pf.places))
+      .then((pf) => (curated = pf.places))
       .catch(() => (error = 'places.json'));
     window.addEventListener('resize', rescale);
     document.addEventListener('visibilitychange', onVisibility);
@@ -236,7 +240,7 @@
   const subtitle = $derived(
     shown && (shown.def.scope !== 'global' || places.length <= 1) ? shown.ctx.place.name[config.lang] : '',
   );
-  const tz = $derived(tzFor(shown?.ctx.place.country ?? places[0]?.country ?? 'FI'));
+  const tz = $derived(placeTz(shown?.ctx.place ?? places[0] ?? { country: 'FI' }));
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -287,5 +291,5 @@
 </div>
 
 {#if showSettings}
-  <Settings {config} {allPlaces} onsave={saveSettings} onclose={() => (showSettings = false)} />
+  <Settings {config} allPlaces={curated} onsave={saveSettings} onclose={() => (showSettings = false)} />
 {/if}

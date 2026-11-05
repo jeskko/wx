@@ -23,7 +23,7 @@ export function pointInPolygon(lat: number, lon: number, poly: [number, number][
 }
 
 /** Nearest station with a fresh temperature, within maxKm. */
-export function nearestStation(stations: Station[], lat: number, lon: number, maxKm = 40, maxAgeMin = 90): (Station & { km: number }) | null {
+export function nearestStation(stations: Station[], lat: number, lon: number, maxKm = 40, maxAgeMin = 100): (Station & { km: number }) | null {
   const now = Date.now();
   let best: (Station & { km: number }) | null = null;
   for (const s of stations) {
@@ -37,7 +37,7 @@ export function nearestStation(stations: Station[], lat: number, lon: number, ma
 
 /** Current conditions in a common shape, from an FMI station or a METAR. */
 export interface Current {
-  source: 'fmi' | 'metar';
+  source: string; // fmi, smhi, dmi, ee, is, frost or metar
   stationName: string;
   km: number;
   time: string;
@@ -64,7 +64,7 @@ export function currentFor(place: Pick<Place, 'lat' | 'lon'>, stations: Station[
   if (st && stations) st = fillFromNeighbours(st, stations, place.lat, place.lon);
   if (st) {
     return {
-      source: 'fmi',
+      source: st.src ?? 'fmi',
       stationName: st.name ?? '',
       km: st.km,
       time: st.time,
@@ -145,6 +145,36 @@ export function fillFromNeighbours<S extends Station>(st: S, stations: Station[]
     if (k === 'p' && out.ptend == null) out.ptend = hit.s.ptend;
   }
   return out as S;
+}
+
+/** Current conditions from the forecast step of this hour (no station nearby). */
+export function currentFromStep(s: Step, source: string): Current {
+  const td = s.t != null && s.rh != null && s.rh > 0 ? dewPoint(s.t, s.rh) : null;
+  return {
+    source: 'forecast',
+    stationName: source,
+    km: 0,
+    time: s.time,
+    t: s.t,
+    feels: feelsLike(s.t, s.ws, s.rh),
+    ws: s.ws,
+    wg: s.wg,
+    wd: s.wd,
+    rh: s.rh,
+    td,
+    p: s.p,
+    ptend: null,
+    vis: null,
+    n: s.cloud == null ? null : Math.round(s.cloud / 12.5),
+    snow: null,
+    r1h: null,
+    sym: s.sym,
+  };
+}
+
+export function dewPoint(t: number, rh: number): number {
+  const g = Math.log(rh / 100) + (17.625 * t) / (243.04 + t);
+  return Math.round(((243.04 * g) / (17.625 - g)) * 10) / 10;
 }
 
 export function relHumidity(t: number, td: number): number {
@@ -252,6 +282,11 @@ const TZ_BY_COUNTRY: Record<string, string> = {
   EE: 'Europe/Tallinn',
   LV: 'Europe/Riga',
 };
+
+/** Time zone of a place: its own (custom places) or by country. */
+export function placeTz(p: Pick<Place, 'country' | 'tz'>): string {
+  return p.tz ?? tzFor(p.country);
+}
 
 export function tzFor(country: string): string {
   return TZ_BY_COUNTRY[country] ?? 'Europe/Helsinki';

@@ -36,13 +36,13 @@
   import { t } from '../i18n';
   import { num, temp, time, visibility } from '../lib/format';
   import { symLabel } from '../lib/textfc';
-  import { tzFor } from '../lib/wx';
+  import { placeTz } from '../lib/wx';
   import type { SlideProps } from '../engine/types';
 
   let { ctx, data }: SlideProps<CurrentData> = $props();
   const L = $derived(ctx.lang);
   const c = $derived(data.cur);
-  const tz = $derived(tzFor(ctx.place.country));
+  const tz = $derived(placeTz(ctx.place));
 
   const R = 340; // radar map size (px)
   let frame = $state(0);
@@ -86,10 +86,14 @@
         <dd>{num(c.rh)} %</dd>
         <dt>{t(L, 'dewpoint')}</dt>
         <dd>{temp(c.td)}</dd>
-        <dt>{t(L, 'pressure')}</dt>
-        <dd>{num(c.p)} hPa <small>{trend}</small></dd>
-        <dt>{t(L, 'visibility')}</dt>
-        <dd>{visibility(L, c.vis)}</dd>
+        {#if c.p != null}
+          <dt>{t(L, 'pressure')}</dt>
+          <dd>{num(c.p)} hPa <small>{trend}</small></dd>
+        {/if}
+        {#if c.vis != null}
+          <dt>{t(L, 'visibility')}</dt>
+          <dd>{visibility(L, c.vis)}</dd>
+        {/if}
         {#if c.n != null && c.n <= 8}
           <dt>{t(L, 'cloudiness')}</dt>
           <dd>{c.n}{t(L, 'octas')}</dd>
@@ -100,7 +104,11 @@
         {/if}
       </dl>
       <p class="foot">
-        {t(L, 'station')}: {c.stationName} · {t(L, 'observedAt')} {time(L, c.time, tz)}
+        {#if c.source === 'forecast'}
+          {L === 'fi' ? 'Ei havaintoasemaa lähellä: mallin ennuste tälle tunnille' : 'No station nearby: model forecast for this hour'} ({c.stationName})
+        {:else}
+          {t(L, 'station')}: {c.stationName} · {t(L, 'observedAt')} {time(L, c.time, tz)}
+        {/if}
       </p>
     {:else}
       <p class="nodata">{t(L, 'noData')}</p>
