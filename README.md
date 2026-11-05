@@ -58,7 +58,7 @@ Next to the date the header shows the day's Finnish flag day (with a flag), publ
 (in red) or other special day; the almanac lists those of the next two weeks. Holidays,
 traditional days (laskiainen, kynttilänpäivä …), the summer time changes and the equinoxes /
 solstices are computed in `frontend/src/lib/specialdays.ts` (no name days: that list is
-copyrighted). Flag days The days
+copyrighted). Flag days
 are computed in `frontend/src/lib/flagdays.ts` from the Ministry of the Interior's list
 (official and established days, election days by the election act). Elections the rules can't
 predict (European Parliament elections, early elections, referendums, second presidential
