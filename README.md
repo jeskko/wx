@@ -56,8 +56,10 @@ Once per loop:
 
 On Finnish flag days the header shows a flag and the day's name next to the date. The days
 are computed in `frontend/src/lib/flagdays.ts` from the Ministry of the Interior's list
-(official and established days, election days by the election act); announced one-off days
-such as early or European Parliament elections go into its `EXTRA` list.
+(official and established days, election days by the election act). Elections the rules can't
+predict (European Parliament elections, early elections, referendums, second presidential
+rounds) come from Wikidata via the `elections` job; for regular elections the computed date
+wins if the two disagree. Manual additions go into the `EXTRA` list.
 
 Long lists hold still for 2.5 s, then scroll to the bottom before the slide ends
 (`lib/autoscroll.ts`). Slides whose data is missing or stale are skipped.
@@ -92,6 +94,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | obs | 10 min | `obs/fi.json`: latest values from all FMI stations, plus 3 h pressure tendency |
 | nordic | 20 min | `obs/nordic.json`: same shape from SMHI (Sweden), DMI (Denmark, Faroes), the Estonian Environment Agency and the Icelandic Met Office; Norway (MET Norway Frost) only if a client id is put in `$WX_STATE_DIR/frost_client_id`. A failing service keeps its stations for up to 3 h |
 | satellites | 3 h | `sky/passes.json`: visible ISS and Tiangong passes for 21 days, per Finnish place and central Finland (CelesTrak elements cached 12 h, SGP4 via `sgp4`; at least 10° up, observer's sun below −6°, satellite sunlit; magnitude from a standard magnitude and phase angle). Positions checked against Skyfield |
+| elections | 7 days | `calendar/elections.json`: upcoming Finnish elections and referendums from Wikidata (CC0; day-precision dates only, one entry per day) |
 | geonames | 7 days | `geo/<aa>.json`: GeoNames cities for the place search, split by the first two letters of the folded name |
 | warnings | 10 min | `warnings/fi.json`: FMI CAP warnings, fi/sv/en text, polygons |
 | aviation | 10 min | `aviation.json`: METAR and TAF |
@@ -174,7 +177,7 @@ python3 tools/build_world.py <dir with ne_10m_* and ne_50m_* .geojson> [view id 
 ## Data licences
 
 FMI, MET Norway, SMHI, DMI, Fintraffic/Digitraffic (incl. weather camera images), ECMWF
-(via FMI), GeoNames: CC BY 4.0. Estonian Environment Agency and Icelandic Met Office: open
+(via FMI), GeoNames: CC BY 4.0. Wikidata: CC0. Estonian Environment Agency and Icelandic Met Office: open
 data, credited by name (no licence stated for these feeds). aviationweather.gov and NOAA
 SWPC: US public domain. Natural Earth: public domain.
 Music: CC BY 4.0 (credited per track). Planet positions use JPL's published approximate

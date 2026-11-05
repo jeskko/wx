@@ -1,0 +1,378 @@
+{
+  "head" : {
+    "vars" : [ "e", "fi", "en", "date", "prec" ]
+  },
+  "results" : {
+    "bindings" : [ {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q56400471"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 Finnish presidential election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaali 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-01-28T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q56400471"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 Finnish presidential election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaali 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-01-28T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q124352245"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "first round of Finnish presidential election, 2024"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaalin 2024 ensimmäinen kierros"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-01-28T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q124352245"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "first round of Finnish presidential election, 2024"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaalin 2024 ensimmäinen kierros"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-01-28T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q56400471"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 Finnish presidential election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaali 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-02-11T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q56400471"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 Finnish presidential election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaali 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-02-11T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q124352270"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "second round of Finnish presidential election, 2024"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaalin 2024 toinen kierros"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-02-11T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q124352270"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "second round of Finnish presidential election, 2024"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen presidentinvaalin 2024 toinen kierros"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-02-11T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q70253009"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 European Parliament election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Europarlamenttivaalit 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-06-01T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "10"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q118380882"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2024 European Parliament election in Finland"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen europarlamenttivaalit 2024"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2024-06-01T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "10"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q122012625"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2025 Finnish county elections"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "Suomen aluevaalit 2025"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2025-04-13T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q122014350"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2025 Finnish municipal elections"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "kuntavaalit 2025"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2025-04-13T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q131449348"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "alue- ja kuntavaalit 2025"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2025-04-13T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q117442866"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2027 Finnish parliamentary election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "eduskuntavaalit 2027"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2027-04-18T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    }, {
+      "e" : {
+        "type" : "uri",
+        "value" : "http://www.wikidata.org/entity/Q117442866"
+      },
+      "en" : {
+        "xml:lang" : "en",
+        "type" : "literal",
+        "value" : "2027 Finnish parliamentary election"
+      },
+      "fi" : {
+        "xml:lang" : "fi",
+        "type" : "literal",
+        "value" : "eduskuntavaalit 2027"
+      },
+      "date" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#dateTime",
+        "type" : "literal",
+        "value" : "2027-04-18T00:00:00Z"
+      },
+      "prec" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "11"
+      }
+    } ]
+  }
+}

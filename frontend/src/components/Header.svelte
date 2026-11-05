@@ -1,6 +1,7 @@
 <script lang="ts">
   import { capitalize } from '../lib/format';
-  import { flagDaysOn } from '../lib/flagdays';
+  import { flagDaysOn, type ElectionsFile } from '../lib/flagdays';
+  import { api } from '../lib/data';
   import { LOCALE } from '../i18n';
   import type { Lang } from '../lib/types';
 
@@ -12,11 +13,17 @@
     return () => clearInterval(id);
   });
   const clock = $derived(now.toLocaleTimeString(LOCALE[lang], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz }));
+  // elections from Wikidata (baked weekly); refreshed with the date
+  let wd = $state<ElectionsFile['elections']>([]);
+  $effect(() => {
+    void fiDate;
+    api.elections().then((f) => (wd = f.elections), () => {});
+  });
   // Finnish flag day today (Finnish calendar date); recomputed when the date changes
   const fiDate = $derived(now.toLocaleDateString('en-CA', { timeZone: 'Europe/Helsinki' }));
   const flag = $derived.by(() => {
     void fiDate;
-    const f = flagDaysOn(now)[0];
+    const f = flagDaysOn(now, wd)[0];
     if (!f) return null;
     // header shows the short form: "Mikael Agricolan päivä, suomen kielen päivä" -> first part
     const n = f.name[lang];

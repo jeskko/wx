@@ -198,3 +198,17 @@ def test_traffic_messages(fixture_json):
     assert all("Liikennetiedote" not in m["title"] and m["title"] for m in ms)
     assert next(m for m in ms if m["road"] == 6050)["title"] == "Tie 6050, Jämsä"
     assert digitraffic.message_kind("ACCIDENT_REPORT", []) == "accident"
+
+
+def test_wikidata_elections(fixture_json):
+    from wx.sources import elections
+
+    es = elections.parse(fixture_json("wikidata_elections.json"))
+    by = {e["date"]: e for e in es}
+    assert "2024-06-01" not in by  # month precision only: skipped
+    assert by["2024-02-11"]["kind"] == "presidential2"
+    assert by["2024-02-11"]["name"]["fi"] == "Presidentinvaalin toinen kierros"
+    assert by["2024-01-28"]["kind"] in ("presidential", "presidential2") or "ensimmäinen" in by["2024-01-28"]["name"]["fi"]
+    assert by["2025-04-13"]["name"]["fi"] == "Alue- ja kuntavaalit"  # three items -> the combined one
+    assert by["2025-04-13"]["kind"] == "municipal"
+    assert by["2027-04-18"] == {"date": "2027-04-18", "kind": "parliamentary", "name": {"fi": "Eduskuntavaalit", "en": "Parliamentary election"}, "qid": "Q117442866"}

@@ -4,8 +4,9 @@
 // parliamentary elections on the third Sunday of April every 4 years (2027, 2031 ...),
 // municipal + regional elections on the second Sunday of April (2029, 2033 ...), presidential
 // elections on the fourth Sunday of January every 6 years (2030 ...) with the president taking
-// office on 1 March. Early elections, second presidential rounds, European Parliament
-// elections and referendums are not predictable: add them to EXTRA when announced.
+// office on 1 March. Elections the rules cannot predict (European Parliament elections, early
+// elections, referendums, second presidential rounds) come from Wikidata via the baker
+// (calendar/elections.json, see mergeElections); EXTRA is for manual additions.
 
 import type { Lang } from './types';
 
@@ -14,6 +15,14 @@ export interface FlagDay {
   date: string;
   name: Record<Lang, string>;
   official: boolean;
+  /** elections: parliamentary | municipal | presidential | presidential2 | eu | referendum | other */
+  kind?: string;
+}
+
+/** calendar/elections.json (backend wx/sources/elections.py) */
+export interface ElectionsFile {
+  updated: string;
+  elections: { date: string; kind: string; name: Record<Lang, string>; qid: string }[];
 }
 
 type Rule = { name: Record<Lang, string>; official: boolean; md?: [number, number]; nth?: [month: number, weekday: number, n: number]; between?: [month: number, from: number, to: number, weekday: number]; lastWeekday?: [month: number, weekday: number]; from?: number };
@@ -83,19 +92,43 @@ export function flagDays(y: number): FlagDay[] {
     out.push({ date: ymd(y, m, d), name: r.name, official: r.official });
   }
   if (y >= 2027 && (y - 2027) % 4 === 0)
-    out.push({ date: ymd(y, 4, nthWeekday(y, 4, SUN, 3)), official: true, name: { fi: 'Eduskuntavaalit', en: 'Parliamentary elections' } });
+    out.push({ date: ymd(y, 4, nthWeekday(y, 4, SUN, 3)), official: true, kind: 'parliamentary', name: { fi: 'Eduskuntavaalit', en: 'Parliamentary elections' } });
   if (y >= 2029 && (y - 2029) % 4 === 0)
-    out.push({ date: ymd(y, 4, nthWeekday(y, 4, SUN, 2)), official: true, name: { fi: 'Kunta- ja aluevaalit', en: 'Municipal and regional elections' } });
+    out.push({ date: ymd(y, 4, nthWeekday(y, 4, SUN, 2)), official: true, kind: 'municipal', name: { fi: 'Kunta- ja aluevaalit', en: 'Municipal and regional elections' } });
   if (y >= 2030 && (y - 2030) % 6 === 0) {
-    out.push({ date: ymd(y, 1, nthWeekday(y, 1, SUN, 4)), official: true, name: { fi: 'Presidentinvaali', en: 'Presidential election' } });
+    out.push({ date: ymd(y, 1, nthWeekday(y, 1, SUN, 4)), official: true, kind: 'presidential', name: { fi: 'Presidentinvaali', en: 'Presidential election' } });
     out.push({ date: ymd(y, 3, 1), official: true, name: { fi: 'Tasavallan presidentin virkaanastujaispäivä', en: 'Presidential inauguration' } });
   }
   out.push(...EXTRA.filter((x) => x.date.startsWith(`${y}-`)));
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 
+const days = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / 86400_000;
+
+/**
+ * Add elections from Wikidata to the computed days of a year. A regular election computed
+ * by the rules wins: a Wikidata date of the same kind in the same year is only taken when
+ * it is the same day (no duplicate) or a presidential second round two weeks after the
+ * computed first round. Other kinds (EU, referendum, early elections) are added as is.
+ */
+export function mergeElections(computed: FlagDay[], wd: ElectionsFile['elections'], y: number): FlagDay[] {
+  const out = [...computed];
+  for (const e of wd) {
+    if (!e.date.startsWith(`${y}-`) || out.some((f) => f.date === e.date && f.kind)) continue;
+    const base = e.kind === 'presidential2' ? 'presidential' : e.kind;
+    const same = computed.find((f) => f.kind === base);
+    if (same) {
+      const second = e.kind === 'presidential2' || (base === 'presidential' && days(same.date, e.date) === 14);
+      if (!(second && days(same.date, e.date) > 0 && days(same.date, e.date) <= 21)) continue;
+    }
+    out.push({ date: e.date, name: e.name, official: true, kind: e.kind });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+
 /** Flag days on the Finnish calendar date of `now` (usually zero or one). */
-export function flagDaysOn(now: Date): FlagDay[] {
+export function flagDaysOn(now: Date, wd: ElectionsFile['elections'] = []): FlagDay[] {
   const date = now.toLocaleDateString('en-CA', { timeZone: 'Europe/Helsinki' });
-  return flagDays(Number(date.slice(0, 4))).filter((f) => f.date === date);
+  const y = Number(date.slice(0, 4));
+  return mergeElections(flagDays(y), wd, y).filter((f) => f.date === date);
 }

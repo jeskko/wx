@@ -24,6 +24,7 @@ Output layout (all JSON, relative to DATA_DIR):
   airquality/fi.json     hourly air quality index per station (FMI)
   geo/<letter>.json      GeoNames cities for the place search, by first letter of the folded name
   sky/passes.json        visible ISS / Tiangong passes for 21 days, per Finnish place + central Finland
+  calendar/elections.json upcoming Finnish elections and referendums (Wikidata) for flag days
   health.json            job freshness (written by the runner)
 """
 
@@ -37,7 +38,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, world
+from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -101,6 +102,12 @@ def job_traffic() -> dict:
     for m in msgs:
         kinds[m["kind"]] = kinds.get(m["kind"], 0) + 1
     return kinds
+
+
+def job_elections() -> dict:
+    items = elections.upcoming()
+    write_json("calendar/elections.json", {"updated": iso(utcnow()), "source": "wikidata", "elections": items})
+    return {"elections": len(items)}
 
 
 def job_forecast() -> dict:
@@ -522,6 +529,7 @@ def job_airquality() -> dict:
 JOBS: list[Job] = [
     Job("places", 24 * 3600, job_places),
     Job("geonames", 7 * 24 * 3600, job_geonames),
+    Job("elections", 7 * 24 * 3600, job_elections),
     Job("satellites", 3 * 3600, job_satellites),
     Job("obs", 10 * 60, job_obs),
     Job("nordic", 20 * 60, job_nordic),
