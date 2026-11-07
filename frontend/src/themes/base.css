@@ -270,7 +270,12 @@ body {
 .controls:focus-within {
   opacity: 1;
 }
-.controls button {
+.controls button,
+.controls a.gh {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   font-size: 20px;
