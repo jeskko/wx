@@ -31,6 +31,7 @@ import AuroraMap, { type AuroraMapData } from '../slides/AuroraMap.svelte';
 import AuroraGlobe, { type AuroraGlobeData } from '../slides/AuroraGlobe.svelte';
 import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
 import TropoMap, { type TropoData } from '../slides/TropoMap.svelte';
+import Hf, { type HfData } from '../slides/Hf.svelte';
 import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
@@ -573,6 +574,22 @@ const tropoMap: SlideDef<TropoData> = {
   },
 };
 
+const hfSlide: SlideDef<HfData> = {
+  id: 'hf',
+  title: 'slide.hf',
+  scope: 'global',
+  component: Hf,
+  async prepare({ now }) {
+    const [hf, a] = await Promise.all([soft(api.hf()), soft(api.aurora())]);
+    if (!hf || !hf.times.length) return null;
+    // the hour we are in (times are whole UTC hours); need at least 12 hours ahead
+    const start = Math.max(0, hf.times.findIndex((t) => Date.parse(t) > now.getTime()) - 1);
+    if (hf.times.length - start < 12 || now.getTime() - Date.parse(hf.updated) > 6 * 3600_000) return null;
+    const past = (a?.kp?.observed ?? []).filter((r) => Date.parse(r.time) <= now.getTime());
+    return { hf, start, kp: past.length ? past[past.length - 1].kp : null };
+  },
+};
+
 // spaced so the badges don't overlap at map scale
 const TEMP_CITIES = ['helsinki', 'turku', 'maarianhamina', 'tampere', 'vaasa', 'lappeenranta', 'kuopio', 'kajaani', 'oulu', 'kuusamo', 'rovaniemi', 'ivalo', 'enontekio'];
 
@@ -854,7 +871,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, tropoMap, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, hfSlide, tropoMap, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

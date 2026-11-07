@@ -15,6 +15,7 @@ Output layout (all JSON, relative to DATA_DIR):
   grid/fi.json           24 h of wind/cloud/precip/temperature on a 50 km map-space grid
   fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
   tropo/nordic/index.json 48 h VHF/UHF tropo (ducting) index from HARMONIE model levels, 3-hourly PNGs
+  hf.json                24 h HF band conditions (VOACAP) from central Finland to world regions + D-RAP
   world/index.json       ECMWF temperature/precip/wind rasters per world view (world/<view>/<time>.png)
   world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
   cams/fi/index.json     road weather cameras near each Finnish place (+ cams/fi/<preset>.jpg)
@@ -39,7 +40,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, tropo, world
+from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, hf, metno, nordic, radar, satellites, swpc, tropo, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -519,6 +520,13 @@ def job_lightning() -> dict:
     return {"strikes": len(data["strikes"])}
 
 
+def job_hf() -> dict:
+    data = hf.fetch()
+    write_json("hf.json", data)
+    open_now = sum(c != "0" for r in data["regions"] for c in r["levels"][0])
+    return {"ssn": data["ssn"], "open_now": open_now, "drap_event": bool(data["drap"] and data["drap"]["event"])}
+
+
 TROPO_EXTENT = "nordic"
 TROPO_HOURS = 48
 TROPO_STEP_H = 3
@@ -639,4 +647,5 @@ JOBS: list[Job] = [
     Job("lightning", 5 * 60, job_lightning),
     Job("airquality", 30 * 60, job_airquality),
     Job("tropo", 5 * 60, job_tropo),
+    Job("hf", 60 * 60, job_hf),
 ]
