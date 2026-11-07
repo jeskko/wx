@@ -25,7 +25,7 @@ import { forward, type Extent } from '../map/proj';
 import Extended from '../slides/Extended.svelte';
 import Next36 from '../slides/Next36.svelte';
 import Regional, { type RegionalRow } from '../slides/Regional.svelte';
-import Taf_ from '../slides/Taf.svelte';
+import Taf_, { type TafRow } from '../slides/Taf.svelte';
 import Warnings, { type WarningsData } from '../slides/Warnings.svelte';
 import AuroraMap, { type AuroraMapData } from '../slides/AuroraMap.svelte';
 import AuroraGlobe, { type AuroraGlobeData } from '../slides/AuroraGlobe.svelte';
@@ -277,7 +277,7 @@ const aviation: SlideDef<Metar[]> = {
   },
 };
 
-const taf: SlideDef<Taf[]> = {
+const taf: SlideDef<TafRow[]> = {
   id: 'taf',
   title: 'slide.taf',
   scope: 'global',
@@ -286,7 +286,7 @@ const taf: SlideDef<Taf[]> = {
     const av = await soft(api.aviation());
     if (!av) return null;
     const ts = config.airports.map((id) => av.taf[id]).filter((m): m is Taf => !!m);
-    return ts.length ? ts : null;
+    return ts.length ? ts.map((t) => ({ ...t, name: av.metar[t.icao]?.name ?? null })) : null;
   },
 };
 

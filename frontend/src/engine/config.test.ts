@@ -55,3 +55,21 @@ describe('custom places', () => {
     expect(c.custom[1].tz).toBeUndefined();
   });
 });
+
+describe('METAR / TAF decoding', () => {
+  it('is off by default and survives merge and share links', () => {
+    expect(DEFAULT_CONFIG.decodeMetar).toBe(false);
+    expect(DEFAULT_CONFIG.decodeTaf).toBe(false);
+    const c = merge(DEFAULT_CONFIG, decodeConfig(encodeConfig({ decodeMetar: true })));
+    expect([c.decodeMetar, c.decodeTaf]).toEqual([true, false]);
+    expect(merge(DEFAULT_CONFIG, { decodeTaf: 'yes' as never }).decodeTaf).toBe(false);
+  });
+  it('reads ?decode= from the URL', () => {
+    const q = (s: string) => fromQuery(new URLSearchParams(s));
+    expect(q('decode=taf')).toMatchObject({ decodeMetar: false, decodeTaf: true });
+    expect(q('decode=metar,taf')).toMatchObject({ decodeMetar: true, decodeTaf: true });
+    expect(q('decode=1')).toMatchObject({ decodeMetar: true, decodeTaf: true });
+    expect(q('decode=0')).toMatchObject({ decodeMetar: false, decodeTaf: false });
+    expect(q('lang=fi')).not.toHaveProperty('decodeMetar');
+  });
+});

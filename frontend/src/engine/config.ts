@@ -4,6 +4,7 @@
 //   /?place=oulu,helsinki&lang=en
 //   /?kiosk=1&slides=current,next36,extended&theme=retro
 //   /?playlist=synth,synthwave   (music playlists, see music/playlists.json)
+//   /?decode=metar,taf   (METAR / TAF in plain language)
 //   /#c=eyJwbGFjZXMiOlsib3VsdSJdfQ   (full config, base64url JSON; see encodeConfig)
 
 import type { Lang, Place } from '../lib/types';
@@ -23,6 +24,9 @@ export interface Config {
   /** Places added with the place search (GeoNames, ids 'geo-<id>'); forecasts from MET Norway. */
   custom: Place[];
   airports: string[];
+  /** Show METAR / TAF in plain language instead of the raw code. */
+  decodeMetar: boolean;
+  decodeTaf: boolean;
   slides: SlideConf[];
   /** Per-place exceptions: place id -> slide ids switched off for that place (place-scoped slides only). */
   off: Record<string, string[]>;
@@ -76,6 +80,8 @@ export const DEFAULT_CONFIG: Config = {
   places: ['helsinki', 'oulu', 'kuopio', 'tampere', 'turku', 'rovaniemi', 'stockholm'],
   custom: [],
   airports: ['EFHK', 'EFTU', 'EFTP', 'EFJY', 'EFKU', 'EFOU', 'EFRO', 'EFKT', 'EFIV'],
+  decodeMetar: false,
+  decodeTaf: false,
   slides: DEFAULT_SLIDES,
   // the city slides (36 h, chart, 10 days) only for Oulu; current conditions everywhere
   off: {
@@ -131,6 +137,8 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
   if (Array.isArray(p.places) && p.places.length) out.places = p.places.filter((x) => typeof x === 'string');
   if (Array.isArray(p.custom)) out.custom = p.custom.filter(validCustom).slice(0, 30).map(cleanCustom);
   if (Array.isArray(p.airports)) out.airports = p.airports.filter((x) => typeof x === 'string').map((x) => x.toUpperCase());
+  if (typeof p.decodeMetar === 'boolean') out.decodeMetar = p.decodeMetar;
+  if (typeof p.decodeTaf === 'boolean') out.decodeTaf = p.decodeTaf;
   if (Array.isArray(p.slides)) {
     const known = new Map(DEFAULT_SLIDES.map((s) => [s.id, s]));
     const seen = new Set<string>();
@@ -204,6 +212,14 @@ export function fromQuery(q: URLSearchParams): Partial<Config> {
   if (place) p.places = place.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   const ap = q.get('airports');
   if (ap) p.airports = ap.split(',').map((s) => s.trim()).filter(Boolean);
+  // ?decode=metar,taf (or decode=1 for both, decode=0 for neither)
+  const dec = q.get('decode');
+  if (dec != null) {
+    const ds = dec.split(',').map((s) => s.trim().toLowerCase());
+    const all = ds.includes('1') || ds.includes('all') || ds.includes('');
+    p.decodeMetar = all || ds.includes('metar');
+    p.decodeTaf = all || ds.includes('taf');
+  }
   const slides = q.get('slides');
   if (slides) {
     const ids = slides.split(',').map((s) => s.trim());

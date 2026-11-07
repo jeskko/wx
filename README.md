@@ -47,7 +47,7 @@ Once per loop:
 | `aurora` | Aurora summary: Kp now/forecast, solar wind, FMI magnetometer traffic lights, chance per city |
 | `auroramap` | OVATION auroral oval over the Nordics |
 | `auroraglobe` | Revontulet maapallolla / Aurora Worldwide: both auroral ovals on polar maps with the night side shaded, Kp now and in 24 h |
-| `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long) |
+| `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long); optionally decoded into plain Finnish/English (wind in m/s, cloud heights in metres, times in the airport's local time) |
 | `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun); flag days, holidays and other special days of the next two weeks |
 | `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers; visible ISS / Tiangong passes for the first configured Finnish place (tracks drawn on the chart; else the next visible pass) |
 | `map-<region>` | ECMWF temperature + precipitation + wind particles, next 48 h: Nordic countries, Europe, Asia, North and South America, Africa, Oceania |
@@ -134,7 +134,7 @@ npm run build      # dist/index.html (site root) + dist/app/ (served at /wx/app/
 npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot every slide
 ```
 
-URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0&playlist=synth`,
+URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0&playlist=synth&decode=metar,taf`,
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
 Keys: ← → browse, space pause, M music on/off, N next track, F fullscreen, S settings.
 The corner buttons (♫, ⏭, ⛶, ⚙) are hidden in kiosk mode; music starts on its own when the

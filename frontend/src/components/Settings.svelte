@@ -250,6 +250,16 @@
 
     <h3>{L === 'fi' ? 'Lentoasemat (ICAO, pilkulla erotettuna)' : 'Airports (ICAO, comma separated)'}</h3>
     <input class="wide" value={c.airports.join(', ')} oninput={(e) => (c.airports = e.currentTarget.value.split(/[ ,]+/).filter(Boolean).map((x) => x.toUpperCase()))} />
+    <section class="row">
+      <label>
+        <input type="checkbox" bind:checked={c.decodeMetar} />
+        {L === 'fi' ? 'METAR selkokielisenä' : 'METAR in plain language'}
+      </label>
+      <label>
+        <input type="checkbox" bind:checked={c.decodeTaf} />
+        {L === 'fi' ? 'TAF selkokielisenä' : 'TAF in plain language'}
+      </label>
+    </section>
 
     <h3>{L === 'fi' ? 'Sivut ja paikkakunnat' : 'Slides per place'}</h3>
     <p class="hint">

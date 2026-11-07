@@ -4,6 +4,7 @@
   import type { SlideProps } from '../engine/types';
 
   import { autoscroll } from '../lib/autoscroll';
+  import { decodeMetar } from '../lib/avdecode';
 
   let { ctx, data }: SlideProps<Metar[]> = $props();
 
@@ -21,6 +22,10 @@
       .map((c) => (c.base == null ? c.cover : `${c.cover}${String(Math.round(c.base / 100)).padStart(3, '0')}`))
       .join(' ');
   }
+  /** "Helsinki/Vantaa Arpt" → "Helsinki/Vantaa" */
+  function shortName(n: string) {
+    return n.replace(/\s+(Arpt|Airport|Intl|International|Aerodrome)\.?$/i, '');
+  }
   function vis(m: Metar) {
     return m.vis == null ? '' : m.vis >= 9999 ? '9999' : String(m.vis);
   }
@@ -31,8 +36,19 @@
     <div class="row">
       <span class="icao">{m.icao}</span>
       <span class="cat {m.cat ?? ''}">{m.cat ?? '—'}</span>
-      <span class="dec">{wind(m)} · {vis(m)} · {clouds(m)} · {temp(m.t, false)}/{temp(m.td, false)} · Q{m.qnh ?? ''}</span>
-      <span class="raw">{m.raw}</span>
+      {#if ctx.config.decodeMetar}
+        {@const d = decodeMetar(m.raw, ctx.lang, { icao: m.icao, time: m.time, now: ctx.now })}
+        <span class="dec">{shortName(m.name)}{d.time ? ` · ${d.time}` : ''}</span>
+        <div class="plain">
+          <p>{d.main.items.join(' · ')}{#if d.main.other.length}<span class="other"> {d.main.other.join(' ')}</span>{/if}</p>
+          {#each d.trend as g, i (i)}
+            <p class="trend">{#if g.head}<b>{g.head}:</b>{' '}{/if}{g.items.join(' · ')}{#if g.other.length}<span class="other"> {g.other.join(' ')}</span>{/if}</p>
+          {/each}
+        </div>
+      {:else}
+        <span class="dec">{wind(m)} · {vis(m)} · {clouds(m)} · {temp(m.t, false)}/{temp(m.td, false)} · Q{m.qnh ?? ''}</span>
+        <span class="raw">{m.raw}</span>
+      {/if}
     </div>
   {/each}
 </div>
@@ -84,6 +100,25 @@
   .dec {
     font-size: 28px;
     color: var(--c-value);
+  }
+  .plain {
+    grid-column: 2 / 4;
+    font-size: 25px;
+    line-height: 1.25;
+    color: var(--c-label);
+  }
+  .plain p {
+    margin: 0;
+  }
+  .plain .trend {
+    color: var(--c-label);
+  }
+  .plain b {
+    color: var(--c-value);
+  }
+  .other {
+    font-family: var(--font-mono);
+    opacity: 0.7;
   }
   .raw {
     grid-column: 2 / 4;
