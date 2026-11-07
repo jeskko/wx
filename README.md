@@ -37,7 +37,8 @@ Once per loop:
 | `warnings` | FMI warnings for the whole country, own places first (scrolls when long) |
 | `radar` | Radar loop of Finland, last hour, with lightning |
 | `cloudmap` | HARMONIE clouds and precipitation, next 24 h, 5 km |
-| `hf` | HF band conditions for the next 24 h from central Finland to 8 world regions: best mode per band (SSB/CW/FT8/closed) and MUF, from VOACAP (vendored DVOACAP-Python), with sunspot number, Kp and D-RAP blackout warnings |
+| `hf` | HF band conditions (160–10 m; 160 m is just below VOACAP's specified 2–30 MHz) for the next 24 h from central Finland to 8 world regions: best mode per band (SSB/CW/FT8/closed) and MUF, from VOACAP (vendored DVOACAP-Python), with sunspot number, Kp and D-RAP blackout warnings |
+| `vhf` | Special VHF propagation, computed in the browser: sporadic-E chance on 6/4/2 m from Finland to Central Europe (ITU-R P.534-6 attenuation formula + its European foEs climatology, Fig. 7; statistics, not a forecast), meteor scatter (sporadic diurnal/seasonal cycle per ITU-R P.843 + IMO shower profiles weighted by radiant altitude) and radio aurora (Kp rule of thumb); see `frontend/src/lib/vhf.ts` |
 | `tropo` | VHF/UHF tropospheric propagation (ducting) over the Nordics, next 48 h: an index computed from refractivity on HARMONIE's lowest 26 model levels |
 | `tempmap` | Observed temperatures over a 5 km model temperature field |
 | `regional` | Regional observations table |
@@ -117,7 +118,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
 | fields | 30 min (re-bakes only on a new model run, every 3 h) | `fields/fi/index.json` + hourly PNGs: HARMONIE cloud/precipitation/temperature at 5 km from FMI's download service (NetCDF, read with `wx/netcdf3.py`), packed in RGB |
 | tropo | 5 min (builds only on a new model run: ~100 s of work per tick until all 17 frames are done, then published at once) | `tropo/nordic/index.json` + 3-hourly PNGs for 48 h: from FMI's `harmonie_scandinavia_hybrid` (temperature, humidity, pressure, height on model levels 40–65, ~100 MB per frame) the radio refractivity N and modified refractivity M per column, the steepest dN/dh and the trapping-layer M-deficit, combined into a 0–10 index (5+ = duct) on the Nordic 5 km grid; see `wx/sources/tropo.py` |
-| hf | 60 min | `hf.json`: VOACAP predictions (vendored DVOACAP-Python in `wx/vendor/dvoacap/`, MIT; see its VENDORED.md for the validation against genuine VOACAP output) for 8 bands × 8 regions × 24 h, 100 W and isotropic antennas from central Finland, driven by SWPC's predicted smoothed sunspot number; D-RAP header + value over Finland for blackout warnings |
+| hf | 60 min | `hf.json`: VOACAP predictions (vendored DVOACAP-Python in `wx/vendor/dvoacap/`, MIT; see its VENDORED.md for the validation against genuine VOACAP output) for 9 bands × 8 regions × 24 h, 100 W and isotropic antennas from central Finland, driven by SWPC's predicted smoothed sunspot number; D-RAP header + value over Finland for blackout warnings |
 | world | 60 min (re-bakes on a new ECMWF run) | `world/index.json` + `world/<view>/<time>.png`: ECMWF temperature/precipitation/wind via FMI, 6-hourly for 60 h, resampled into each region and capital view (Lambert azimuthal equal-area, see `wx/world.json`) |
 | capitals | 60 min | `world/capitals.json`: latest METAR + 3-day MET Norway forecast for each world capital |
 | (runner) | each run | `health.json`: freshness and errors per job |

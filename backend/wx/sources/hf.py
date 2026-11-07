@@ -34,7 +34,9 @@ TX = (62.0, 25.7)  # central Finland
 TX_POWER_W = 100.0
 MAN_MADE_NOISE = 145.0  # dBW at 3 MHz, "residential"
 
-BANDS = [("80m", 3.6), ("40m", 7.1), ("30m", 10.12), ("20m", 14.15), ("17m", 18.1), ("15m", 21.2), ("12m", 24.94), ("10m", 28.5)]
+# 160 m (1.84 MHz) is just below VOACAP's specified 2–30 MHz range; the engine behaves sensibly there
+# (night-only, weaker than 80 m, fully absorbed by day), but treat it as an extrapolation.
+BANDS = [("160m", 1.84), ("80m", 3.6), ("40m", 7.1), ("30m", 10.12), ("20m", 14.15), ("17m", 18.1), ("15m", 21.2), ("12m", 24.94), ("10m", 28.5)]
 
 # dB-Hz; checked from the best mode down
 MODES = [(3, 44.0), (2, 24.0), (1, 13.0)]

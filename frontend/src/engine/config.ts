@@ -60,6 +60,7 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'auroraglobe', enabled: true, duration: 12 },
   { id: 'hf', enabled: true, duration: 14 },
   { id: 'tropo', enabled: true, duration: 14 },
+  { id: 'vhf', enabled: true, duration: 14 },
   { id: 'aviation', enabled: true, duration: 14 },
   { id: 'taf', enabled: true, duration: 14 },
   { id: 'almanac', enabled: true, duration: 10 },
