@@ -135,6 +135,7 @@
     flex-direction: column;
     gap: 10px;
     min-width: 0;
+    container-type: inline-size;
   }
   h3 {
     margin: 0;
@@ -172,7 +173,7 @@
   }
   .word {
     color: var(--c-label);
-    font-size: 20px;
+    font-size: min(20px, 4.1cqi);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -208,7 +209,8 @@
     color: var(--c-label);
   }
   .big {
-    font-size: 40px;
+    /* long Finnish words ("Epätodennäköinen") must fit the narrow column */
+    font-size: min(40px, 10cqi);
     font-weight: 700;
     line-height: 1.1;
   }
