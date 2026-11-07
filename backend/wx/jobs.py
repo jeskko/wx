@@ -14,6 +14,7 @@ Output layout (all JSON, relative to DATA_DIR):
   nowcast/<place>.json   MET Norway radar nowcast, 5-min precipitation for the next 90 min
   grid/fi.json           24 h of wind/cloud/precip/temperature on a 50 km map-space grid
   fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
+  tropo/nordic/index.json 48 h VHF/UHF tropo (ducting) index from HARMONIE model levels, 3-hourly PNGs
   world/index.json       ECMWF temperature/precip/wind rasters per world view (world/<view>/<time>.png)
   world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
   cams/fi/index.json     road weather cameras near each Finnish place (+ cams/fi/<preset>.jpg)
@@ -38,7 +39,7 @@ from . import daily as daily_mod
 from . import places as places_mod
 from . import settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, world
+from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, metno, nordic, radar, satellites, swpc, tropo, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -518,6 +519,94 @@ def job_lightning() -> dict:
     return {"strikes": len(data["strikes"])}
 
 
+TROPO_EXTENT = "nordic"
+TROPO_HOURS = 48
+TROPO_STEP_H = 3
+TROPO_BUDGET_S = 100  # per bake tick; the whole bake must finish within the unit's 240 s timeout
+
+
+def job_tropo() -> dict:
+    """Tropo index frames for a new HARMONIE run, built over several ticks (each frame is a ~100 MB
+    download), published only when complete so the map always shows one consistent run."""
+    import json
+    import time
+
+    t0 = time.monotonic()
+    rel = f"tropo/{TROPO_EXTENT}"
+    folder = settings.DATA_DIR / rel
+    build_path = settings.STATE_DIR / "tropo_build.json"
+    published = None
+    try:
+        published = json.loads((folder / "index.json").read_text())
+    except (OSError, ValueError):
+        pass
+
+    build = None
+    try:
+        build = json.loads(build_path.read_text())
+    except (OSError, ValueError):
+        pass
+
+    if build is None:
+        # nothing in progress: start one if a newer run is out (and the published one is not brand new)
+        if published:
+            age = datetime.now(timezone.utc) - datetime.fromisoformat(published["updated"].replace("Z", "+00:00"))
+            if age < timedelta(hours=2, minutes=30):
+                return {"skipped": "recent", "origin": published.get("origin")}
+        origin = tropo.latest_origin()
+        if published and published.get("origin") == iso(origin):
+            return {"skipped": "same run", "origin": iso(origin)}
+        h = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        start = h - timedelta(hours=h.hour % TROPO_STEP_H)
+        times = [start + timedelta(hours=k) for k in range(0, TROPO_HOURS + 1, TROPO_STEP_H)]
+        times = [t for t in times if t >= origin]
+        build = {"origin": iso(origin), "times": [iso(t) for t in times], "files": {}, "started": iso(utcnow())}
+
+    origin = datetime.fromisoformat(build["origin"].replace("Z", "+00:00"))
+    rs = tropo.Resampler(EXTENTS[TROPO_EXTENT])
+    done_now = 0
+    stats = {}
+    for t_iso in build["times"]:
+        if t_iso in build["files"]:
+            continue
+        if done_now and time.monotonic() - t0 > TROPO_BUDGET_S:
+            break
+        t = datetime.fromisoformat(t_iso.replace("Z", "+00:00"))
+        png, summary = tropo.frame(origin, t, rs)
+        name = f"{origin:%Y%m%dT%H}_{t:%Y%m%dT%HZ}.png"
+        write_bytes(f"{rel}/{name}", png)
+        build["files"][t_iso] = name
+        stats[t_iso] = summary
+        done_now += 1
+        build_path.parent.mkdir(parents=True, exist_ok=True)
+        build_path.write_text(json.dumps(build))
+        # a build that drags on (e.g. repeated failures) is abandoned for a newer run
+    if len(build["files"]) < len(build["times"]):
+        started = datetime.fromisoformat(build["started"].replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) - started > timedelta(hours=3):
+            build_path.unlink(missing_ok=True)
+            return {"abandoned": build["origin"], "frames": len(build["files"])}
+        return {"building": build["origin"], "frames": f"{len(build['files'])}/{len(build['times'])}", "stats": stats}
+
+    names = [build["files"][t] for t in build["times"]]
+    write_json(
+        f"{rel}/index.json",
+        {
+            "updated": iso(utcnow()),
+            "source": "fmi-harmonie-hybrid",
+            "origin": build["origin"],
+            **tropo.meta(rs),
+            "times": build["times"],
+            "files": names,
+        },
+    )
+    for f in folder.glob("*.png"):
+        if f.name not in names:
+            f.unlink(missing_ok=True)
+    build_path.unlink(missing_ok=True)
+    return {"published": build["origin"], "frames": len(names), "stats": stats}
+
+
 def job_airquality() -> dict:
     data = fmi.airquality()
     if not data["stations"]:
@@ -549,4 +638,5 @@ JOBS: list[Job] = [
     Job("sea", 30 * 60, job_sea),
     Job("lightning", 5 * 60, job_lightning),
     Job("airquality", 30 * 60, job_airquality),
+    Job("tropo", 5 * 60, job_tropo),
 ]

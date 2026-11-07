@@ -37,6 +37,7 @@ Once per loop:
 | `warnings` | FMI warnings for the whole country, own places first (scrolls when long) |
 | `radar` | Radar loop of Finland, last hour, with lightning |
 | `cloudmap` | HARMONIE clouds and precipitation, next 24 h, 5 km |
+| `tropo` | VHF/UHF tropospheric propagation (ducting) over the Nordics, next 48 h: an index computed from refractivity on HARMONIE's lowest 26 model levels |
 | `tempmap` | Observed temperatures over a 5 km model temperature field |
 | `regional` | Regional observations table |
 | `windmap` | Wind particles (50 km HARMONIE grid) |
@@ -114,6 +115,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | airquality | 30 min | `airquality/fi.json`: FMI hourly air quality index + PM2.5/PM10/NO2/O3 per station |
 | grid | 60 min | `grid/fi.json`: 24 h of HARMONIE wind/cloud/precip/temperature on a 50 km map-space grid |
 | fields | 30 min (re-bakes only on a new model run, every 3 h) | `fields/fi/index.json` + hourly PNGs: HARMONIE cloud/precipitation/temperature at 5 km from FMI's download service (NetCDF, read with `wx/netcdf3.py`), packed in RGB |
+| tropo | 5 min (builds only on a new model run: ~100 s of work per tick until all 17 frames are done, then published at once) | `tropo/nordic/index.json` + 3-hourly PNGs for 48 h: from FMI's `harmonie_scandinavia_hybrid` (temperature, humidity, pressure, height on model levels 40–65, ~100 MB per frame) the radio refractivity N and modified refractivity M per column, the steepest dN/dh and the trapping-layer M-deficit, combined into a 0–10 index (5+ = duct) on the Nordic 5 km grid; see `wx/sources/tropo.py` |
 | world | 60 min (re-bakes on a new ECMWF run) | `world/index.json` + `world/<view>/<time>.png`: ECMWF temperature/precipitation/wind via FMI, 6-hourly for 60 h, resampled into each region and capital view (Lambert azimuthal equal-area, see `wx/world.json`) |
 | capitals | 60 min | `world/capitals.json`: latest METAR + 3-day MET Norway forecast for each world capital |
 | (runner) | each run | `health.json`: freshness and errors per job |

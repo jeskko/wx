@@ -12,7 +12,7 @@ export interface GridFile {
   fields: Record<string, string[]>;
 }
 
-export type FieldName = 'u' | 'v' | 'cloud' | 'pr' | 't';
+export type FieldName = 'u' | 'v' | 'cloud' | 'pr' | 't' | 'tropo' | 'ductTop';
 
 export interface GridMeta {
   /** map position (metres) of the first (south-west) node, and of the last node */

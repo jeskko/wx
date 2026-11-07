@@ -22,7 +22,7 @@
     { name: 'Natural Earth', what: { fi: 'karttapohjat', en: 'base maps' }, lic: 'public domain' },
     { name: 'Wikidata', what: { fi: 'tulevat vaalipäivät (liputuspäivät)', en: 'upcoming election days (flag days)' }, lic: 'CC0' },
     { name: 'GeoNames', what: { fi: 'paikkahaku', en: 'place search' }, lic: 'CC BY 4.0' },
-    { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, tutka, salamat, merisää, ilmanlaatu, varoitukset, magnetometrit', en: 'observations, forecasts, radar, lightning, sea, air quality, warnings, magnetometers' }, lic: 'CC BY 4.0' },
+    { name: 'Ilmatieteen laitos / Finnish Meteorological Institute', what: { fi: 'havainnot, ennusteet, tutka, salamat, merisää, ilmanlaatu, varoitukset, magnetometrit, VHF/UHF-radiokeli (mallista laskettu)', en: 'observations, forecasts, radar, lightning, sea, air quality, warnings, magnetometers, VHF/UHF propagation (computed from the model)' }, lic: 'CC BY 4.0' },
     { name: 'SMHI', what: { fi: 'havainnot Ruotsista', en: 'observations in Sweden' }, lic: 'CC BY 4.0' },
     { name: 'DMI', what: { fi: 'havainnot Tanskasta ja Färsaarilta', en: 'observations in Denmark and the Faroe Islands' }, lic: 'CC BY 4.0' },
     { name: 'Keskkonnaagentuur / Estonian Environment Agency', what: { fi: 'havainnot Virosta', en: 'observations in Estonia' }, lic: L === 'fi' ? 'avoin data' : 'open data' },

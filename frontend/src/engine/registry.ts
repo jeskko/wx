@@ -30,6 +30,7 @@ import Warnings, { type WarningsData } from '../slides/Warnings.svelte';
 import AuroraMap, { type AuroraMapData } from '../slides/AuroraMap.svelte';
 import AuroraGlobe, { type AuroraGlobeData } from '../slides/AuroraGlobe.svelte';
 import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
+import TropoMap, { type TropoData } from '../slides/TropoMap.svelte';
 import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
@@ -44,7 +45,7 @@ import { laea } from '../map/laea';
 import AirQuality, { type AirQualityData, type AqRow } from '../slides/AirQuality.svelte';
 import { loadBasemap, loadWorldBasemap } from '../map/basemap';
 import { Grid, type GridFile } from '../map/grid';
-import { loadFields } from '../map/raster';
+import { loadFields, loadTropo } from '../map/raster';
 import type { MapLabel } from '../map/MapView.svelte';
 import { tempRgb } from '../map/render';
 import { temp as fmtTemp } from '../lib/format';
@@ -548,6 +549,30 @@ const cloudMap: SlideDef<CloudData> = {
   },
 };
 
+// VHF/UHF tropo: map labels and the places listed beside the map
+const TROPO_LABELS: [string, 'left' | 'right'][] = [
+  ['oulu', 'right'], ['trondheim', 'left'], ['helsinki', 'right'], ['stockholm', 'left'], ['oslo', 'left'],
+  ['tallinn', 'right'], ['riga', 'right'], ['copenhagen', 'left'], ['vaasa', 'left'],
+];
+const TROPO_POINTS = ['helsinki', 'turku', 'oulu', 'stockholm', 'tallinn', 'copenhagen'];
+
+const tropoMap: SlideDef<TropoData> = {
+  id: 'tropo',
+  title: 'slide.tropo',
+  scope: 'global',
+  component: TropoMap,
+  async prepare({ lang, now }) {
+    const [base, idx, labels, pf] = await Promise.all([loadBasemap('nordic'), soft(api.tropo()), labelsFor(TROPO_LABELS, lang), soft(api.places())]);
+    if (!idx || now.getTime() - Date.parse(idx.updated) > 12 * 3600_000) return null;
+    const grid = await soft(loadTropo(idx, now.getTime()), 15000);
+    if (!grid || grid.times.length < 4) return null;
+    const points = TROPO_POINTS.map((id) => pf?.places.find((p) => p.id === id))
+      .filter((p): p is Place => !!p)
+      .map((p) => ({ name: p.name[lang], lat: p.lat, lon: p.lon }));
+    return { base, grid, labels, points, origin: idx.origin };
+  },
+};
+
 // spaced so the badges don't overlap at map scale
 const TEMP_CITIES = ['helsinki', 'turku', 'maarianhamina', 'tampere', 'vaasa', 'lappeenranta', 'kuopio', 'kajaani', 'oulu', 'kuusamo', 'rovaniemi', 'ivalo', 'enontekio'];
 
@@ -829,7 +854,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, tropoMap, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

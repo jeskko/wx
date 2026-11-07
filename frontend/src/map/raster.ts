@@ -91,6 +91,69 @@ export async function loadFields(index: FieldsIndex, fromMs: number, extent = 'f
   return grid;
 }
 
+// ---------------------------------------------------------------- tropo index (HARMONIE model levels)
+// See backend/wx/sources/tropo.py: R = index × 25 (255 = no data), G = duct top / 10 m.
+
+export type TropoIndex = FieldsIndex;
+
+export function decodeTropoFrame(rgba: Uint8ClampedArray, nx: number, ny: number): Record<'tropo' | 'ductTop', Float32Array> {
+  const n = nx * ny;
+  const tropo = new Float32Array(n);
+  const ductTop = new Float32Array(n);
+  for (let j = 0; j < ny; j++) {
+    const row = ny - 1 - j; // image is north row first
+    for (let i = 0; i < nx; i++) {
+      const o = (row * nx + i) * 4;
+      const k = j * nx + i;
+      const r = rgba[o];
+      tropo[k] = r === 255 ? NaN : r / 25;
+      ductTop[k] = r === 255 ? NaN : rgba[o + 1] * 10;
+    }
+  }
+  return { tropo, ductTop };
+}
+
+let tropoCache: { key: string; grid: Grid } | null = null;
+
+/** All tropo frames from the one before `fromMs` on, as a Grid with fields 'tropo' and 'ductTop'. */
+export async function loadTropo(index: TropoIndex, fromMs: number, extent = 'nordic'): Promise<Grid | null> {
+  const all = index.times.map((t, i) => ({ t, f: index.files[i] }));
+  const first = Math.max(0, all.findIndex(({ t }) => Date.parse(t) > fromMs) - 1);
+  const keep = all.slice(first);
+  if (keep.length < 2) return null;
+  const key = `${index.origin}:${keep[0].t}`;
+  if (tropoCache?.key === key) return tropoCache.grid;
+
+  const imgs = await Promise.all(keep.map(({ f }) => loadImage(`${DATA_BASE}tropo/${extent}/${f}`)));
+  const cv = document.createElement('canvas');
+  cv.width = index.nx;
+  cv.height = index.ny;
+  const c2d = cv.getContext('2d', { willReadFrequently: true })!;
+  const frames = imgs.map((img) => {
+    c2d.clearRect(0, 0, index.nx, index.ny);
+    c2d.drawImage(img, 0, 0);
+    return decodeTropoFrame(c2d.getImageData(0, 0, index.nx, index.ny).data, index.nx, index.ny);
+  });
+  const [x0, y0] = index.extent;
+  const half = index.step / 2;
+  const grid = new Grid(
+    {
+      extent: [x0 + half, y0 + half, index.extent[2] - half, index.extent[3] - half],
+      step: index.step,
+      nx: index.nx,
+      ny: index.ny,
+      times: keep.map(({ t }) => t),
+    },
+    (name: FieldName, ti: number) => {
+      if (name !== 'tropo' && name !== 'ductTop') throw new Error(`no ${name} in tropo`);
+      return frames[ti][name];
+    },
+    ['tropo', 'ductTop'],
+  );
+  tropoCache = { key, grid };
+  return grid;
+}
+
 // ---------------------------------------------------------------- world views (ECMWF)
 
 export interface WorldView {
@@ -164,7 +227,7 @@ export async function loadWorldGrid(id: string, view: WorldView, origin: string,
   const grid = new Grid(
     { extent: [x0 + half, y0 + half, x1 - half, y1 - half], step: view.step, nx: view.nx, ny: view.ny, times: keep.map(({ t }) => t) },
     (name: FieldName, ti: number) => {
-      if (name === 'cloud') throw new Error('no cloud in world fields');
+      if (name !== 't' && name !== 'pr' && name !== 'u' && name !== 'v') throw new Error(`no ${name} in world fields`);
       return frames[ti][name];
     },
     ['t', 'pr', 'u', 'v'],
