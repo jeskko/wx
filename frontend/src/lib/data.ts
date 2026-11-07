@@ -12,6 +12,7 @@ import type { NowcastFile } from './nowcast';
 import type { GridFile } from '../map/grid';
 import type { FieldsIndex, TropoIndex, WorldIndex } from '../map/raster';
 import type { HfFile } from '../slides/Hf.svelte';
+import type { SpaceFile } from './space';
 import type { RadarIndex } from '../slides/RadarMap.svelte';
 import type { RoadsFile } from '../slides/RoadMap.svelte';
 
@@ -90,6 +91,7 @@ export const api = {
   fields: () => load<FieldsIndex>('fields/fi/index.json', 1800),
   tropo: () => load<TropoIndex>('tropo/nordic/index.json', 1800),
   hf: () => load<HfFile>('hf.json', 1800),
+  space: () => load<SpaceFile>('space.json', 600),
   roads: () => load<RoadsFile>('roads/fi.json', 600),
   nowcast: (id: string) => load<NowcastFile>(`nowcast/${id}.json`, 300),
   sea: () => load<SeaFile>('sea/fi.json', 900),

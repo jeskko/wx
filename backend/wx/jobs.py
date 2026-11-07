@@ -15,6 +15,8 @@ Output layout (all JSON, relative to DATA_DIR):
   grid/fi.json           24 h of wind/cloud/precip/temperature on a 50 km map-space grid
   fields/fi/index.json   24 h of HARMONIE cloud/precip/temperature at 5 km as hourly RGB PNGs
   tropo/nordic/index.json 48 h VHF/UHF tropo (ducting) index from HARMONIE model levels, 3-hourly PNGs
+  space.json             the Sun (active regions on SDO images space/hmi.jpg + space/aia193.jpg), sunspot
+                         number, solar cycle, GOES X-rays/flares/protons, NOAA R/S/G scales
   hf.json                24 h HF band conditions (VOACAP) from central Finland to world regions + D-RAP
   world/index.json       ECMWF temperature/precip/wind rasters per world view (world/<view>/<time>.png)
   world/capitals.json    capitals: latest METAR + 3-day MET Norway forecast
@@ -38,9 +40,9 @@ from typing import Callable
 
 from . import daily as daily_mod
 from . import places as places_mod
-from . import settings
+from . import net, settings
 from .proj import EXTENTS
-from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, hf, metno, nordic, radar, satellites, swpc, tropo, world
+from .sources import aviation, cap, digitraffic, elections, fields, fmi, geonames, grid, hf, metno, nordic, radar, satellites, space, swpc, tropo, world
 from .store import iso, utcnow, write_bytes, write_json
 
 log = logging.getLogger(__name__)
@@ -183,6 +185,47 @@ def job_aurora() -> dict:
         raise RuntimeError("all aurora sources failed")
     write_json("aurora.json", out)
     return {"errors": errors}
+
+
+def job_space() -> dict:
+    now = utcnow()
+    out: dict = {"updated": iso(now)}
+    errors = []
+
+    def sun() -> dict:
+        imgs = space.sun_images()
+        hmi_bytes, hmi = imgs["hmi"]
+        aia_bytes, aia = imgs["aia193"]
+        write_bytes("space/hmi.jpg", hmi_bytes)
+        write_bytes("space/aia193.jpg", aia_bytes)
+        day, regs = space.parse_regions(net.get_json(f"{space.SWPC}/json/solar_regions.json"))
+        placed = space.place_regions(regs, day, hmi["time"], hmi["spots"]) if day else []
+        return {
+            "diskR": space.DISK_R,
+            "images": [
+                {"kind": "hmi", "file": "space/hmi.jpg", "time": iso(hmi["time"])},
+                {"kind": "aia193", "file": "space/aia193.jpg", "time": iso(aia["time"])},
+            ],
+            "regionsDate": day,
+            "regions": placed,
+            "spotGroups": len(hmi["spots"]),
+        }
+
+    def flares() -> list:
+        return space.flares(net.get_json(f"{space.SWPC}/json/goes/primary/xray-flares-7-day.json"), now)
+
+    for key, fn in (("sun", sun), ("ssn", space.daily_ssn), ("f107", space.f107), ("cycle", space.cycle), ("probabilities", space.probabilities),
+                    ("xray", space.xray), ("flares", flares), ("protons", space.protons), ("scales", space.scales)):
+        try:
+            out[key] = fn()
+        except Exception as e:
+            log.warning("space %s failed: %s", key, e)
+            errors.append(key)
+            out[key] = None
+    if len(errors) >= 7:
+        raise RuntimeError(f"space sources failed: {errors}")
+    write_json("space.json", out)
+    return {"errors": errors, "regions": len((out.get("sun") or {}).get("regions") or [])}
 
 
 RADAR_FRAMES = 13  # one hour at 5-min steps
@@ -633,6 +676,7 @@ JOBS: list[Job] = [
     Job("warnings", 10 * 60, job_warnings),
     Job("aviation", 10 * 60, job_aviation),
     Job("aurora", 15 * 60, job_aurora),
+    Job("space", 15 * 60, job_space),
     Job("forecast", 60 * 60, job_forecast),
     Job("radar", 5 * 60, job_radar),
     Job("grid", 60 * 60, job_grid),

@@ -33,6 +33,8 @@ import CloudMap, { type CloudData } from '../slides/CloudMap.svelte';
 import TropoMap, { type TropoData } from '../slides/TropoMap.svelte';
 import Hf, { type HfData } from '../slides/Hf.svelte';
 import Vhf, { type VhfData } from '../slides/Vhf.svelte';
+import Sun, { type SunData } from '../slides/Sun.svelte';
+import SpaceWeather, { type SpaceWxData } from '../slides/SpaceWeather.svelte';
 import RadarMap, { type RadarData } from '../slides/RadarMap.svelte';
 import TempMap, { type TempMapData } from '../slides/TempMap.svelte';
 import WindMap, { type WindData } from '../slides/WindMap.svelte';
@@ -591,6 +593,45 @@ const hfSlide: SlideDef<HfData> = {
   },
 };
 
+const sunSlide: SlideDef<SunData> = {
+  id: 'sun',
+  title: 'slide.sun',
+  scope: 'global',
+  component: Sun,
+  async prepare({ now }) {
+    const f = await soft(api.space());
+    const sun = f?.sun;
+    if (!f || !sun || !sun.images.length) return null;
+    const images = sun.images.filter((im) => now.getTime() - Date.parse(im.time) < 12 * 3600_000);
+    if (!images.length || images[0].kind !== 'hmi') return null;
+    // preload so the crossfade doesn't flash an empty frame
+    const loaded = await Promise.all(
+      images.map(async (im) => {
+        const url = `${DATA_BASE}${im.file}?v=${encodeURIComponent(im.time)}`;
+        const el = new Image();
+        el.src = url;
+        return (await soft(el.decode().then(() => true), 6000)) ? { kind: im.kind, url, time: im.time } : null;
+      }),
+    );
+    const ok = loaded.filter((x): x is NonNullable<typeof x> => !!x);
+    if (!ok.length || ok[0].kind !== 'hmi') return null;
+    return { file: f, images: ok, regions: sun.regions };
+  },
+};
+
+const spaceWeather: SlideDef<SpaceWxData> = {
+  id: 'spaceweather',
+  title: 'slide.spaceweather',
+  scope: 'global',
+  component: SpaceWeather,
+  async prepare({ now }) {
+    const f = await soft(api.space());
+    if (!f || (!f.scales && !f.xray)) return null;
+    if (now.getTime() - Date.parse(f.updated) > 6 * 3600_000) return null;
+    return { file: f };
+  },
+};
+
 // Sporadic-E reference path: Helsinki -> Frankfurt (mid-point over the southern Baltic)
 const ES_PATH = { from: [60.17, 24.94], to: [50.11, 8.68] } as const;
 
@@ -895,7 +936,7 @@ const capital: SlideDef<CapitalData> = {
 };
 
 export const SLIDES: Record<string, SlideDef<any>> = Object.fromEntries(
-  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, hfSlide, tropoMap, vhfSlide, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
+  [current, next36, chart, extended, warnings, radarMap, cloudMap, tempMap, regional, windMap, roadMap, traffic, sea, airQuality, aurora, auroraMap, auroraGlobe, sunSlide, spaceWeather, hfSlide, tropoMap, vhfSlide, aviation, taf, almanac, sky, ...REGIONS.map(regionSlide), capital, credits].map(
     (s) => [s.id, s],
   ),
 );

@@ -32,7 +32,8 @@
     { name: 'MET Norway', what: { fi: 'sadetutkan lyhyt ennuste, ennusteet Suomen ulkopuolelle ja haetuille paikoille', en: 'precipitation nowcast, forecasts outside Finland and for searched places' }, lic: 'CC BY 4.0' },
     { name: 'CelesTrak', what: { fi: 'avaruusasemien ratatiedot (ylilennot lasketaan SGP4-mallilla)', en: 'space station orbital elements (passes computed with SGP4)' }, lic: L === 'fi' ? 'avoin data' : 'open data' },
     { name: 'NOAA Aviation Weather Center', what: { fi: 'METAR, TAF', en: 'METAR, TAF' }, lic: 'public domain' },
-    { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli, auringonpilkkuluku, HF-vaimennus (D-RAP)', en: 'Kp index, auroral oval, solar wind, sunspot number, HF absorption (D-RAP)' }, lic: 'public domain' },
+    { name: 'NOAA Space Weather Prediction Center', what: { fi: 'Kp-indeksi, revontuliovaali, aurinkotuuli, auringonpilkut ja -sykli, purkaukset, röntgen- ja protonivuo, avaruussääasteikot, HF-vaimennus (D-RAP)', en: 'Kp index, auroral oval, solar wind, sunspots and the solar cycle, flares, X-ray and proton flux, space weather scales, HF absorption (D-RAP)' }, lic: 'public domain' },
+    { name: 'NASA / SDO (AIA, HMI)', what: { fi: 'kuvat Auringosta', en: 'images of the Sun' }, lic: L === 'fi' ? 'vapaa käyttö, lähde mainittava' : 'free to use with credit' },
     { name: 'VOACAP · DVOACAP (VE3NEA) · DVOACAP-Python', what: { fi: 'HF-radiokelin ennustemalli', en: 'HF propagation model' }, lic: 'public domain · MIT' },
   ]);
 </script>

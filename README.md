@@ -2,7 +2,7 @@
 
 A cable-TV style weather info-screen built only on open data (FMI, Fintraffic, MET Norway,
 SMHI, DMI, the Estonian and Icelandic weather services, ECMWF via FMI, aviationweather.gov,
-NOAA SWPC, GeoNames, Natural Earth). An auto-advancing loop of
+NOAA SWPC, NASA SDO, GeoNames, Natural Earth). An auto-advancing loop of
 slides with background music, in Finnish and English, with a retro and a modern theme.
 Finland first, with Nordic, continental and world-capital views.
 
@@ -50,6 +50,8 @@ Once per loop:
 | `aurora` | Aurora summary: Kp now/forecast, solar wind, FMI magnetometer traffic lights, chance per city |
 | `auroramap` | OVATION auroral oval over the Nordics |
 | `auroraglobe` | Revontulet maapallolla / Aurora Worldwide: both auroral ovals on polar maps with the night side shaded, Kp now and in 24 h |
+| `sun` | Aurinko / The Sun Today: SDO image (visible light, then extreme UV half-way) with NOAA's numbered active regions placed on the detected sunspot groups and coloured by M-flare chance; sunspot number, F10.7, flare chances, region table and the solar cycle since 2008 with SWPC's prediction |
+| `spaceweather` | Avaruussää / Space Weather: NOAA R/S/G scales now and forecast for 3 days, GOES X-ray flux for 24 h with flares marked, flare counts, biggest flare of the week, proton flux |
 | `aviation`, `taf` | METAR and TAF for the configured airports (scroll when long); optionally decoded into plain Finnish/English (wind in m/s, cloud heights in metres, times in the airport's local time) |
 | `almanac` | Moon phase + sunrise/sunset/day length for chosen cities (handles polar night and midnight sun); flag days, holidays and other special days of the next two weeks |
 | `sky` | Taivaalla tänä yönä / Tonight's Sky: naked-eye planets, Moon, bright stars and constellations over central Finland; meteor showers; visible ISS / Tiangong passes for the first configured Finnish place (tracks drawn on the chart; else the next visible pass) |
@@ -106,6 +108,7 @@ Environment: `WX_DATA_DIR` (default `out/wx/data`), `WX_STATE_DIR` (default `var
 | warnings | 10 min | `warnings/fi.json`: FMI CAP warnings, fi/sv/en text, polygons |
 | aviation | 10 min | `aviation.json`: METAR and TAF |
 | aurora | 15 min | `aurora.json`: Kp observed and forecast, OVATION Nordic grid, solar wind, FI magnetometers; `aurora/ovation.png`: OVATION for both polar caps (8-bit, 360 × 92) |
+| space | 15 min | `space.json` + `space/hmi.jpg`, `space/aia193.jpg`: SDO quick-look images recentred to a common geometry (disk radius 0.4 × 720 px), sunspot groups detected on the HMI continuum and matched to NOAA's active regions (their positions are valid ~00 UT the day after `observed_date`; rotated to image time), daily SWPC sunspot number, F10.7, monthly solar cycle + prediction, flare probabilities, 24 h of GOES X-rays and ≥10 MeV protons (5-min max, log10), C+ flares of the week, NOAA scales |
 | forecast | 60 min | `fc/<place>.json`: hourly and daily (FMI edited forecast; MET Norway outside FMI's area) |
 | radar | 5 min | `radar/fi/index.json` + PNG frames: last hour of FMI radar in EPSG:3067, recoloured; fetched at the native 500 m, saved at 2 km nationally + 250 km windows at 500 m per Finnish place in `radar/local/<place>/` |
 | roads | 15 min | `roads/fi.json`: Digitraffic road condition forecast per road section (projected paths) + road weather stations |
@@ -188,7 +191,7 @@ python3 tools/build_world.py <dir with ne_10m_* and ne_50m_* .geojson> [view id 
 FMI, MET Norway, SMHI, DMI, Fintraffic/Digitraffic (incl. weather camera images), ECMWF
 (via FMI), GeoNames: CC BY 4.0. Wikidata: CC0. Estonian Environment Agency and Icelandic Met Office: open
 data, credited by name (no licence stated for these feeds). aviationweather.gov and NOAA
-SWPC: US public domain. Natural Earth: public domain.
+SWPC: US public domain. NASA SDO images: free to use with credit ("Courtesy of NASA/SDO and the AIA and HMI science teams"). Natural Earth: public domain.
 Music: CC BY 4.0 (credited per track). Planet positions use JPL's published approximate
 Keplerian elements; sun and moon via suncalc (2.x returns degrees, azimuth from north).
 The info-screen has a credits slide listing them.

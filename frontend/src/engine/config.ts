@@ -58,6 +58,8 @@ export const DEFAULT_SLIDES: SlideConf[] = [
   { id: 'aurora', enabled: true, duration: 14 },
   { id: 'auroramap', enabled: true, duration: 12 },
   { id: 'auroraglobe', enabled: true, duration: 12 },
+  { id: 'sun', enabled: true, duration: 16 },
+  { id: 'spaceweather', enabled: true, duration: 14 },
   { id: 'hf', enabled: true, duration: 14 },
   { id: 'tropo', enabled: true, duration: 14 },
   { id: 'vhf', enabled: true, duration: 14 },
