@@ -3,7 +3,8 @@
 A cable-TV style weather info-screen built only on open data (FMI, Fintraffic, MET Norway,
 SMHI, DMI, the Estonian and Icelandic weather services, ECMWF via FMI, aviationweather.gov,
 NOAA SWPC, NASA SDO, GeoNames, Natural Earth). An auto-advancing loop of
-slides with background music, in Finnish and English, with a retro and a modern theme.
+slides with background music, in Finnish and English, with a retro and a modern theme and a
+Teksti-TV (teletext) mode.
 Finland first, with Nordic, continental and world-capital views.
 
 - `backend/`: the **baker**, a Python CLI that fetches upstream data and writes static JSON/PNG/JPEG to `/opt/wx/html/wx/data/`
@@ -83,6 +84,36 @@ The default configuration (what a first-time viewer gets) is `DEFAULT_CONFIG` in
 `frontend/src/engine/config.ts`: Finnish, modern theme, places Helsinki, Oulu, Kuopio,
 Tampere, Turku, Rovaniemi and Stockholm, every slide on, credits last. Slides added in later
 versions are inserted before the credits in viewers' saved configurations.
+
+## Teletext mode
+
+`?theme=teletext` (or Teksti-TV in the settings) shows the same data as an honest Level 1.5
+teletext service (ETS 300 706) on a 4:3 screen, a "Pages from Ceefax"-style in-vision carousel with the music:
+40×25 cells, eight colours, 2×3 block graphics, and every colour, graphics or size change
+spending a character cell. Composers in `frontend/src/teletext/pages/` describe cells; `page.ts`
+compiles them into real page bytes (attributes go into the spaces before a change, hold
+mosaics keep colour fields solid) and `decode.ts` renders them with a decoder's set-at/set-after
+rules, so nothing appears that a real TV couldn't show. Text uses the Finnish/Swedish national
+character set like Yle Teksti-TV (no degree sign: temperatures are `+5`, wind `LU 5`, weather two-letter codes
+explained on page 419) and the public-domain [Bedstead](https://bjh21.me.uk/bedstead/) font.
+
+| Page | | Page | |
+|---|---|---|---|
+| 100 | front page | 428 / 429 | METAR / TAF |
+| 400 | weather index | 430 | sun and moon, special days |
+| 401 | text forecast, a subpage per place | 600 | space and radio index |
+| 402 | observations (16 towns, own places) | 601 | aurora: Kp, solar wind, Kp bars, chance per city |
+| 404 | temperature map (Finland hollow, NOS style) | 603 | space weather: NOAA scales, X-ray flux plot |
+| 405 | 5-day table per place (NOS style) | 610 | HF bands per region, now/+6/+12/+18 h |
+| 409 | warnings | 611 | tropo map: now, +12, +24, +36 h |
+| 419 | abbreviations | 899 | data sources, music |
+
+The carousel runs the front page and then one page per enabled slide in the configured order
+(seconds per subpage = the slide's duration). Type a page number, use ← → (pages), ↑ ↓
+(subpages), R G Y C (Fastext) or click a page number to hold a page; space toggles HOLD; W
+switches between 4:3 and stretched 16:9. After two minutes without input the carousel resumes.
+Slides without a page (radar, cloud and wind maps, roads, sea, sky, world maps …) are not shown
+in this mode.
 
 ## Baker
 

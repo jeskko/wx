@@ -2,14 +2,15 @@
 //
 // URL examples:
 //   /?place=oulu,helsinki&lang=en
-//   /?kiosk=1&slides=current,next36,extended&theme=retro
+//   /?kiosk=1&slides=current,next36,extended&theme=retro   (theme=teletext: Teksti-TV mode)
 //   /?playlist=synth,synthwave   (music playlists, see music/playlists.json)
 //   /?decode=metar,taf   (METAR / TAF in plain language)
 //   /#c=eyJwbGFjZXMiOlsib3VsdSJdfQ   (full config, base64url JSON; see encodeConfig)
 
 import type { Lang, Place } from '../lib/types';
 
-export type Theme = 'retro' | 'modern';
+export type Theme = 'retro' | 'modern' | 'teletext';
+const THEMES: Theme[] = ['retro', 'modern', 'teletext'];
 
 export interface SlideConf {
   id: string;
@@ -138,7 +139,7 @@ export function merge(base: Config, p: Partial<Config> | null | undefined): Conf
   if (!p || typeof p !== 'object') return base;
   const out: Config = structuredClone(base);
   if (p.lang === 'fi' || p.lang === 'en') out.lang = p.lang;
-  if (p.theme === 'retro' || p.theme === 'modern') out.theme = p.theme;
+  if (THEMES.includes(p.theme as Theme)) out.theme = p.theme as Theme;
   if (Array.isArray(p.places) && p.places.length) out.places = p.places.filter((x) => typeof x === 'string');
   if (Array.isArray(p.custom)) out.custom = p.custom.filter(validCustom).slice(0, 30).map(cleanCustom);
   if (Array.isArray(p.airports)) out.airports = p.airports.filter((x) => typeof x === 'string').map((x) => x.toUpperCase());
@@ -212,7 +213,7 @@ export function fromQuery(q: URLSearchParams): Partial<Config> {
   const lang = q.get('lang');
   if (lang === 'fi' || lang === 'en') p.lang = lang;
   const theme = q.get('theme');
-  if (theme === 'retro' || theme === 'modern') p.theme = theme;
+  if (THEMES.includes(theme as Theme)) p.theme = theme as Theme;
   const place = q.get('place') ?? q.get('places');
   if (place) p.places = place.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   const ap = q.get('airports');

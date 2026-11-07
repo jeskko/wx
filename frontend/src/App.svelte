@@ -3,6 +3,7 @@
   import Header from './components/Header.svelte';
   import Settings from './components/Settings.svelte';
   import Ticker from './components/Ticker.svelte';
+  import Teletext from './teletext/Teletext.svelte';
   import { MusicPlayer, loadPlaylist, type MusicState } from './engine/audio';
   import { loadConfig, saveConfig, slideOnFor, type Config } from './engine/config';
   import { SLIDES } from './engine/registry';
@@ -73,7 +74,14 @@
     return seq;
   });
 
+  /** Teletext mode runs its own page carousel (teletext/Teletext.svelte). */
+  const teletext = $derived(config.theme === 'teletext');
+
   async function go(dir: 1 | -1 = 1) {
+    if (config.theme === 'teletext') {
+      clearTimeout(timer);
+      return;
+    }
     if (busy || !sequence.length) return;
     busy = true;
     clearTimeout(timer);
@@ -162,6 +170,8 @@
       return;
     }
     if (!started) return;
+    // teletext handles its own navigation keys
+    if (teletext && ['ArrowRight', 'ArrowLeft', ' '].includes(e.key)) return;
     switch (e.key) {
       case 'ArrowRight':
         void go(1);
@@ -246,6 +256,11 @@
 <svelte:window onkeydown={onKey} />
 
 <div class="viewport">
+  {#if teletext}
+    {#if started}
+      <Teletext {config} places={places.length ? places : allPlaces.slice(0, 1)} />
+    {/if}
+  {:else}
   <div class="stage" style:transform={`translate(-50%, -50%) scale(${scale})`}>
     <Header {title} {subtitle} lang={config.lang} {tz} />
     <main class="body">
@@ -266,6 +281,7 @@
     </main>
     <Ticker lang={config.lang} place={places[0] ?? null} />
   </div>
+  {/if}
   {#if !config.kiosk}
     <div class="controls">
       <a class="gh" href="https://github.com/jeskko/wx" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub">

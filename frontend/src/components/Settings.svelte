@@ -133,6 +133,7 @@
         <select bind:value={c.theme}>
           <option value="retro">Retro</option>
           <option value="modern">{L === 'fi' ? 'Moderni' : 'Modern'}</option>
+          <option value="teletext">{L === 'fi' ? 'Teksti-TV' : 'Teletext'}</option>
         </select>
       </label>
       <label>
