@@ -4,7 +4,11 @@
 # group-write on /opt/wx/code and /opt/wx/html/wx.
 set -euo pipefail
 
-HOST="${WX_HOST:-172.16.173.100}"
+# The server comes from $WX_HOST, or from deploy/deploy.env (not in git), e.g.
+#   WX_HOST=user@server.example
+ENV_FILE="$(dirname "$0")/deploy.env"
+[ -z "${WX_HOST:-}" ] && [ -f "$ENV_FILE" ] && . "$ENV_FILE"
+HOST="${WX_HOST:?set WX_HOST or create deploy/deploy.env with WX_HOST=<ssh host>}"
 CODE=/opt/wx/code
 DATA=/opt/wx/html/wx/data
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

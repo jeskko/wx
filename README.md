@@ -155,7 +155,11 @@ and Shane Ivers, all CC BY 4.0). `python3 music/fetch.py` downloads
 the audio (not in git). Users pick playlists in the settings or with `?playlist=synth,synthwave`; the
 selected tracks are credited on the Data Sources slide automatically.
 
-## Server (172.16.173.100)
+## Server
+
+`deploy/deploy.sh` deploys over ssh to the host in `$WX_HOST`, or in `deploy/deploy.env`
+(`WX_HOST=<ssh host>`, not in git). The layout it expects on the server:
+
 
 - Code: `/opt/wx/code/backend`, venv `/opt/wx/code/venv`, state `/opt/wx/code/var`
 - Output: `/opt/wx/html/wx/data` (served by nginx as `https://wx.fi/wx/data/…`)
@@ -166,9 +170,9 @@ selected tracks are credited on the Data Sources slide automatically.
 ```sh
 ./deploy/deploy.sh                                              # build + sync everything, update venv (no sudo)
 SKIP_FRONTEND=1 ./deploy/deploy.sh                              # backend only
-ssh 172.16.173.100 sudo systemctl --user -M wx@ daemon-reload   # only after unit file changes
-ssh 172.16.173.100 sudo systemctl --user -M wx@ list-timers
-ssh 172.16.173.100 sudo journalctl _SYSTEMD_USER_UNIT=wx-bake.service -n 50
+ssh "$WX_HOST" sudo systemctl --user -M wx@ daemon-reload   # only after unit file changes
+ssh "$WX_HOST" sudo systemctl --user -M wx@ list-timers
+ssh "$WX_HOST" sudo journalctl _SYSTEMD_USER_UNIT=wx-bake.service -n 50
 curl -s https://wx.fi/wx/data/health.json
 ```
 
@@ -195,3 +199,10 @@ SWPC: US public domain. NASA SDO images: free to use with credit ("Courtesy of N
 Music: CC BY 4.0 (credited per track). Planet positions use JPL's published approximate
 Keplerian elements; sun and moon via suncalc (2.x returns degrees, azimuth from north).
 The info-screen has a credits slide listing them.
+
+## Licence
+
+The code is MIT-licensed (see `LICENSE`). `backend/wx/vendor/dvoacap/` is DVOACAP-Python, also
+MIT, with its own `LICENSE` and `NOTICE`. The licence covers the code only: the data, images and
+music the site uses keep their own terms (see Data licences above), and it grants no rights to
+the name wx.fi.

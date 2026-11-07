@@ -1,6 +1,7 @@
 [project]
 name = "wx"
 version = "0.1.0"
+license = "MIT"
 description = "wx.fi data baker: fetches open weather data and writes static JSON for the info-screen"
 requires-python = ">=3.13"
 dependencies = [
@@ -18,7 +19,7 @@ dev = ["pytest>=8"]
 wx = "wx.__main__:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
