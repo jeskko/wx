@@ -9,3 +9,4 @@ frontend/dist/
 frontend/shots/
 music/*.mp3
 deploy/deploy.env
+build/
