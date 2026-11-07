@@ -115,6 +115,16 @@ switches between 4:3 and stretched 16:9. After two minutes without input the car
 Slides without a page (radar, cloud and wind maps, roads, sea, sky, world maps …) are not shown
 in this mode.
 
+The layouts follow what real services did with the same constraints: Yle Teksti-TV for the
+number and word conventions (signed temperatures, compass letters, condition codes, a legend
+page), NOS Teletekst 702/704 for the hollow country map with numbers in it and the 5-day table,
+SwissTXT for separated-mosaic level bars, Ceefax/Pages from Ceefax for the in-vision carousel.
+No broadcaster had HF, tropo or space weather pages; those are our own, built from the same
+parts (coloured blocks per band, a mosaic map coloured by index with the coast drawn on top,
+block-graphic bar charts and plots). `npm test` covers the encoder and decoder
+(`teletext.test.ts`): attribute placement, background bars, double height, hold mosaics,
+character set transliteration.
+
 ## Baker
 
 ```sh
@@ -167,7 +177,7 @@ previous output files stay in place.
 cd frontend
 npm install
 npm run dev        # http://localhost:5173/wx/app/  (data proxied from https://wx.fi; WX_DATA_ORIGIN to override)
-npm test           # vitest: text forecast, config, projections, rasters, nowcast, sky (vs. JPL Horizons), place search, MET Norway port
+npm test           # vitest: text forecast, config, projections, rasters, nowcast, sky (vs. JPL Horizons), place search, MET Norway port, teletext encoder/decoder
 npm run check      # svelte-check / TypeScript
 npm run build      # dist/index.html (site root) + dist/app/ (served at /wx/app/)
 npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot every slide
@@ -175,7 +185,8 @@ npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot ever
 
 URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0&playlist=synth&decode=metar,taf`,
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
-Keys: ← → browse, space pause, M music on/off, N next track, F fullscreen, S settings.
+Themes: `retro`, `modern` (default) and `teletext` (https://wx.fi/?theme=teletext, see Teletext mode).
+Keys: ← → browse, space pause, M music on/off, N next track, F fullscreen, S settings (teletext mode adds its own, see above).
 The corner buttons (GitHub link, ♫, ⏭, ⛶, ⚙) are hidden in kiosk mode; music starts on its own when the
 browser allows it, otherwise on the first click or key press.
 
