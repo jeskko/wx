@@ -145,7 +145,7 @@ npm run shots -- https://wx.fi/ shots   # Playwright smoke test: screenshot ever
 URL options: `?place=oulu,helsinki&lang=en&theme=modern&slides=current,aurora&kiosk=1&music=0&playlist=synth&decode=metar,taf`,
 or a full config as `#c=<base64url JSON>` (the settings dialog has "Copy share link").
 Keys: ← → browse, space pause, M music on/off, N next track, F fullscreen, S settings.
-The corner buttons (♫, ⏭, ⛶, ⚙) are hidden in kiosk mode; music starts on its own when the
+The corner buttons (GitHub link, ♫, ⏭, ⛶, ⚙) are hidden in kiosk mode; music starts on its own when the
 browser allows it, otherwise on the first click or key press.
 
 Music: playlists live in `music/playlists.json`
